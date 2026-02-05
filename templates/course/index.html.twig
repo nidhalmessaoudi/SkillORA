@@ -1,0 +1,71 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Courses | SkillORA{% endblock %}
+
+{% block body %}
+<section class="py-10">
+  <div class="container mx-auto px-4">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-display-sm font-heading">Courses</h1>
+        <p class="text-body-sm text-navy-600 dark:text-navy-300 mt-1">Create and manage your courses.</p>
+      </div>
+
+      <a href="{{ path('course_new') }}" class="btn-primary inline-flex items-center gap-2">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        New course
+      </a>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {% for c in courses %}
+        <div class="card p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold">{{ c.title }}</h3>
+              <div class="mt-2 inline-flex items-center gap-2">
+                <span class="badge">
+                  {{ c.status|default('draft') }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <a href="{{ path('course_builder', {id: c.id}) }}" class="btn-secondary px-3 py-2" title="Builder">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+              </a>
+              <a href="{{ path('course_edit', {id: c.id}) }}" class="btn-secondary px-3 py-2" title="Edit">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </a>
+            </div>
+          </div>
+
+          {% if c.description %}
+            <p class="mt-4 text-body-sm text-navy-600 dark:text-navy-300 line-clamp-3">{{ c.description }}</p>
+          {% else %}
+            <p class="mt-4 text-body-sm text-navy-500 dark:text-navy-400 italic">No description yet.</p>
+          {% endif %}
+
+          <div class="mt-6 flex items-center justify-between">
+            <a href="{{ path('course_show', {id: c.id}) }}" class="text-harbor-600 hover:text-harbor-700 font-medium inline-flex items-center gap-2">
+              View details <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+
+            <form method="post" action="{{ path('course_delete', {id: c.id}) }}" onsubmit="return confirm('Delete this course?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete_course_' ~ c.id) }}">
+              <button type="submit" class="btn-danger px-3 py-2 inline-flex items-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="card p-8 col-span-full">
+          <p class="text-body-sm text-navy-600 dark:text-navy-300">No courses yet. Create your first course.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

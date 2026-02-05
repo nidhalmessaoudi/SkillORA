@@ -1,0 +1,99 @@
+{% extends 'layouts/base.html.twig' %}
+{% block title %}Curriculum Builder | SkillORA{% endblock %}
+
+{% block body %}
+<section class="py-10">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-display-sm font-heading">Curriculum Builder</h1>
+        <p class="text-body-sm text-navy-600 dark:text-navy-300 mt-1">
+          {{ course.title }} <span class="mx-2 text-navy-400">•</span>
+          <span class="badge">{{ course.status }}</span>
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <a href="{{ path('course_edit', {id: course.id}) }}" class="btn-secondary">Edit course</a>
+        <a href="{{ path('course_index') }}" class="btn-secondary">All courses</a>
+      </div>
+    </div>
+
+    <div class="mt-8 flex items-center justify-between">
+      <h2 class="text-xl font-semibold">Sections</h2>
+      <a href="{{ path('section_new', {courseId: course.id}) }}" class="btn-primary inline-flex items-center gap-2">
+        <i data-lucide="plus" class="w-4 h-4"></i> Add section
+      </a>
+    </div>
+
+    <div class="mt-4 space-y-4">
+      {% set sections = course.sections|default([]) %}
+
+      {% for s in sections|sort((a,b) => a.position <=> b.position) %}
+        <div class="card p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="text-xs text-navy-500 dark:text-navy-400">Section {{ s.position }}</div>
+              <h3 class="text-lg font-semibold mt-1">{{ s.title }}</h3>
+            </div>
+
+            <div class="flex gap-2">
+              <a href="{{ path('lesson_new', {sectionId: s.id}) }}" class="btn-secondary inline-flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i> Lesson
+              </a>
+              <a href="{{ path('section_edit', {id: s.id}) }}" class="btn-secondary" title="Edit section">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </a>
+
+              <form method="post" action="{{ path('section_delete', {id: s.id}) }}" onsubmit="return confirm('Delete this section?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_section_' ~ s.id) }}">
+                <button class="btn-danger" title="Delete section">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <h4 class="text-sm font-semibold text-navy-700 dark:text-navy-200">Lessons</h4>
+
+            {% set lessons = s.lessons|default([]) %}
+            {% if lessons|length == 0 %}
+              <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-2">No lessons yet.</p>
+            {% else %}
+              <div class="mt-3 divide-y divide-navy-100 dark:divide-navy-800">
+                {% for l in lessons|sort((a,b) => a.position <=> b.position) %}
+                  <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="text-xs text-navy-500 dark:text-navy-400">
+                        Lesson {{ l.position }} • {{ l.type|upper }}
+                      </div>
+                      <div class="font-medium truncate">{{ l.title }}</div>
+                    </div>
+
+                    <div class="flex gap-2">
+                      <a href="{{ path('lesson_edit', {id: l.id}) }}" class="btn-secondary" title="Edit lesson">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </a>
+                      <form method="post" action="{{ path('lesson_delete', {id: l.id}) }}" onsubmit="return confirm('Delete this lesson?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ l.id) }}">
+                        <button class="btn-danger" title="Delete lesson">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="card p-8">
+          <p class="text-body-sm text-navy-600 dark:text-navy-300">No sections yet. Add your first section.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

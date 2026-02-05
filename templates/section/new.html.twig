@@ -1,0 +1,29 @@
+{% extends 'layouts/base.html.twig' %}
+{% block title %}New Section | SkillORA{% endblock %}
+
+{% block body %}
+<section class="py-10">
+  <div class="container mx-auto px-4 max-w-3xl">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-display-sm font-heading">Add section</h1>
+        <p class="text-body-sm text-navy-600 dark:text-navy-300 mt-1">Course: {{ course.title }}</p>
+      </div>
+      <a href="{{ path('course_builder', {id: course.id}) }}" class="btn-secondary">Back</a>
+    </div>
+
+    <div class="card p-6 mt-6">
+      {{ form_start(form) }}
+        <div class="grid gap-4">
+          {{ form_row(form.title) }}
+          {{ form_row(form.position) }}
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <a href="{{ path('course_builder', {id: course.id}) }}" class="btn-secondary">Cancel</a>
+          <button class="btn-primary">Save</button>
+        </div>
+      {{ form_end(form) }}
+    </div>
+  </div>
+</section>
+{% endblock %}

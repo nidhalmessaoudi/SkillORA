@@ -1,0 +1,39 @@
+{% extends 'layouts/base.html.twig' %}
+{% block title %}Edit Lesson | SkillORA{% endblock %}
+
+{% block body %}
+<section class="py-10">
+  <div class="container mx-auto px-4 max-w-3xl">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-display-sm font-heading">Edit lesson</h1>
+        <p class="text-body-sm text-navy-600 dark:text-navy-300 mt-1">{{ lesson.title }}</p>
+      </div>
+      <a href="{{ path('course_builder', {id: lesson.section.course.id}) }}" class="btn-secondary">Back</a>
+    </div>
+
+    <div class="card p-6 mt-6">
+      {{ form_start(form) }}
+        <div class="grid gap-4">
+          {{ form_row(form.title) }}
+          {{ form_row(form.type) }}
+          {{ form_row(form.content) }}
+          {{ form_row(form.filePath) }}
+          {{ form_row(form.position) }}
+        </div>
+
+        <div class="mt-6 flex items-center justify-between">
+          <form method="post" action="{{ path('lesson_delete', {id: lesson.id}) }}" onsubmit="return confirm('Delete this lesson?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
+            <button class="btn-danger inline-flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+            </button>
+          </form>
+
+          <button class="btn-primary">Update</button>
+        </div>
+      {{ form_end(form) }}
+    </div>
+  </div>
+</section>
+{% endblock %}
