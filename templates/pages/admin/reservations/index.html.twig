@@ -1,0 +1,75 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Reservations - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Reservations</h1>
+        <p class="text-body-md text-navy-600 dark:text-navy-400">Manage event reservations.</p>
+    </div>
+    
+</div>
+
+<div class="card">
+    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">All Reservations ({{ reservation_total }})</h2>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-navy-50 dark:bg-navy-900/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Event</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Salle</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Places</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+                {% for reservation in reservations %}
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">#{{ reservation.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-900 dark:text-white">
+                        {% set event = event_map[reservation.eventId]|default(null) %}
+                        {{ event ? event.title : 'Unknown' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                        {% set salle = salle_map[reservation.salleId]|default(null) %}
+                        {{ salle ? salle.name : 'Unknown' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                        {{ reservation.prenom }} {{ reservation.nom }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">{{ reservation.nombrePlaces }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">{{ reservation.dateReservation|date('M d, Y H:i') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ path('admin_reservations_show', {id: reservation.id}) }}" class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">View</a>
+                            <a href="{{ path('admin_reservations_edit', {id: reservation.id}) }}" class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">Edit</a>
+                            <form method="post" action="{{ path('admin_reservations_delete', {id: reservation.id}) }}" onsubmit="return confirmDelete('Delete this reservation?');">
+                                <button type="submit" class="btn-sm bg-danger-100 text-danger-600 hover:bg-danger-200">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i data-lucide="ticket" class="w-full h-full"></i>
+                            </div>
+                            <p class="text-navy-500">No reservations found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

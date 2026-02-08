@@ -1,0 +1,229 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Salle - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Edit Salle</h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">Update salle details.</p>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+    <div class="card p-6 space-y-4">
+        <div>
+            <label class="input-label" for="name">Name</label>
+            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}" required>
+        </div>
+
+        <div>
+            <label class="input-label" for="location">Location</label>
+            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}" required>
+            <input type="hidden" id="location_lat" name="location_lat" value="{{ form_data.location_lat|default('') }}">
+            <input type="hidden" id="location_lng" name="location_lng" value="{{ form_data.location_lng|default('') }}">
+            <div id="location-suggestions" class="mt-2 space-y-1"></div>
+            <div id="location-map" class="mt-3 h-64 w-full rounded-xl border border-navy-200 dark:border-navy-700 overflow-hidden"></div>
+            <p class="input-hint">Type an address or click on the map to set location.</p>
+        </div>
+
+        {# ✅ NOUVEAU CHAMP EVENT EN LECTURE SEULE #}
+        <div>
+            <label class="input-label" for="event_display">Event</label>
+            
+            {% if form_data.event_id and form_data.event_title %}
+                {# Si un événement est associé, afficher son titre en readonly #}
+                <div class="relative">
+                    <input 
+                        id="event_display" 
+                        type="text" 
+                        class="input bg-navy-50 dark:bg-navy-800 cursor-not-allowed" 
+                        value="{{ form_data.event_title }}" 
+                        readonly
+                        disabled>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                </div>
+                {# Input hidden pour envoyer l'ID au backend #}
+                <input type="hidden" name="event_id" value="{{ form_data.event_id }}">
+                <p class="input-hint flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Linked to event: <strong>{{ form_data.event_title }}</strong>
+                </p>
+            {% else %}
+                {# Si aucun événement n'est associé #}
+                <div class="relative">
+                    <input 
+                        id="event_display" 
+                        type="text" 
+                        class="input bg-navy-50 dark:bg-navy-800 cursor-not-allowed text-navy-400" 
+                        value="No event selected" 
+                        readonly
+                        disabled>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                    </div>
+                </div>
+                {# Input hidden vide (pas d'événement) #}
+                <input type="hidden" name="event_id" value="">
+                <p class="input-hint flex items-center gap-2 text-navy-500 dark:text-navy-400">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    This salle is not linked to any event.
+                </p>
+            {% endif %}
+            
+            <p class="input-hint mt-2">
+                <strong>Note:</strong> Event association cannot be changed from this form. Please manage event assignments from the Events section.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="input-label" for="max_participants">Max Participants</label>
+                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}" required>
+            </div>
+            <div>
+                <label class="input-label" for="duration">Duration (minutes)</label>
+                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}" required>
+            </div>
+        </div>
+
+        <div>
+            <label class="input-label" for="image_3d">3D Model (.glb/.gltf)</label>
+            <input id="image_3d" name="image_3d" type="file" accept=".glb,.gltf" class="input">
+            <p class="input-hint">Upload a new 3D model to replace the current one.</p>
+        </div>
+
+        {% if form_data.image_3d %}
+        <div>
+            <p class="input-hint">Current model is set.</p>
+        </div>
+        {% endif %}
+
+        <div>
+            <label class="input-label" for="equipment">Equipment</label>
+            <textarea id="equipment" name="equipment" class="textarea" rows="4">{{ form_data.equipment|default('') }}</textarea>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{{ path('admin_salles_show', {id: salle.id}) }}" class="btn-ghost btn-sm">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    (function() {
+        const input = document.getElementById('location');
+        const latInput = document.getElementById('location_lat');
+        const lngInput = document.getElementById('location_lng');
+        const suggestions = document.getElementById('location-suggestions');
+        const mapEl = document.getElementById('location-map');
+
+        if (!input || !latInput || !lngInput || !suggestions || !mapEl || typeof L === 'undefined') {
+            return;
+        }
+
+        const map = L.map(mapEl).setView([36.8065, 10.1815], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker = null;
+
+        const setMarker = (lat, lng) => {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            map.setView([lat, lng], 14);
+        };
+
+        const setLatLng = (lat, lng) => {
+            latInput.value = String(lat);
+            lngInput.value = String(lng);
+            setMarker(lat, lng);
+        };
+
+        const clearSuggestions = () => {
+            suggestions.innerHTML = '';
+        };
+
+        const renderSuggestions = (items) => {
+            clearSuggestions();
+            items.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-full text-left px-3 py-2 rounded bg-navy-50 dark:bg-navy-800 text-sm hover:bg-navy-100 dark:hover:bg-navy-700';
+                btn.textContent = item.display_name;
+                btn.addEventListener('click', () => {
+                    input.value = item.display_name;
+                    setLatLng(item.lat, item.lon);
+                    clearSuggestions();
+                });
+                suggestions.appendChild(btn);
+            });
+        };
+
+        let debounceId = null;
+        input.addEventListener('input', () => {
+            const query = input.value.trim();
+            clearTimeout(debounceId);
+            if (query.length < 3) {
+                clearSuggestions();
+                return;
+            }
+            debounceId = setTimeout(() => {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        renderSuggestions(data);
+                    })
+                    .catch(() => {
+                        clearSuggestions();
+                    });
+            }, 250);
+        });
+
+        map.on('click', (event) => {
+            const { lat, lng } = event.latlng;
+            setLatLng(lat.toFixed(6), lng.toFixed(6));
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data.display_name) {
+                        input.value = data.display_name;
+                    }
+                })
+                .catch(() => {});
+        });
+
+        if (latInput.value && lngInput.value) {
+            setMarker(parseFloat(latInput.value), parseFloat(lngInput.value));
+        } else if (input.value.trim().length >= 3) {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input.value.trim())}&limit=1`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data[0]) {
+                        setLatLng(data[0].lat, data[0].lon);
+                    }
+                })
+                .catch(() => {});
+        }
+    })();
+</script>
+{% endblock %}

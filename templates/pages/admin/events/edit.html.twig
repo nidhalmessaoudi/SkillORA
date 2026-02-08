@@ -1,0 +1,300 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Event - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Edit Event</h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">Update event and salle details.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-6 space-y-4">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Event Details</h2>
+
+            <div>
+                <label class="input-label" for="title">Title</label>
+                <input id="title" name="title" type="text" class="input" value="{{ form_data.title|default('') }}" required>
+            </div>
+
+            <div>
+                <label class="input-label" for="description">Description</label>
+                <textarea id="description" name="description" class="textarea" rows="4">{{ form_data.description|default('') }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="start_date">Start Date</label>
+                    <input id="start_date" name="start_date" type="datetime-local" class="input" value="{{ form_data.start_date|default('') }}" required>
+                </div>
+                <div>
+                    <label class="input-label" for="end_date">End Date</label>
+                    <input id="end_date" name="end_date" type="datetime-local" class="input" value="{{ form_data.end_date|default('') }}" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="event_type">Event Type</label>
+                    <select id="event_type" name="event_type" class="select" required></select>
+                    <div class="mt-2 flex items-center gap-2">
+                        <input id="event_type_new" type="text" class="input" placeholder="Add new type">
+                        <button type="button" id="event_type_add" class="btn-secondary btn-sm">Add</button>
+                    </div>
+                    <div id="event_type_list" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="input-label" for="price_type">Prix</label>
+                    <select id="price_type" name="price_type" class="input" required>
+                        <option value="">Selectionnez un type</option>
+                        <option value="gratuit" {% if form_data.price_type == 'gratuit' %}selected{% endif %}>Gratuit</option>
+                        <option value="payant" {% if form_data.price_type == 'payant' %}selected{% endif %}>Payant</option>
+                    </select>
+                </div>
+
+                <div id="price-field" class="space-y-2" style="display: none;">
+                    <label class="input-label" for="price">Prix</label>
+                    <div class="flex items-center gap-2">
+                        <input id="price" name="price" type="number" step="0.01" min="0" class="input" value="{{ form_data.price|default('') }}" placeholder="Entrez le prix">
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="input-label" for="media">Image or Video Upload</label>
+                <input id="media" name="media" type="file" accept="image/*,video/*" class="input">
+                <p class="input-hint">Upload a new file to replace the current media.</p>
+            </div>
+
+            {% if form_data.image is not empty %}
+            <div>
+                <p class="input-hint">Current media</p>
+                {% if form_data.image matches '/\.(mp4|webm|ogg)$/i' %}
+                    <video class="w-48 rounded-xl border border-navy-200" controls src="{{ form_data.image }}"></video>
+                {% else %}
+                    <img class="w-32 h-20 object-cover rounded-xl border border-navy-200" src="{{ form_data.image }}" alt="Current event media">
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div id="media-preview" class="hidden">
+                <p class="input-hint">Preview</p>
+                <img id="media-preview-image" class="hidden w-32 h-20 object-cover rounded-xl border border-navy-200" alt="Selected media preview">
+                <video id="media-preview-video" class="hidden w-48 rounded-xl border border-navy-200" controls></video>
+            </div>
+        </div>
+
+        <div class="card p-6 space-y-4">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Salle Details</h2>
+
+            <div>
+                <label class="input-label" for="salle_name">Salle Name</label>
+                <input id="salle_name" name="salle_name" type="text" class="input" value="{{ form_data.salle_name|default('') }}" required>
+            </div>
+
+            <div>
+                <label class="input-label" for="salle_location">Location</label>
+                <input id="salle_location" name="salle_location" type="text" class="input" value="{{ form_data.salle_location|default('') }}" required>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="salle_max_participants">Max Participants</label>
+                    <input id="salle_max_participants" name="salle_max_participants" type="number" min="1" class="input" value="{{ form_data.salle_max_participants|default('') }}" required>
+                </div>
+                <div>
+                    <label class="input-label" for="salle_duration">Duration (minutes)</label>
+                    <input id="salle_duration" name="salle_duration" type="number" min="1" class="input" value="{{ form_data.salle_duration|default('') }}" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="input-label" for="salle_image_3d">3D Model (.glb/.gltf)</label>
+                <input id="salle_image_3d" name="salle_image_3d" type="file" accept=".glb,.gltf" class="input">
+                <p class="input-hint">Upload a new 3D model to replace the current one.</p>
+            </div>
+
+            {% if form_data.salle_image_3d %}
+            <div>
+                <p class="input-hint">Current 3D model is set.</p>
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="input-label" for="salle_equipment">Equipment</label>
+                <textarea id="salle_equipment" name="salle_equipment" class="textarea" rows="4">{{ form_data.salle_equipment|default('') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{{ path('admin_events_show', {id: event.id}) }}" class="btn-ghost btn-sm">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    (function() {
+        const priceType = document.getElementById('price_type');
+        const priceField = document.getElementById('price-field');
+        const priceInput = document.getElementById('price');
+        const priceAdd = document.getElementById('price_add');
+
+        if (!priceType || !priceField) {
+            return;
+        }
+
+        const togglePriceField = () => {
+            const isPaid = priceType.value === 'payant';
+            priceField.style.display = isPaid ? 'block' : 'none';
+            if (priceInput) {
+                priceInput.required = isPaid;
+                if (!isPaid) {
+                    priceInput.value = '';
+                }
+            }
+        };
+
+        priceType.addEventListener('change', togglePriceField);
+        togglePriceField();
+
+        if (priceAdd) {
+            priceAdd.addEventListener('click', () => {
+                if (priceInput) {
+                    priceInput.focus();
+                }
+            });
+        }
+    })();
+
+    (function() {
+        const input = document.getElementById('media');
+        const preview = document.getElementById('media-preview');
+        const previewImage = document.getElementById('media-preview-image');
+        const previewVideo = document.getElementById('media-preview-video');
+
+        if (!input || !preview || !previewImage || !previewVideo) {
+            return;
+        }
+
+        input.addEventListener('change', function() {
+            const file = input.files && input.files[0];
+            if (!file) {
+                preview.classList.add('hidden');
+                previewImage.classList.add('hidden');
+                previewVideo.classList.add('hidden');
+                previewImage.src = '';
+                previewVideo.src = '';
+                return;
+            }
+
+            const url = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+
+            if (file.type.startsWith('image/')) {
+                previewImage.src = url;
+                previewImage.classList.remove('hidden');
+                previewVideo.classList.add('hidden');
+                previewVideo.src = '';
+                return;
+            }
+
+            if (file.type.startsWith('video/')) {
+                previewVideo.src = url;
+                previewVideo.classList.remove('hidden');
+                previewImage.classList.add('hidden');
+                previewImage.src = '';
+            }
+        });
+    })();
+
+    (function() {
+        const select = document.getElementById('event_type');
+        const addInput = document.getElementById('event_type_new');
+        const addButton = document.getElementById('event_type_add');
+        const list = document.getElementById('event_type_list');
+        const initialValue = '{{ form_data.event_type|default('')|e('js') }}';
+
+        if (!select || !addInput || !addButton || !list) {
+            return;
+        }
+
+        const types = ['Hackathon', 'Formation', 'Workshop'];
+        if (initialValue && !types.includes(initialValue)) {
+            types.push(initialValue);
+        }
+
+        const render = () => {
+            select.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select type...';
+            select.appendChild(placeholder);
+
+            types.forEach((type) => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (type === initialValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            list.innerHTML = '';
+            types.forEach((type) => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.textContent = type;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'ml-2 text-navy-500 hover:text-danger-500';
+                remove.textContent = 'x';
+                remove.dataset.type = type;
+
+                chip.appendChild(remove);
+                list.appendChild(chip);
+            });
+        };
+
+        addButton.addEventListener('click', () => {
+            const value = addInput.value.trim();
+            if (!value || types.includes(value)) {
+                return;
+            }
+
+            types.push(value);
+            addInput.value = '';
+            render();
+            select.value = value;
+        });
+
+        list.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const type = target.dataset.type;
+            if (!type) {
+                return;
+            }
+
+            const index = types.indexOf(type);
+            if (index >= 0) {
+                types.splice(index, 1);
+                if (select.value === type) {
+                    select.value = '';
+                }
+                render();
+            }
+        });
+
+        render();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Events - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+    <div class="container-wide py-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+                <h1 class="font-display font-bold text-display-md text-navy-900 dark:text-white mb-2">Events</h1>
+                <p class="text-body-md text-navy-600 dark:text-navy-400">Discover upcoming events and their salles.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <label class="input-label mb-0" for="event-type-filter">Filter by type</label>
+                <select id="event-type-filter" class="select">
+                    <option value="">All types</option>
+                    {% for type in event_types %}
+                        <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        {% for type in event_types %}
+            {% set hasType = false %}
+            {% for event in events %}
+                {% if event.eventType == type %}
+                    {% set hasType = true %}
+                {% endif %}
+            {% endfor %}
+
+            {% if hasType %}
+            <section class="mb-10" data-type-section="{{ type }}">
+                <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white mb-6">{{ type }}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {% for event in events %}
+                        {% if event.eventType == type %}
+                        <article class="group bg-white dark:bg-navy-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col" data-event-type="{{ event.eventType }}">
+                            {# Image header #}
+                            {% if event.image %}
+                            <div class="relative w-full h-48 overflow-hidden bg-navy-100 dark:bg-navy-700">
+                                {% if event.image matches '/\.(mp4|webm|ogg)$/i' %}
+                                    <video class="w-full h-full object-cover" controls src="{{ event.image }}"></video>
+                                {% else %}
+                                    <img
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        src="{{ event.image }}"
+                                        alt="{{ event.title }}"
+                                        loading="lazy">
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {# Card content #}
+                            <div class="p-5 flex flex-col flex-grow">
+                                {# Title #}
+                                <h3 class="text-heading-md font-display font-bold text-navy-900 dark:text-white mb-2 line-clamp-2">
+                                    {{ event.title }}
+                                </h3>
+
+                                {# Description #}
+                                {% if event.description %}
+                                <p class="text-body-sm text-navy-600 dark:text-navy-300 mb-4 line-clamp-2">
+                                    {{ event.description }}
+                                </p>
+                                {% endif %}
+
+                                {# Location - Lieu #}
+                                {% set salle = salle_map[event.salleId]|default(null) %}
+                                <div class="mb-3">
+                                    <p class="text-body-sm font-semibold text-red-500 mb-1">
+                                        <i data-lucide="map-pin" class="w-4 h-4 inline-block mr-1"></i>
+                                        Lieu : {{ salle ? salle.location : 'National' }}
+                                    </p>
+                                </div>
+
+                                {# Date #}
+                                <div class="mb-3">
+                                    <p class="text-body-sm text-navy-600 dark:text-navy-400">
+                                        <i data-lucide="calendar" class="w-4 h-4 inline-block mr-1"></i>
+                                        <span class="font-medium">Date :</span> {{ event.startDate|date('Y-m-d') }}
+                                    </p>
+                                </div>
+
+                                {# Price #}
+                                <div class="mb-3">
+                                    <p class="text-body-sm text-navy-600 dark:text-navy-400">
+                                        <i data-lucide="tag" class="w-4 h-4 inline-block mr-1"></i>
+                                        <span class="font-medium">Prix :</span> 
+                                        {% if event.priceType == 'gratuit' %}
+                                            <span class="text-green-600 font-semibold">Gratuit</span>
+                                        {% elseif event.priceType == 'payant' %}
+                                            <span class="font-semibold">Payant</span>
+                                        {% else %}
+                                            <span class="font-semibold">{{ event.priceType|default('N/A') }}</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                {# Max participants #}
+                                {% if salle and salle.maxParticipants %}
+                                <div class="mb-4">
+                                    <p class="text-body-sm text-navy-600 dark:text-navy-400">
+                                        <i data-lucide="users" class="w-4 h-4 inline-block mr-1"></i>
+                                        <span class="font-medium">Participants max :</span> {{ salle.maxParticipants }}
+                                    </p>
+                                </div>
+                                {% endif %}
+
+                                {# Spacer #}
+                                <div class="flex-grow"></div>
+
+                                {# Footer with salle link #}
+                                <div class="border-t border-navy-100 dark:border-navy-700 pt-4 mt-4">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="text-body-xs text-navy-500 dark:text-navy-400 truncate">
+                                            <span class="font-medium">Salle:</span> {{ salle ? salle.name : 'Unassigned' }}
+                                        </div>
+                                        <a
+                                            href="{{ salle ? path('salles_show', {id: salle.id}) : path('salles_index') }}"
+                                            class="btn-primary btn-sm whitespace-nowrap"
+                                        >
+                                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endfor %}
+
+        {% if events is empty %}
+        <div class="card p-8 text-center">
+            <div class="empty-state-icon mx-auto">
+                <i data-lucide="calendar" class="w-full h-full"></i>
+            </div>
+            <p class="text-navy-500 mt-4">No events available yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    (function() {
+        const filter = document.getElementById('event-type-filter');
+        if (!filter) {
+            return;
+        }
+
+        const sections = Array.from(document.querySelectorAll('[data-type-section]'));
+        const cards = Array.from(document.querySelectorAll('[data-event-type]'));
+
+        const applyFilter = () => {
+            const value = filter.value;
+
+            cards.forEach((card) => {
+                const type = card.getAttribute('data-event-type');
+                const match = !value || type === value;
+                card.classList.toggle('hidden', !match);
+            });
+
+            sections.forEach((section) => {
+                const type = section.getAttribute('data-type-section');
+                const hasVisible = section.querySelectorAll('[data-event-type]:not(.hidden)').length > 0;
+                const show = !value || type === value ? hasVisible : false;
+                section.classList.toggle('hidden', !show);
+            });
+        };
+
+        filter.addEventListener('change', applyFilter);
+        applyFilter();
+    })();
+</script>
+{% endblock %}

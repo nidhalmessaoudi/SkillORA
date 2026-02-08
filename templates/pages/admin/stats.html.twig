@@ -1,0 +1,177 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Statistics - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+{# Header #}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        Platform Statistics
+    </h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">
+        Detailed analytics and insights about your platform's performance.
+    </p>
+</div>
+
+{# Statistics Cards #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {# Total Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
+            </div>
+            <span class="badge-primary">All Time</span>
+        </div>
+        <div class="stat-value">{{ stats.total|number_format }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+
+    {# Active Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                <i data-lucide="user-check" class="w-6 h-6 text-success-600 dark:text-success-400"></i>
+            </div>
+            <span class="badge-success">Active</span>
+        </div>
+        <div class="stat-value">{{ stats.active|number_format }}</div>
+        <div class="stat-label">Active Users</div>
+        <div class="text-caption text-navy-500 mt-2">
+            {{ ((stats.active / stats.total) * 100)|number_format(1) }}% of total
+        </div>
+    </div>
+
+    {# Banned Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
+                <i data-lucide="user-x" class="w-6 h-6 text-danger-600 dark:text-danger-400"></i>
+            </div>
+            <span class="badge-danger">Banned</span>
+        </div>
+        <div class="stat-value">{{ stats.banned|number_format }}</div>
+        <div class="stat-label">Banned Users</div>
+        <div class="text-caption text-navy-500 mt-2">
+            {{ ((stats.banned / stats.total) * 100)|number_format(1) }}% of total
+        </div>
+    </div>
+
+    {# New This Week #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-coral-100 dark:bg-coral-900/30 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-6 h-6 text-coral-500"></i>
+            </div>
+            <span class="badge-coral">This Week</span>
+        </div>
+        <div class="stat-value">{{ stats.new_this_week|number_format }}</div>
+        <div class="stat-label">New Registrations</div>
+    </div>
+</div>
+
+{# User Growth Chart #}
+<div class="card mb-8">
+    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+            User Growth (Last 30 Days)
+        </h2>
+        <p class="text-body-sm text-navy-500 mt-1">
+            Daily new user registrations
+        </p>
+    </div>
+    <div class="p-6">
+        <div class="h-64 flex items-end justify-between gap-2">
+            {% for day in user_growth %}
+                <div class="flex-1 flex flex-col items-center gap-2 group">
+                    <div class="relative w-full bg-harbor-100 dark:bg-harbor-900/30 rounded-t-lg hover:bg-harbor-200 dark:hover:bg-harbor-800/50 transition-colors" style="height: {% if day.count > 0 %}{{ (day.count / 10 * 100)|number_format(0) }}%{% else %}2%{% endif %};">
+                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-caption px-2 py-1 rounded shadow-medium whitespace-nowrap">
+                                {{ day.count }} users
+                            </div>
+                        </div>
+                        {% if day.count > 0 %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-harbor-600 to-harbor-400 rounded-t-lg"></div>
+                        {% endif %}
+                    </div>
+                    <span class="text-caption text-navy-500 dark:text-navy-400 -rotate-45 origin-top-left whitespace-nowrap text-xs">{{ day.date }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# Additional Stats Grid #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {# User Status Breakdown #}
+    <div class="card">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h3 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+                User Status Breakdown
+            </h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Active Users</span>
+                        <span class="text-body-sm font-semibold text-success-600">{{ stats.active }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success" style="width: {{ (stats.active / stats.total * 100)|number_format(0) }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Banned Users</span>
+                        <span class="text-body-sm font-semibold text-danger-600">{{ stats.banned }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger-500" style="width: {{ (stats.banned / stats.total * 100)|number_format(0) }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Quick Stats #}
+    <div class="card">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h3 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+                Quick Stats
+            </h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between py-3 border-b border-navy-100 dark:border-navy-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                        </div>
+                        <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">New Users (Week)</span>
+                    </div>
+                    <span class="text-heading-md font-semibold text-navy-900 dark:text-white">{{ stats.new_this_week }}</span>
+                </div>
+                <div class="flex items-center justify-between py-3 border-b border-navy-100 dark:border-navy-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                            <i data-lucide="activity" class="w-5 h-5 text-success-600 dark:text-success-400"></i>
+                        </div>
+                        <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Active Rate</span>
+                    </div>
+                    <span class="text-heading-md font-semibold text-navy-900 dark:text-white">{{ ((stats.active / stats.total) * 100)|number_format(1) }}%</span>
+                </div>
+                <div class="flex items-center justify-between py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-danger-600 dark:text-danger-400"></i>
+                        </div>
+                        <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Ban Rate</span>
+                    </div>
+                    <span class="text-heading-md font-semibold text-navy-900 dark:text-white">{{ ((stats.banned / stats.total) * 100)|number_format(1) }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

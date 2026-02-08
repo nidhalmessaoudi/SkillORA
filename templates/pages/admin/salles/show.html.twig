@@ -1,0 +1,397 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}{{ salle.name }} - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+{# En-tête avec actions #}
+<div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ path('admin_salles_index') }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </a>
+                <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">{{ salle.name }}</h1>
+            </div>
+            <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Détails complets et calendrier de réservations</p>
+        </div>
+        <div class="flex items-center gap-2 ml-9 md:ml-0">
+            <a href="{{ path('salles_show', {id: salle.id}) }}" class="btn-ghost btn-sm" target="_blank">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                Vue publique
+            </a>
+            <a href="{{ path('admin_salles_edit', {id: salle.id}) }}" class="btn-secondary btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Modifier
+            </a>
+            <form method="post" action="{{ path('admin_salles_delete', {id: salle.id}) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ salle.id) }}">
+                <button type="submit" class="btn-danger btn-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {# Carte d'informations principales #}
+    <div class="lg:col-span-1">
+        <div class="card p-6 space-y-6 sticky top-6">
+            <div>
+                <h2 class="text-heading-lg font-semibold text-navy-900 dark:text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Informations
+                </h2>
+                
+                <div class="space-y-4">
+                    {# Localisation #}
+                    <div class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-xs font-semibold text-blue-900 dark:text-blue-300 uppercase tracking-wide">Localisation</p>
+                            <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">{{ salle.location }}</p>
+                        </div>
+                    </div>
+
+                    {# Capacité #}
+                    <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-xs font-semibold text-purple-900 dark:text-purple-300 uppercase tracking-wide">Capacité maximale</p>
+                            <p class="text-sm text-purple-800 dark:text-purple-200 font-medium">{{ salle.maxParticipants }} participants</p>
+                        </div>
+                    </div>
+
+                    {# Durée #}
+                    <div class="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-xs font-semibold text-green-900 dark:text-green-300 uppercase tracking-wide">Durée standard</p>
+                            <p class="text-sm text-green-800 dark:text-green-200 font-medium">{{ salle.duration }} minutes</p>
+                        </div>
+                    </div>
+
+                    {# Équipement #}
+                    {% if salle.equipment %}
+                        <div class="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                            <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-xs font-semibold text-orange-900 dark:text-orange-300 uppercase tracking-wide">Équipement</p>
+                                <p class="text-sm text-orange-800 dark:text-orange-200 font-medium">{{ salle.equipment }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Image ou modèle 3D #}
+            {% set is_image = salle.image3d and (salle.image3d matches '/\.(png|jpe?g|gif|webp)$/i') %}
+            {% if is_image %}
+                <div class="border-t border-navy-200 dark:border-navy-700 pt-6">
+                    <h3 class="text-sm font-semibold text-navy-900 dark:text-white mb-3">Image de la salle</h3>
+                    <div class="relative group">
+                        <img src="{{ salle.image3d }}" alt="{{ salle.name }}" 
+                             class="w-full rounded-lg border-2 border-navy-200 dark:border-navy-700 shadow-lg transition-transform group-hover:scale-[1.02]">
+                        <a href="{{ salle.image3d }}" target="_blank" 
+                           class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            {% elseif salle.image3d %}
+                <div class="border-t border-navy-200 dark:border-navy-700 pt-6">
+                    <h3 class="text-sm font-semibold text-navy-900 dark:text-white mb-2">Modèle 3D</h3>
+                    <div class="flex items-center gap-2 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
+                        </svg>
+                        <code class="text-xs text-indigo-800 dark:text-indigo-200 font-mono">{{ salle.image3d }}</code>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Statistiques rapides #}
+            <div class="border-t border-navy-200 dark:border-navy-700 pt-6">
+                <h3 class="text-sm font-semibold text-navy-900 dark:text-white mb-3">Statistiques rapides</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ reserved_map|length }}</div>
+                        <div class="text-xs text-blue-700 dark:text-blue-300 mt-1">Jours réservés</div>
+                    </div>
+                    <div class="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {{ ((reserved_map|length / 365) * 100)|round }}%
+                        </div>
+                        <div class="text-xs text-green-700 dark:text-green-300 mt-1">Taux occupation</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Visualisation 3D et calendrier #}
+    <div class="lg:col-span-2 space-y-6">
+        {# Modèle 3D interactif #}
+        
+
+        {# Calendrier annuel des réservations #}
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-heading-lg font-semibold text-navy-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Calendrier des réservations {{ calendar_year }}
+                </h2>
+                <div class="flex items-center gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-navy-50 dark:bg-navy-900/50 border border-navy-200 dark:border-navy-700"></div>
+                        <span class="text-navy-600 dark:text-navy-400">Disponible</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700"></div>
+                        <span class="text-navy-600 dark:text-navy-400">Réservé</span>
+                    </div>
+                </div>
+            </div>
+
+            {% set reserved_map = reserved_map|default({}) %}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {% for month in calendar_months %}
+                    {% set month_reserved = 0 %}
+                    {% for day in 1..month.days %}
+                        {% set date_key = '%04d-%02d-%02d'|format(calendar_year, month.number, day) %}
+                        {% if reserved_map[date_key]|default(false) %}
+                            {% set month_reserved = month_reserved + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="border-2 border-navy-100 dark:border-navy-800 rounded-lg p-4 bg-white dark:bg-navy-900/30 hover:shadow-lg transition-shadow">
+                        <div class="text-sm font-bold text-navy-900 dark:text-white mb-3 flex items-center justify-between">
+                            <span>{{ month.name }}</span>
+                            <span class="text-xs font-normal text-navy-500 dark:text-navy-400">
+                                {{ month_reserved }} jour{{ month_reserved > 1 ? 's' : '' }}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-xs">
+                            {# En-têtes des jours #}
+                            {% for dayName in ['L','M','M','J','V','S','D'] %}
+                                <div class="text-center text-navy-400 dark:text-navy-500 font-semibold text-[10px]">{{ dayName }}</div>
+                            {% endfor %}
+                            
+                            {# Espaces avant le premier jour #}
+                            {% for i in 1..(month.first_weekday - 1) %}
+                                <div></div>
+                            {% endfor %}
+                            
+                            {# Jours du mois #}
+                            {% for day in 1..month.days %}
+                                {% set date_key = '%04d-%02d-%02d'|format(calendar_year, month.number, day) %}
+                                {% set is_reserved = reserved_map[date_key]|default(false) %}
+                                {% set is_today = date_key == 'now'|date('Y-m-d') %}
+                                
+                                <div 
+                                    class="aspect-square flex items-center justify-center rounded transition-all cursor-pointer group relative
+                                    {{ is_reserved ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 font-semibold border border-red-200 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/50' : 'bg-navy-50 dark:bg-navy-900/50 text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800/50' }}
+                                    {{ is_today ? 'ring-2 ring-blue-500 ring-offset-1' : '' }}"
+                                    title="{{ date_key }} - {{ is_reserved ? 'Réservé' : 'Disponible' }}">
+                                    <span class="text-[11px]">{{ day }}</span>
+                                    
+                                    {# Tooltip au survol #}
+                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                                        <div class="bg-navy-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                                            {{ date_key }}
+                                            <div class="text-[10px] text-navy-300">{{ is_reserved ? '🔴 Réservé' : '🟢 Disponible' }}</div>
+                                        </div>
+                                        <div class="w-2 h-2 bg-navy-900 transform rotate-45 absolute left-1/2 -translate-x-1/2 -bottom-1"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{% if salle.image3d and not (salle.image3d matches '/\.(png|jpe?g|gif|webp)$/i') %}
+<script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+    const container = document.getElementById("scene-container");
+    const loadingDiv = document.getElementById("loading-3d");
+    const resetBtn = document.getElementById("reset-camera-btn");
+    const rawModelUrl = "{{ salle.image3d|e('js') }}";
+    const modelUrl = rawModelUrl.startsWith("http") || rawModelUrl.startsWith("/")
+        ? rawModelUrl
+        : `/uploads/salles/${rawModelUrl}`;
+
+    if (!container) {
+        console.error("Container not found");
+        return;
+    }
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+
+    const camera = new THREE.PerspectiveCamera(
+        60,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(5, 5, 10);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight1.position.set(10, 10, 5);
+    directionalLight1.castShadow = true;
+    scene.add(directionalLight1);
+
+    const directionalLight2 = new THREE.DirectionalLight(0x6699ff, 0.5);
+    directionalLight2.position.set(-5, 5, -5);
+    scene.add(directionalLight2);
+
+    // Grid and axes
+    const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+    scene.add(gridHelper);
+
+    const axesHelper = new THREE.AxesHelper(5);
+    scene.add(axesHelper);
+
+    // Controls
+    let controls;
+    const initialCameraPosition = { x: 5, y: 5, z: 10 };
+
+    // Load model
+    const loader = new GLTFLoader();
+    let model;
+
+    console.log("Loading model from:", modelUrl);
+
+    loader.load(
+        modelUrl,
+        (gltf) => {
+            console.log("✅ Model loaded successfully!");
+            model = gltf.scene;
+
+            // Center and scale model
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            model.position.sub(center);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 8 / maxDim;
+            model.scale.setScalar(scale);
+
+            scene.add(model);
+
+            // Hide loading
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+
+            // Setup controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 0, 0);
+            controls.minDistance = 2;
+            controls.maxDistance = 50;
+            controls.update();
+        },
+        (progress) => {
+            if (progress.total > 0) {
+                const percent = (progress.loaded / progress.total) * 100;
+                console.log(`Loading: ${percent.toFixed(1)}%`);
+            }
+        },
+        (error) => {
+            console.error("❌ Error loading model:", error);
+            if (loadingDiv) {
+                loadingDiv.innerHTML = `
+                    <div class="text-center text-white">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm">Erreur de chargement du modèle 3D</p>
+                        <p class="text-xs text-red-300 mt-1">${error.message || 'Fichier introuvable'}</p>
+                    </div>
+                `;
+            }
+        }
+    );
+
+    // Reset camera button
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            camera.position.set(
+                initialCameraPosition.x,
+                initialCameraPosition.y,
+                initialCameraPosition.z
+            );
+            if (controls) {
+                controls.target.set(0, 0, 0);
+                controls.update();
+            }
+        });
+    }
+
+    // Animation loop
+    function animate() {
+        if (controls) controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Responsive resize
+    window.addEventListener("resize", () => {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    });
+</script>
+{% endif %}
+{% endblock %}

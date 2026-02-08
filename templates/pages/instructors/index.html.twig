@@ -1,0 +1,191 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Instructors - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
+    {# Hero Section #}
+    <div class="bg-gradient-to-br from-harbor-600 via-harbor-700 to-navy-900 relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-1/4 w-96 h-96 bg-harbor-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-harbor-200"></i>
+                    <span class="text-sm font-medium text-white">Expert Instructors</span>
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-display font-bold text-white mb-4">
+                    Learn From The Best
+                </h1>
+                <p class="text-lg text-harbor-100 mb-8">
+                    Our instructors are industry experts, passionate educators, and lifelong learners dedicated to helping you succeed.
+                </p>
+
+                {# Search #}
+                <div class="max-w-xl mx-auto">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" placeholder="Search instructors by name or expertise..." class="input pl-12 py-4 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-harbor-200 focus:bg-white focus:text-slate-900 focus:placeholder:text-slate-400">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {# Filter Tabs #}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+                <button class="tab-pill active">All Instructors</button>
+                <button class="tab-pill">Web Development</button>
+                <button class="tab-pill">Data Science</button>
+                <button class="tab-pill">Design</button>
+                <button class="tab-pill">Business</button>
+            </div>
+
+            <select class="input py-2.5 w-auto text-sm">
+                <option>Sort by: Most Popular</option>
+                <option>Sort by: Highest Rated</option>
+                <option>Sort by: Most Courses</option>
+                <option>Sort by: Newest</option>
+            </select>
+        </div>
+
+        {# Featured Instructor #}
+        <div class="card p-8 mb-10 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border-amber-200 dark:border-amber-800/50">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="relative">
+                    <img src="{{ instructors[0].avatar }}" alt="{{ instructors[0].name }}" class="w-40 h-40 rounded-3xl object-cover ring-4 ring-amber-200 dark:ring-amber-800">
+                    <div class="absolute -top-2 -right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                        <i data-lucide="crown" class="w-5 h-5 text-white"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="badge bg-amber-500/20 text-amber-700 dark:text-amber-400">Featured Instructor</span>
+                        <span class="badge bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400">{{ instructors[0].expertise|first }}</span>
+                    </div>
+                    <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white mb-2">{{ instructors[0].name }}</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-4">{{ instructors[0].bio }}</p>
+
+                    <div class="flex flex-wrap items-center gap-6 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-slate-400"></i>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ instructors[0].students_count|number_format }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">students</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-5 h-5 text-slate-400"></i>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ instructors[0].courses }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">courses</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="star" class="w-5 h-5 text-amber-500 fill-amber-500"></i>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ instructors[0].rating }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">({{ instructors[0].reviews_count|number_format }} reviews)</span>
+                        </div>
+                    </div>
+
+                    <a href="{{ path('instructor_show', {id: instructors[0].id}) }}" class="btn-primary">
+                        View Profile
+                        <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# Instructors Grid #}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for instructor in instructors|slice(1) %}
+            <div class="card p-6 hover:shadow-xl transition-all duration-300 group">
+                <div class="flex items-start gap-4 mb-4">
+                    <img src="{{ instructor.avatar }}" alt="{{ instructor.name }}" class="w-20 h-20 rounded-2xl object-cover group-hover:scale-105 transition-transform">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-display font-bold text-slate-900 dark:text-white group-hover:text-harbor-600 dark:group-hover:text-harbor-400 transition-colors truncate">
+                            {{ instructor.name }}
+                        </h3>
+                        <p class="text-sm text-harbor-600 dark:text-harbor-400 mb-1">{{ instructor.expertise|first }}</p>
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                            <span class="font-medium text-slate-900 dark:text-white text-sm">{{ instructor.rating }}</span>
+                            <span class="text-slate-500 dark:text-slate-400 text-sm">({{ instructor.reviews_count|number_format }})</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
+                    {{ instructor.bio }}
+                </p>
+
+                <div class="flex items-center justify-between py-4 border-t border-slate-200 dark:border-navy-800">
+                    <div class="flex items-center gap-4 text-sm">
+                        <span class="text-slate-500 dark:text-slate-400">
+                            <strong class="text-slate-900 dark:text-white">{{ instructor.courses }}</strong> courses
+                        </span>
+                        <span class="text-slate-500 dark:text-slate-400">
+                            <strong class="text-slate-900 dark:text-white">{{ (instructor.students_count / 1000)|round(1) }}k</strong> students
+                        </span>
+                    </div>
+                </div>
+
+                <a href="{{ path('instructor_show', {id: instructor.id}) }}" class="btn-outline w-full justify-center group/btn">
+                    View Profile
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Load More #}
+        <div class="text-center mt-10">
+            <button class="btn-outline px-8">
+                Load More Instructors
+                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+            </button>
+        </div>
+
+        {# Become an Instructor CTA #}
+        <div class="card mt-16 p-10 bg-gradient-to-br from-harbor-600 via-harbor-700 to-navy-900 text-white text-center relative overflow-hidden">
+            <div class="absolute inset-0">
+                <div class="absolute top-10 left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-10 right-10 w-48 h-48 bg-harbor-400/10 rounded-full blur-3xl"></div>
+            </div>
+            <div class="relative">
+                <div class="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="mic-2" class="w-10 h-10 text-white"></i>
+                </div>
+                <h2 class="text-3xl font-display font-bold mb-4">Become an Instructor</h2>
+                <p class="text-harbor-100 max-w-2xl mx-auto mb-8">
+                    Share your expertise with thousands of eager learners. Create courses, build your brand, and earn income doing what you love.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="{{ path('studio_index') }}" class="btn bg-white text-harbor-700 hover:bg-harbor-50 px-8 py-3 font-semibold">
+                        Start Teaching Today
+                    </a>
+                    <a href="#" class="btn bg-white/10 text-white hover:bg-white/20 border border-white/20 px-8 py-3">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Tab filtering
+    document.querySelectorAll('.tab-pill').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

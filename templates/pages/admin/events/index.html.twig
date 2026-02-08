@@ -1,0 +1,89 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Events - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Events</h1>
+        <p class="text-body-md text-navy-600 dark:text-navy-400">Manage all platform events and their salles.</p>
+    </div>
+    <a href="{{ path('admin_events_new') }}" class="btn-primary btn-sm">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        New Event
+    </a>
+</div>
+
+<div class="card">
+    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+            All Events ({{ events|length }})
+        </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-navy-50 dark:bg-navy-900/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Dates</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Price</th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Salle</th>
+                    <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+                {% for event in events %}
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">#{{ event.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            {% if event.image %}
+                                {% if event.image matches '/\.(mp4|webm|ogg)$/i' %}
+                                    <video class="w-[100px] h-12 rounded-lg border border-navy-200 object-cover" src="{{ event.image }}"></video>
+                                {% else %}
+                                    <img class="w-[100px] h-12 rounded-lg border border-navy-200 object-cover" src="{{ event.image }}" alt="{{ event.title }}">
+                                {% endif %}
+                            {% endif %}
+                            <span class="text-body-sm text-navy-900 dark:text-white">{{ event.title }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                        {{ event.startDate|date('M d, Y H:i') }}<br>
+                        <span class="text-navy-400">to {{ event.endDate|date('M d, Y H:i') }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">{{ event.eventType }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">{{ event.priceType }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                        {% set salle = salle_map[event.salleId]|default(null) %}
+                        {{ salle ? salle.name : 'Unassigned' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ path('admin_events_show', {id: event.id}) }}" class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">View</a>
+                            <a href="{{ path('admin_events_edit', {id: event.id}) }}" class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">Edit</a>
+                            <form method="post" action="{{ path('admin_events_delete', {id: event.id}) }}" onsubmit="return confirmDelete('Delete this event?');">
+                                <button type="submit" class="btn-sm bg-danger-100 text-danger-600 hover:bg-danger-200">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i data-lucide="calendar" class="w-full h-full"></i>
+                            </div>
+                            <p class="text-navy-500">No events found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

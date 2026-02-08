@@ -1,0 +1,432 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}{{ course.title }} - SkillHarbor{% endblock %}
+
+{% block body %}
+{# Course Header #}
+<div class="bg-navy-950 text-white">
+    <div class="container-wide py-10">
+        {# Breadcrumb #}
+        <nav class="breadcrumb mb-6 text-navy-400">
+            <a href="{{ path('app_home') }}" class="hover:text-white">Home</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <a href="{{ path('courses_index') }}" class="hover:text-white">Courses</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <span class="text-white">{{ course.title|slice(0, 30) }}...</span>
+        </nav>
+
+        <div class="flex flex-col lg:flex-row gap-10">
+            {# Main Info #}
+            <div class="lg:flex-1 lg:max-w-2xl">
+                {# Badges #}
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% if course.is_bestseller %}
+                    <span class="badge bg-success-500 text-white">Bestseller</span>
+                    {% endif %}
+                    <span class="badge bg-navy-800 text-navy-300">{{ course.level }}</span>
+                </div>
+
+                {# Title #}
+                <h1 class="font-display font-bold text-3xl md:text-4xl mb-4">
+                    {{ course.title }}
+                </h1>
+
+                {# Subtitle #}
+                <p class="text-lg text-navy-300 mb-6">
+                    {{ course.subtitle }}
+                </p>
+
+                {# Meta Info #}
+                <div class="flex flex-wrap items-center gap-4 text-body-sm mb-6">
+                    {# Rating #}
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-warning-400">{{ course.rating }}</span>
+                        <div class="flex">
+                            {% for i in 1..5 %}
+                                {% if i <= course.rating|round %}
+                                <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
+                                {% else %}
+                                <i data-lucide="star" class="w-4 h-4 text-navy-600"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-harbor-400">({{ course.reviews_count|number_format }} reviews)</span>
+                    </div>
+
+                    {# Students #}
+                    <span class="text-navy-400">{{ course.students_count|number_format }} students</span>
+                </div>
+
+                {# Instructor #}
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-navy-400">Created by</span>
+                    <a href="{{ path('instructor_show', {id: course.instructor.id}) }}" class="flex items-center gap-2 hover:text-harbor-400 transition-colors">
+                        <img src="{{ course.instructor.avatar }}" alt="{{ course.instructor.name }}" class="w-8 h-8 rounded-full">
+                        <span class="font-medium text-harbor-400 underline">{{ course.instructor.name }}</span>
+                    </a>
+                </div>
+
+                {# Last Updated #}
+                <div class="flex items-center gap-4 text-body-sm text-navy-400">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        Updated {{ course.updated_at }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="globe" class="w-4 h-4"></i>
+                        {{ course.language }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Main Content #}
+<div class="container-wide py-10">
+    <div class="flex flex-col lg:flex-row gap-10">
+        {# Left Column - Main Content #}
+        <div class="lg:flex-1 space-y-10">
+            {# Skills You'll Gain #}
+            <section class="card p-6">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-4">
+                    Skills you'll gain
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    {% for skill in course.skills %}
+                    <span class="chip">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {# What You'll Learn #}
+            <section class="card p-6">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-4">
+                    What you'll learn
+                </h2>
+                <div class="grid sm:grid-cols-2 gap-4">
+                    {% for item in course.what_you_learn %}
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-success-500 shrink-0 mt-0.5"></i>
+                        <span class="text-body-md text-navy-700 dark:text-navy-300">{{ item }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {# Syllabus #}
+            <section id="syllabus">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-4">
+                    Course content
+                </h2>
+                <p class="text-body-sm text-navy-500 mb-4">
+                    {{ sections|length }} sections · {{ course.lessons_count }} lectures · {{ course.duration_hours }}h total
+                </p>
+
+                <div class="card overflow-hidden divide-y divide-navy-100 dark:divide-navy-800">
+                    {% for section in sections %}
+                    <details class="group" {{ loop.first ? 'open' : '' }}>
+                        <summary class="flex items-center justify-between p-5 cursor-pointer hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="chevron-down" class="w-5 h-5 text-navy-400 group-open:rotate-180 transition-transform"></i>
+                                <h3 class="font-display font-semibold text-navy-900 dark:text-white">
+                                    {{ section.title }}
+                                </h3>
+                            </div>
+                            <span class="text-body-sm text-navy-500">
+                                {{ section.lessons|length }} lectures
+                            </span>
+                        </summary>
+                        <div class="bg-navy-50/50 dark:bg-navy-800/20">
+                            {% for lesson in section.lessons %}
+                            <div class="flex items-center justify-between px-5 py-3 border-t border-navy-100 dark:border-navy-800">
+                                <div class="flex items-center gap-3">
+                                    {% if lesson.is_preview %}
+                                    <i data-lucide="play-circle" class="w-4 h-4 text-harbor-500"></i>
+                                    {% else %}
+                                    <i data-lucide="lock" class="w-4 h-4 text-navy-400"></i>
+                                    {% endif %}
+                                    <span class="text-body-sm text-navy-700 dark:text-navy-300">{{ lesson.title }}</span>
+                                    {% if lesson.is_preview %}
+                                    <span class="badge-primary text-[10px]">Preview</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-caption text-navy-500">{{ lesson.duration }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {# Requirements #}
+            <section class="card p-6">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-4">
+                    Requirements
+                </h2>
+                <ul class="space-y-2">
+                    {% for req in course.requirements %}
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="circle" class="w-2 h-2 text-navy-400 shrink-0 mt-2"></i>
+                        <span class="text-body-md text-navy-700 dark:text-navy-300">{{ req }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            {# Instructor Section #}
+            <section id="instructor" class="card p-6">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-6">
+                    Your instructor
+                </h2>
+                <div class="flex items-start gap-5">
+                    <img
+                        src="{{ course.instructor.avatar }}"
+                        alt="{{ course.instructor.name }}"
+                        class="w-24 h-24 rounded-2xl object-cover"
+                    >
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <a href="{{ path('instructor_show', {id: course.instructor.id}) }}" class="font-display font-semibold text-lg text-harbor-600 dark:text-harbor-400 hover:underline">
+                                {{ course.instructor.name }}
+                            </a>
+                            {% if course.instructor.verified %}
+                            <i data-lucide="badge-check" class="w-5 h-5 text-harbor-500"></i>
+                            {% endif %}
+                        </div>
+                        <p class="text-body-sm text-navy-500 mb-3">{{ course.instructor.title }}</p>
+
+                        <div class="flex flex-wrap items-center gap-4 text-body-sm text-navy-600 dark:text-navy-400 mb-4">
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="star" class="w-4 h-4 text-warning-400"></i>
+                                {{ course.instructor.rating }} rating
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="message-square" class="w-4 h-4"></i>
+                                {{ course.instructor.reviews_count|number_format }} reviews
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                                {{ course.instructor.students_count|number_format }} students
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                {{ course.instructor.courses_count }} courses
+                            </span>
+                        </div>
+
+                        <p class="text-body-md text-navy-700 dark:text-navy-300">
+                            {{ course.instructor.bio }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {# Reviews Section #}
+            <section id="reviews">
+                <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-6">
+                    Student reviews
+                </h2>
+
+                <div class="card p-6 mb-6">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        {# Rating Summary #}
+                        <div class="text-center md:text-left">
+                            <div class="font-display font-bold text-5xl text-navy-900 dark:text-white mb-2">
+                                {{ course.rating }}
+                            </div>
+                            <div class="flex justify-center md:justify-start mb-2">
+                                {% for i in 1..5 %}
+                                    {% if i <= course.rating|round %}
+                                    <i data-lucide="star" class="w-5 h-5 text-warning-400 fill-warning-400"></i>
+                                    {% else %}
+                                    <i data-lucide="star" class="w-5 h-5 text-navy-300"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="text-body-sm text-navy-500">Course rating</p>
+                        </div>
+
+                        {# Rating Distribution #}
+                        <div class="flex-1 space-y-2">
+                            {% for stars, percent in rating_distribution %}
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-1 w-20">
+                                    <span class="text-body-sm text-navy-600 dark:text-navy-400">{{ stars }}</span>
+                                    <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
+                                </div>
+                                <div class="flex-1 h-2.5 bg-navy-100 dark:bg-navy-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-warning-400 rounded-full" style="width: {{ percent }}%"></div>
+                                </div>
+                                <span class="text-body-sm text-navy-500 w-12 text-right">{{ percent }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Reviews List #}
+                <div class="space-y-6">
+                    {% for review in reviews %}
+                    <div class="card p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar avatar-md">
+                                    {{ review.user_name|slice(0, 1) }}
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-navy-900 dark:text-white">{{ review.user_name }}</div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex">
+                                            {% for i in 1..5 %}
+                                                {% if i <= review.rating %}
+                                                <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
+                                                {% else %}
+                                                <i data-lucide="star" class="w-4 h-4 text-navy-300"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-caption text-navy-500">{{ review.created_at }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if review.title %}
+                        <h4 class="font-semibold text-navy-900 dark:text-white mb-2">{{ review.title }}</h4>
+                        {% endif %}
+                        <p class="text-body-md text-navy-700 dark:text-navy-300 mb-4">{{ review.content }}</p>
+
+                        <div class="flex items-center gap-4 text-body-sm">
+                            <button class="flex items-center gap-1 text-navy-500 hover:text-harbor-600 dark:hover:text-harbor-400 transition-colors">
+                                <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                Helpful ({{ review.helpful_count }})
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-8">
+                    <button class="btn-secondary">Load more reviews</button>
+                </div>
+            </section>
+        </div>
+
+        {# Right Column - Sticky Enroll Card #}
+        <div class="lg:w-96">
+            <div class="card p-6 sticky top-24">
+                {# Course Preview Thumbnail #}
+                <div class="relative rounded-2xl overflow-hidden mb-6 group cursor-pointer">
+                    <img src="{{ course.thumbnail }}" alt="{{ course.title }}" class="w-full aspect-video object-cover">
+                    <div class="absolute inset-0 bg-navy-950/50 flex items-center justify-center group-hover:bg-navy-950/60 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="play" class="w-6 h-6 text-harbor-600 ml-1"></i>
+                        </div>
+                    </div>
+                    <span class="absolute bottom-3 left-3 text-body-sm text-white font-medium">Preview this course</span>
+                </div>
+
+                {# Price #}
+                <div class="flex items-center gap-3 mb-4">
+                    {% if course.price == 0 %}
+                    <span class="font-display font-bold text-3xl text-success-600">Free</span>
+                    {% else %}
+                    <span class="font-display font-bold text-3xl text-navy-900 dark:text-white">${{ course.price|number_format(2) }}</span>
+                    {% if course.original_price and course.original_price > course.price %}
+                    <span class="text-lg text-navy-400 line-through">${{ course.original_price|number_format(2) }}</span>
+                    <span class="badge-danger">{{ ((1 - course.price / course.original_price) * 100)|round }}% off</span>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                {# Urgency #}
+                <p class="flex items-center gap-2 text-danger-500 text-body-sm font-medium mb-6">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span>2 days left at this price!</span>
+                </p>
+
+                {# CTA Buttons #}
+                <div class="space-y-3 mb-6">
+                    <button class="btn-primary w-full btn-lg" onclick="showToast('Course added to cart!', 'success')">
+                        Add to cart
+                    </button>
+                    <button class="btn-outline w-full">
+                        <i data-lucide="heart" class="w-4 h-4"></i>
+                        Wishlist
+                    </button>
+                </div>
+
+                {# Money Back Guarantee #}
+                <p class="text-center text-body-sm text-navy-500 mb-6">
+                    30-day money-back guarantee
+                </p>
+
+                <div class="divider mb-6"></div>
+
+                {# Course Includes #}
+                <h3 class="font-display font-semibold text-navy-900 dark:text-white mb-4">
+                    This course includes
+                </h3>
+                <ul class="space-y-3">
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="play-circle" class="w-5 h-5 text-navy-400"></i>
+                        {{ course.duration_hours }} hours on-demand video
+                    </li>
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="file-text" class="w-5 h-5 text-navy-400"></i>
+                        {{ course.lessons_count }} lessons
+                    </li>
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="download" class="w-5 h-5 text-navy-400"></i>
+                        Downloadable resources
+                    </li>
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="infinity" class="w-5 h-5 text-navy-400"></i>
+                        Full lifetime access
+                    </li>
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="smartphone" class="w-5 h-5 text-navy-400"></i>
+                        Access on mobile and TV
+                    </li>
+                    <li class="flex items-center gap-3 text-body-sm text-navy-700 dark:text-navy-300">
+                        <i data-lucide="award" class="w-5 h-5 text-navy-400"></i>
+                        Certificate of completion
+                    </li>
+                </ul>
+
+                <div class="divider my-6"></div>
+
+                {# Share & Gift #}
+                <div class="flex items-center justify-center gap-4">
+                    <button class="btn-ghost text-body-sm">
+                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                        Share
+                    </button>
+                    <button class="btn-ghost text-body-sm">
+                        <i data-lucide="gift" class="w-4 h-4"></i>
+                        Gift this course
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Related Courses #}
+{% if related_courses|length > 0 %}
+<section class="py-16 bg-navy-50 dark:bg-navy-900/30">
+    <div class="container-wide">
+        <h2 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-8">
+            Students also bought
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            {% for course in related_courses %}
+                {% include 'components/course-card.html.twig' with {course: course} %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
