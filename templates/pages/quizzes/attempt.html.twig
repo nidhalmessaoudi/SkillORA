@@ -1,0 +1,330 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}{{ quiz.title }} - Quiz | SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-100 dark:bg-navy-950">
+    {# Quiz Header Bar #}
+    <div class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-navy-800 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                {# Left: Quiz Info #}
+                <div class="flex items-center gap-4">
+                    <button onclick="showExitModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i>
+                    </button>
+                    <div>
+                        <h1 class="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">{{ quiz.title }}</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Question <span id="currentQ">1</span> of {{ quiz.questions }}</p>
+                    </div>
+                </div>
+
+                {# Center: Timer #}
+                <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-navy-800">
+                    <i data-lucide="clock" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                    <span id="timer" class="font-mono font-semibold text-slate-900 dark:text-white">{{ quiz.duration }}:00</span>
+                </div>
+
+                {# Right: Progress #}
+                <div class="hidden sm:flex items-center gap-3">
+                    <div class="w-32 bg-slate-200 dark:bg-navy-800 rounded-full h-2">
+                        <div id="progressBar" class="h-full bg-harbor-500 rounded-full transition-all duration-300" style="width: 10%"></div>
+                    </div>
+                    <span class="text-sm text-slate-500 dark:text-slate-400"><span id="progressPercent">10</span>%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        {# Question Card #}
+        <div class="card p-8 mb-6">
+            {# Question Header #}
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center text-harbor-600 dark:text-harbor-400 font-bold">
+                        1
+                    </span>
+                    <div>
+                        <span class="badge-secondary text-xs">Multiple Choice</span>
+                    </div>
+                </div>
+                <button class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="Flag for review">
+                    <i data-lucide="flag" class="w-5 h-5 text-slate-400 hover:text-amber-500 transition-colors"></i>
+                </button>
+            </div>
+
+            {# Question Text #}
+            <h2 class="text-xl font-display font-semibold text-slate-900 dark:text-white mb-8">
+                {{ questions[0].text|default('What is the primary purpose of React\'s useState hook?') }}
+            </h2>
+
+            {# Answer Options #}
+            <div class="space-y-3">
+                {% set options = ['To manage component state and trigger re-renders when it changes', 'To fetch data from an API', 'To handle side effects in components', 'To create reusable component logic'] %}
+                {% for option in options %}
+                <label class="quiz-option group">
+                    <input type="radio" name="answer" value="{{ loop.index }}" class="hidden peer">
+                    <div class="flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 cursor-pointer transition-all hover:border-harbor-300 dark:hover:border-harbor-700 hover:bg-harbor-50 dark:hover:bg-harbor-900/10 peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/20">
+                        <span class="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-navy-600 flex items-center justify-center text-sm font-medium text-slate-500 dark:text-slate-400 group-hover:border-harbor-400 peer-checked:border-harbor-500 peer-checked:bg-harbor-500 peer-checked:text-white transition-all">
+                            {{ ['A', 'B', 'C', 'D'][loop.index0] }}
+                        </span>
+                        <span class="flex-1 text-slate-700 dark:text-slate-300">{{ option }}</span>
+                        <i data-lucide="check" class="w-5 h-5 text-harbor-500 opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            {# Code Snippet (if applicable) #}
+            <div class="mt-6 p-4 rounded-xl bg-slate-900 dark:bg-navy-950 overflow-x-auto hidden" id="codeSnippet">
+                <pre class="text-sm text-slate-300"><code class="language-javascript">const [count, setCount] = useState(0);
+
+function increment() {
+    setCount(count + 1);
+}</code></pre>
+            </div>
+        </div>
+
+        {# Navigation #}
+        <div class="flex items-center justify-between">
+            <button id="prevBtn" class="btn-outline" disabled>
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Previous
+            </button>
+
+            <div class="flex items-center gap-2">
+                <button class="btn-ghost text-sm">
+                    <i data-lucide="flag" class="w-4 h-4 mr-1"></i>
+                    Flag
+                </button>
+            </div>
+
+            <button id="nextBtn" class="btn-primary">
+                Next
+                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+            </button>
+        </div>
+
+        {# Question Navigator #}
+        <div class="card p-6 mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-slate-900 dark:text-white">Question Navigator</h3>
+                <div class="flex items-center gap-4 text-xs">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded bg-emerald-500"></span>
+                        Answered
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded bg-amber-500"></span>
+                        Flagged
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded border border-slate-300 dark:border-navy-600"></span>
+                        Unanswered
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-10 gap-2">
+                {% for i in 1..quiz.questions %}
+                <button class="question-nav-btn {{ i == 1 ? 'active' : '' }} {{ i in [2, 5, 7] ? 'answered' : '' }} {{ i == 4 ? 'flagged' : '' }}" onclick="goToQuestion({{ i }})">
+                    {{ i }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Submit Section #}
+        <div class="text-center mt-8">
+            <button onclick="showSubmitModal()" class="btn bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3">
+                <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                Submit Quiz
+            </button>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                Make sure you've answered all questions before submitting
+            </p>
+        </div>
+    </div>
+</div>
+
+{# Exit Confirmation Modal #}
+<div id="exitModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white dark:bg-navy-900 rounded-3xl p-8 max-w-md mx-4 shadow-2xl">
+        <div class="text-center">
+            <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-600 dark:text-amber-400"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-slate-900 dark:text-white mb-2">Leave Quiz?</h3>
+            <p class="text-slate-600 dark:text-slate-400 mb-6">
+                Your progress will be saved, but the timer will continue. Are you sure you want to exit?
+            </p>
+            <div class="flex gap-3">
+                <button onclick="hideExitModal()" class="btn-outline flex-1">Cancel</button>
+                <a href="{{ path('quiz_index') }}" class="btn bg-red-600 hover:bg-red-700 text-white flex-1">Exit Quiz</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Submit Confirmation Modal #}
+<div id="submitModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="bg-white dark:bg-navy-900 rounded-3xl p-8 max-w-md mx-4 shadow-2xl">
+        <div class="text-center">
+            <div class="w-16 h-16 rounded-full bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="send" class="w-8 h-8 text-harbor-600 dark:text-harbor-400"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-slate-900 dark:text-white mb-2">Submit Quiz?</h3>
+            <p class="text-slate-600 dark:text-slate-400 mb-4">
+                You've answered <strong class="text-slate-900 dark:text-white">8 of {{ quiz.questions }}</strong> questions.
+            </p>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 mb-6">
+                <p class="text-sm text-amber-700 dark:text-amber-400">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>
+                    You have 2 unanswered questions
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="hideSubmitModal()" class="btn-outline flex-1">Review Answers</button>
+                <a href="{{ path('quiz_result', {id: quiz.id}) }}" class="btn-primary flex-1">Submit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .quiz-option input:checked + div {
+        border-color: #2563EB;
+        background-color: rgba(37, 99, 235, 0.05);
+    }
+
+    .quiz-option input:checked + div span:first-child {
+        background-color: #2563EB;
+        border-color: #2563EB;
+        color: white;
+    }
+
+    .question-nav-btn {
+        @apply w-9 h-9 rounded-lg text-sm font-medium transition-all;
+        @apply bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400;
+        @apply hover:bg-slate-200 dark:hover:bg-navy-700;
+    }
+
+    .question-nav-btn.active {
+        @apply ring-2 ring-harbor-500 ring-offset-2 dark:ring-offset-navy-900;
+    }
+
+    .question-nav-btn.answered {
+        @apply bg-emerald-500 text-white;
+    }
+
+    .question-nav-btn.flagged {
+        @apply bg-amber-500 text-white;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Timer functionality
+    let timeLeft = {{ quiz.duration }} * 60;
+    const timerEl = document.getElementById('timer');
+
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 60) {
+            timerEl.classList.add('text-red-500');
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            // Auto-submit
+            window.location.href = '{{ path('quiz_result', {id: quiz.id}) }}';
+        }
+    }, 1000);
+
+    // Question navigation
+    let currentQuestion = 1;
+    const totalQuestions = {{ quiz.questions }};
+
+    function goToQuestion(num) {
+        currentQuestion = num;
+        document.getElementById('currentQ').textContent = num;
+        updateProgress();
+        updateNavButtons();
+
+        // Update active state in navigator
+        document.querySelectorAll('.question-nav-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i + 1 === num);
+        });
+    }
+
+    function updateProgress() {
+        const percent = Math.round((currentQuestion / totalQuestions) * 100);
+        document.getElementById('progressBar').style.width = percent + '%';
+        document.getElementById('progressPercent').textContent = percent;
+    }
+
+    function updateNavButtons() {
+        document.getElementById('prevBtn').disabled = currentQuestion === 1;
+
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestion === totalQuestions) {
+            nextBtn.innerHTML = 'Finish <i data-lucide="check" class="w-4 h-4 ml-2"></i>';
+        } else {
+            nextBtn.innerHTML = 'Next <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>';
+        }
+        lucide.createIcons();
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentQuestion > 1) {
+            goToQuestion(currentQuestion - 1);
+        }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentQuestion < totalQuestions) {
+            goToQuestion(currentQuestion + 1);
+        } else {
+            showSubmitModal();
+        }
+    });
+
+    // Modal functions
+    function showExitModal() {
+        document.getElementById('exitModal').classList.remove('hidden');
+        document.getElementById('exitModal').classList.add('flex');
+    }
+
+    function hideExitModal() {
+        document.getElementById('exitModal').classList.add('hidden');
+        document.getElementById('exitModal').classList.remove('flex');
+    }
+
+    function showSubmitModal() {
+        document.getElementById('submitModal').classList.remove('hidden');
+        document.getElementById('submitModal').classList.add('flex');
+    }
+
+    function hideSubmitModal() {
+        document.getElementById('submitModal').classList.add('hidden');
+        document.getElementById('submitModal').classList.remove('flex');
+    }
+
+    // Close modals on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideExitModal();
+            hideSubmitModal();
+        }
+    });
+</script>
+{% endblock %}
