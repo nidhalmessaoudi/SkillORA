@@ -1,0 +1,87 @@
+{# Course Card Component #}
+<article class="course-card group">
+    {# Thumbnail #}
+    <a href="{{ path('course_show', {slug: course.slug}) }}" class="block relative overflow-hidden">
+        <img
+            src="{{ course.thumbnail }}"
+            alt="{{ course.title }}"
+            class="course-card-thumbnail group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+        >
+
+        {# Badges overlay #}
+        <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+            {% if course.is_bestseller %}
+            <span class="badge bg-success-500 text-white text-[10px]">Bestseller</span>
+            {% endif %}
+            {% if course.is_featured %}
+            <span class="badge bg-coral-500 text-white text-[10px]">Featured</span>
+            {% endif %}
+        </div>
+
+        {# Wishlist button #}
+        <button
+            class="absolute top-3 right-3 w-8 h-8 bg-white/90 dark:bg-navy-900/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-navy-800"
+            aria-label="Add to wishlist"
+        >
+            <i data-lucide="heart" class="w-4 h-4 text-navy-600 dark:text-navy-400"></i>
+        </button>
+    </a>
+
+    {# Content #}
+    <div class="course-card-content">
+        {# Category & Level #}
+        <div class="flex items-center gap-2 mb-2">
+            <span class="chip text-[11px] py-1">{{ course.level }}</span>
+            <span class="text-caption text-navy-400">{{ course.duration_hours }}h</span>
+        </div>
+
+        {# Title #}
+        <a href="{{ path('course_show', {slug: course.slug}) }}">
+            <h3 class="font-display font-semibold text-navy-900 dark:text-white mb-2 line-clamp-2 group-hover:text-harbor-600 dark:group-hover:text-harbor-400 transition-colors">
+                {{ course.title }}
+            </h3>
+        </a>
+
+        {# Instructor #}
+        {% if course.instructor %}
+        <a href="{{ path('instructor_show', {id: course.instructor.id}) }}" class="flex items-center gap-2 mb-3 group/instructor">
+            <img
+                src="{{ course.instructor.avatar }}"
+                alt="{{ course.instructor.name }}"
+                class="w-6 h-6 rounded-full object-cover"
+            >
+            <span class="text-body-sm text-navy-500 dark:text-navy-400 group-hover/instructor:text-harbor-600 dark:group-hover/instructor:text-harbor-400 transition-colors">
+                {{ course.instructor.name }}
+            </span>
+        </a>
+        {% endif %}
+
+        {# Rating & Students #}
+        <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center gap-1">
+                <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
+                <span class="text-body-sm font-semibold text-navy-900 dark:text-white">{{ course.rating }}</span>
+                <span class="text-body-sm text-navy-400">({{ course.reviews_count|number_format }})</span>
+            </div>
+            <span class="text-body-sm text-navy-400">
+                {{ (course.students_count / 1000)|number_format(1) }}K students
+            </span>
+        </div>
+
+        {# Spacer to push price to bottom #}
+        <div class="flex-1"></div>
+
+        {# Price #}
+        <div class="flex items-center gap-2 pt-3 border-t border-navy-100 dark:border-navy-800">
+            {% if course.price == 0 %}
+                <span class="font-display font-bold text-lg text-success-600 dark:text-success-400">Free</span>
+            {% else %}
+                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">${{ course.price|number_format(2) }}</span>
+                {% if course.original_price and course.original_price > course.price %}
+                <span class="text-body-sm text-navy-400 line-through">${{ course.original_price|number_format(2) }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</article>

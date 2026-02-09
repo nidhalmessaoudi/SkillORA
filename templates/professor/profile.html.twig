@@ -1,0 +1,344 @@
+{% extends 'professor/layout.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}Professor Profile{% endblock %}
+{% block page_subtitle %}Showcase your expertise and achievements{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    {# Profile Header Card #}
+    <div class="bg-navy-900 border border-navy-800 rounded-3xl overflow-hidden">
+        {# Cover Photo with Gradient #}
+        <div class="h-48 bg-gradient-to-r from-harbor-600 via-violet-600 to-pink-600 relative">
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+            <button class="absolute top-4 right-4 px-4 py-2 bg-white/20 backdrop-blur-md hover:bg-white/30 rounded-xl text-white font-medium transition-all flex items-center gap-2">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                Change Cover
+            </button>
+        </div>
+        
+        {# Profile Info #}
+        <div class="p-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                {# Avatar & Basic Info #}
+                <div class="flex-shrink-0">
+                    <div class="relative -mt-24 mb-4">
+                        {% if app.user.avatar %}
+                            <img src="/uploads/avatars/{{ app.user.avatar }}" alt="{{ app.user.fullName }}" class="w-32 h-32 rounded-3xl object-cover border-4 border-navy-900 shadow-2xl">
+                        {% else %}
+                            <div class="w-32 h-32 rounded-3xl bg-gradient-to-br from-harbor-500 to-violet-500 flex items-center justify-center text-white text-4xl font-bold border-4 border-navy-900 shadow-2xl">
+                                {{ app.user.firstName[:1] }}{{ app.user.lastName[:1] }}
+                            </div>
+                        {% endif %}
+                        <button class="absolute bottom-0 right-0 w-10 h-10 bg-harbor-500 hover:bg-harbor-600 rounded-xl flex items-center justify-center text-white shadow-lg transition-colors">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                {# Name & Stats #}
+                <div class="flex-1">
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold text-white mb-2">{{ app.user.fullName }}</h1>
+                            <div class="flex items-center gap-3 text-navy-400 mb-3">
+                                <span class="flex items-center gap-1.5">
+                                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                                    Professor
+                                </span>
+                                {% if app.user.university %}
+                                <span class="flex items-center gap-1.5">
+                                    <i data-lucide="building-2" class="w-4 h-4"></i>
+                                    {{ app.user.university }}
+                                </span>
+                                {% endif %}
+                                {% if app.user.country %}
+                                <span class="flex items-center gap-1.5">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                    {{ app.user.country }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            {# Badges #}
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                                    <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                                    Top Rated
+                                </span>
+                                <span class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                    Verified Expert
+                                </span>
+                                <span class="px-3 py-1.5 bg-harbor-500/20 text-harbor-400 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                                    <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+                                    Best Seller
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <a href="{{ path('professor_settings') }}" class="px-6 py-3 bg-harbor-600 hover:bg-harbor-700 rounded-xl text-white font-medium transition-colors flex items-center gap-2 w-fit">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            Edit Profile
+                        </a>
+                    </div>
+                    
+                    {# Stats Bar #}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-navy-800/50 rounded-2xl">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-1">24</div>
+                            <div class="text-sm text-navy-400">Courses</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-1">1,248</div>
+                            <div class="text-sm text-navy-400">Students</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-1">4.8</div>
+                            <div class="text-sm text-navy-400">Rating</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white mb-1">2.4k</div>
+                            <div class="text-sm text-navy-400">Reviews</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Main Content Grid #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {# Left Column #}
+        <div class="lg:col-span-2 space-y-6">
+            {# About Section #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="user" class="w-5 h-5 text-harbor-400"></i>
+                    About Me
+                </h2>
+                {% if app.user.bio %}
+                    <p class="text-navy-300 leading-relaxed">{{ app.user.bio }}</p>
+                {% else %}
+                    <p class="text-navy-500 italic">No bio added yet. Share your expertise and teaching philosophy!</p>
+                {% endif %}
+            </div>
+            
+            {# Expertise & Specializations #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-violet-400"></i>
+                    Expertise & Specializations
+                </h2>
+                <div class="flex flex-wrap gap-3">
+                    <span class="px-4 py-2 bg-harbor-500/10 border border-harbor-500/30 text-harbor-400 rounded-xl text-sm font-medium">Web Development</span>
+                    <span class="px-4 py-2 bg-violet-500/10 border border-violet-500/30 text-violet-400 rounded-xl text-sm font-medium">JavaScript</span>
+                    <span class="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-sm font-medium">React</span>
+                    <span class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-sm font-medium">Node.js</span>
+                    <span class="px-4 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 rounded-xl text-sm font-medium">Database Design</span>
+                    <span class="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-xl text-sm font-medium">API Development</span>
+                </div>
+            </div>
+            
+            {# Teaching Experience #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5 text-emerald-400"></i>
+                    Teaching Experience
+                </h2>
+                <div class="space-y-6">
+                    {# Experience Item #}
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-harbor-500 to-violet-500 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="building" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-white mb-1">Senior Professor - Computer Science</h3>
+                            <p class="text-navy-400 text-sm mb-2">Stanford University • 2018 - Present</p>
+                            <p class="text-navy-300 text-sm">Teaching advanced web development, software engineering, and database systems to undergraduate and graduate students.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-white mb-1">Associate Professor</h3>
+                            <p class="text-navy-400 text-sm mb-2">MIT • 2015 - 2018</p>
+                            <p class="text-navy-300 text-sm">Conducted research in full-stack development and taught courses on modern web technologies.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="code" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-white mb-1">Senior Developer</h3>
+                            <p class="text-navy-400 text-sm mb-2">Google • 2012 - 2015</p>
+                            <p class="text-navy-300 text-sm">Led development teams and mentored junior developers in large-scale web applications.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {# Achievements #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
+                    Achievements & Awards
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="award" class="w-5 h-5 text-amber-400"></i>
+                            </div>
+                            <h3 class="font-semibold text-white">Best Teacher Award</h3>
+                        </div>
+                        <p class="text-navy-400 text-sm">Stanford University 2023</p>
+                    </div>
+                    
+                    <div class="p-4 bg-harbor-500/10 border border-harbor-500/30 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-harbor-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="book-open" class="w-5 h-5 text-harbor-400"></i>
+                            </div>
+                            <h3 class="font-semibold text-white">Published Author</h3>
+                        </div>
+                        <p class="text-navy-400 text-sm">5 Technical Books</p>
+                    </div>
+                    
+                    <div class="p-4 bg-violet-500/10 border border-violet-500/30 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-violet-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="users" class="w-5 h-5 text-violet-400"></i>
+                            </div>
+                            <h3 class="font-semibold text-white">1M+ Students</h3>
+                        </div>
+                        <p class="text-navy-400 text-sm">Worldwide Impact</p>
+                    </div>
+                    
+                    <div class="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="star" class="w-5 h-5 text-emerald-400"></i>
+                            </div>
+                            <h3 class="font-semibold text-white">Top 1% Instructor</h3>
+                        </div>
+                        <p class="text-navy-400 text-sm">Global Ranking 2024</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {# Right Column - Sidebar #}
+        <div class="space-y-6">
+            {# Contact Info #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="mail" class="w-5 h-5 text-harbor-400"></i>
+                    Contact
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 text-navy-300">
+                        <i data-lucide="mail" class="w-4 h-4 text-navy-500"></i>
+                        <span class="text-sm">{{ app.user.email }}</span>
+                    </div>
+                    {% if app.user.phone %}
+                    <div class="flex items-center gap-3 text-navy-300">
+                        <i data-lucide="phone" class="w-4 h-4 text-navy-500"></i>
+                        <span class="text-sm">{{ app.user.phone }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {# Education #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="graduation-cap" class="w-5 h-5 text-violet-400"></i>
+                    Education
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold text-white mb-1">Ph.D. Computer Science</h3>
+                        {% if app.user.university %}
+                            <p class="text-navy-400 text-sm">{{ app.user.university }}</p>
+                        {% else %}
+                            <p class="text-navy-400 text-sm">Stanford University</p>
+                        {% endif %}
+                        <p class="text-navy-500 text-xs mt-1">2010 - 2015</p>
+                    </div>
+                    <div class="h-px bg-navy-800"></div>
+                    <div>
+                        <h3 class="font-semibold text-white mb-1">M.S. Software Engineering</h3>
+                        <p class="text-navy-400 text-sm">MIT</p>
+                        <p class="text-navy-500 text-xs mt-1">2008 - 2010</p>
+                    </div>
+                </div>
+            </div>
+            
+            {# Social Links #}
+            <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="link" class="w-5 h-5 text-emerald-400"></i>
+                    Social Links
+                </h2>
+                <div class="space-y-3">
+                    <a href="#" class="flex items-center gap-3 p-3 rounded-xl bg-navy-800 hover:bg-navy-700 transition-colors group">
+                        <i data-lucide="linkedin" class="w-5 h-5 text-harbor-400"></i>
+                        <span class="text-navy-300 group-hover:text-white text-sm">LinkedIn</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 rounded-xl bg-navy-800 hover:bg-navy-700 transition-colors group">
+                        <i data-lucide="twitter" class="w-5 h-5 text-cyan-400"></i>
+                        <span class="text-navy-300 group-hover:text-white text-sm">Twitter</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 rounded-xl bg-navy-800 hover:bg-navy-700 transition-colors group">
+                        <i data-lucide="github" class="w-5 h-5 text-purple-400"></i>
+                        <span class="text-navy-300 group-hover:text-white text-sm">GitHub</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 rounded-xl bg-navy-800 hover:bg-navy-700 transition-colors group">
+                        <i data-lucide="globe" class="w-5 h-5 text-emerald-400"></i>
+                        <span class="text-navy-300 group-hover:text-white text-sm">Website</span>
+                    </a>
+                </div>
+            </div>
+            
+            {# Teaching Stats #}
+            <div class="bg-gradient-to-br from-harbor-600 to-violet-600 rounded-2xl p-6 text-white">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    This Month
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">New Students</span>
+                        <span class="font-bold text-2xl">+142</span>
+                    </div>
+                    <div class="h-px bg-white/20"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">Course Completions</span>
+                        <span class="font-bold text-2xl">89</span>
+                    </div>
+                    <div class="h-px bg-white/20"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">Avg. Rating</span>
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                            <span class="font-bold text-2xl">4.9</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Professor Dashboard{% endblock %} - SkillHarbor</title>
+    
+    {# Tailwind CSS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# Lucide Icons #}
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    {# Chart.js for analytics #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            200: '#bcccdc',
+                            300: '#9fb3c8',
+                            400: '#829ab1',
+                            500: '#627d98',
+                            600: '#486581',
+                            700: '#334e68',
+                            800: '#243b53',
+                            900: '#102a43',
+                            950: '#0a1929',
+                        },
+                        harbor: {
+                            50: '#e6f2ff',
+                            100: '#bfddff',
+                            200: '#99c9ff',
+                            300: '#73b4ff',
+                            400: '#4da0ff',
+                            500: '#268bff',
+                            600: '#0070f3',
+                            700: '#005ac1',
+                            800: '#00458f',
+                            900: '#002f5d',
+                        },
+                        coral: {
+                            400: '#ff6b6b',
+                            500: '#ff5252',
+                        },
+                        violet: {
+                            400: '#9f7aea',
+                            500: '#805ad5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .sidebar-link {
+            @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-navy-400 hover:bg-navy-800 hover:text-white transition-all;
+        }
+        
+        .sidebar-link.active {
+            @apply bg-gradient-to-r from-harbor-600 to-harbor-500 text-white shadow-lg shadow-harbor-500/30;
+        }
+        
+        .stat-card {
+            @apply bg-gradient-to-br p-6 rounded-2xl text-white relative overflow-hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            @apply absolute inset-0 bg-white/10 rounded-full blur-3xl;
+            width: 200px;
+            height: 200px;
+            top: -100px;
+            right: -100px;
+        }
+    </style>
+</head>
+<body class="bg-navy-950 text-white antialiased">
+    {# Sidebar #}
+    <aside class="fixed left-0 top-0 h-screen w-64 bg-navy-900 border-r border-navy-800 z-50">
+        {# Logo #}
+        <div class="h-20 flex items-center px-6 border-b border-navy-800">
+            <a href="{{ path('app_home') }}" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-xl flex items-center justify-center">
+                    <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-lg text-white">SkillHarbor</div>
+                    <div class="text-xs text-navy-400">Professor Panel</div>
+                </div>
+            </a>
+        </div>
+        
+        {# Navigation #}
+        <nav class="p-4 space-y-1">
+            <a href="{{ path('professor_dashboard') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_dashboard' %}active{% endif %}">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            <a href="{{ path('professor_courses') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_courses' %}active{% endif %}">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+                <span class="font-medium">My Courses</span>
+            </a>
+            <a href="{{ path('professor_students') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_students' %}active{% endif %}">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span class="font-medium">Students</span>
+            </a>
+            <a href="{{ path('professor_analytics') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_analytics' %}active{% endif %}">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <span class="font-medium">Analytics</span>
+            </a>
+            <a href="{{ path('professor_profile') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_profile' %}active{% endif %}">
+                <i data-lucide="user-circle" class="w-5 h-5"></i>
+                <span class="font-medium">Profile</span>
+            </a>
+            <a href="{{ path('professor_settings') }}" class="sidebar-link {% if app.request.get('_route') == 'professor_settings' %}active{% endif %}">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="font-medium">Settings</span>
+            </a>
+        </nav>
+        
+        {# User Info #}
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-navy-800">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-navy-800">
+                {% if app.user.avatar %}
+                    <img src="/uploads/avatars/{{ app.user.avatar }}" alt="{{ app.user.fullName }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-500 to-violet-500 flex items-center justify-center text-white font-semibold">
+                        {{ app.user.firstName[:1] }}{{ app.user.lastName[:1] }}
+                    </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <div class="font-semibold text-white truncate">{{ app.user.fullName }}</div>
+                    <div class="text-xs text-navy-400">Professor</div>
+                </div>
+                <a href="{{ path('auth_logout') }}" class="text-navy-400 hover:text-white">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    {# Main Content #}
+    <main class="ml-64">
+        {# Top Bar #}
+        <header class="h-20 bg-navy-900 border-b border-navy-800 px-8 flex items-center justify-between sticky top-0 z-40">
+            <div>
+                <h1 class="text-2xl font-bold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
+                <p class="text-sm text-navy-400">{% block page_subtitle %}Welcome back, {{ app.user.firstName }}!{% endblock %}</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                {# Notifications #}
+                <button class="relative p-2 rounded-xl hover:bg-navy-800 text-navy-400 hover:text-white transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-coral-500 rounded-full"></span>
+                </button>
+                
+                {# Messages #}
+                <button class="relative p-2 rounded-xl hover:bg-navy-800 text-navy-400 hover:text-white transition-colors">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-harbor-500 rounded-full"></span>
+                </button>
+                
+                {# Main Site Link #}
+                <a href="{{ path('app_home') }}" class="px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium transition-colors flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Main Site
+                </a>
+            </div>
+        </header>
+        
+        {# Page Content #}
+        <div class="p-8">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <script>
+        lucide.createIcons();
+    </script>
+    
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

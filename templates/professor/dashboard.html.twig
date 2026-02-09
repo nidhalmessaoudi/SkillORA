@@ -1,0 +1,249 @@
+{% extends 'professor/layout.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ app.user.firstName }}! Here's what's happening today.{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    {# Stats Grid #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {# Total Students #}
+        <div class="stat-card from-harbor-600 to-harbor-500">
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white/80 text-sm font-medium">Total Students</span>
+                    <i data-lucide="users" class="w-5 h-5 text-white/80"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">1,248</div>
+                <div class="flex items-center gap-1 text-sm">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>+12% this month</span>
+                </div>
+            </div>
+        </div>
+        
+        {# Active Courses #}
+        <div class="stat-card from-violet-600 to-violet-500">
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white/80 text-sm font-medium">Active Courses</span>
+                    <i data-lucide="book-open" class="w-5 h-5 text-white/80"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">24</div>
+                <div class="flex items-center gap-1 text-sm">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>3 new this week</span>
+                </div>
+            </div>
+        </div>
+        
+        {# Total Revenue #}
+        <div class="stat-card from-emerald-600 to-emerald-500">
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white/80 text-sm font-medium">Total Revenue</span>
+                    <i data-lucide="dollar-sign" class="w-5 h-5 text-white/80"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">$48,250</div>
+                <div class="flex items-center gap-1 text-sm">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>+8% this month</span>
+                </div>
+            </div>
+        </div>
+        
+        {# Avg Rating #}
+        <div class="stat-card from-amber-600 to-amber-500">
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white/80 text-sm font-medium">Avg Rating</span>
+                    <i data-lucide="star" class="w-5 h-5 text-white/80"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">4.8</div>
+                <div class="flex items-center gap-1 text-sm">
+                    <span>From 2,450 reviews</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Main Grid #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {# Recent Activity #}
+        <div class="lg:col-span-2 bg-navy-900 border border-navy-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-white">Recent Activity</h2>
+                <button class="text-sm text-harbor-400 hover:text-harbor-300">View All</button>
+            </div>
+            
+            <div class="space-y-4">
+                {# Activity Item #}
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-navy-800/50 hover:bg-navy-800 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-harbor-500/20 flex items-center justify-center text-harbor-400">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white font-medium">12 new students enrolled</p>
+                        <p class="text-navy-400 text-sm">in "Advanced Web Development"</p>
+                        <p class="text-navy-500 text-xs mt-1">2 hours ago</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-navy-800/50 hover:bg-navy-800 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+                        <i data-lucide="star" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white font-medium">New 5-star review</p>
+                        <p class="text-navy-400 text-sm">on "JavaScript Fundamentals"</p>
+                        <p class="text-navy-500 text-xs mt-1">5 hours ago</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-navy-800/50 hover:bg-navy-800 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400">
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white font-medium">Course milestone reached</p>
+                        <p class="text-navy-400 text-sm">1,000 students completed "React Masterclass"</p>
+                        <p class="text-navy-500 text-xs mt-1">1 day ago</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-navy-800/50 hover:bg-navy-800 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white font-medium">Payment received</p>
+                        <p class="text-navy-400 text-sm">Monthly earnings: $4,850</p>
+                        <p class="text-navy-500 text-xs mt-1">2 days ago</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {# Quick Actions #}
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-white mb-6">Quick Actions</h2>
+            
+            <div class="space-y-3">
+                <button class="w-full p-4 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 hover:from-harbor-500 hover:to-harbor-600 text-white font-medium transition-all flex items-center justify-between group">
+                    <span>Create New Course</span>
+                    <i data-lucide="plus-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                </button>
+                
+                <button class="w-full p-4 rounded-xl border-2 border-navy-700 hover:border-harbor-500 text-white font-medium transition-all flex items-center justify-between group">
+                    <span>Upload Content</span>
+                    <i data-lucide="upload" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                </button>
+                
+                <button class="w-full p-4 rounded-xl border-2 border-navy-700 hover:border-harbor-500 text-white font-medium transition-all flex items-center justify-between group">
+                    <span>Manage Students</span>
+                    <i data-lucide="users" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                </button>
+                
+                <button class="w-full p-4 rounded-xl border-2 border-navy-700 hover:border-harbor-500 text-white font-medium transition-all flex items-center justify-between group">
+                    <span>View Analytics</span>
+                    <i data-lucide="bar-chart" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                </button>
+            </div>
+            
+            {# Upcoming Schedule #}
+            <div class="mt-8">
+                <h3 class="font-semibold text-white mb-4">Upcoming Schedule</h3>
+                <div class="space-y-3">
+                    <div class="p-3 rounded-xl bg-navy-800 border-l-4 border-harbor-500">
+                        <div class="text-white font-medium text-sm">Live Session: React Hooks</div>
+                        <div class="text-navy-400 text-xs mt-1">Today at 3:00 PM</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-navy-800 border-l-4 border-violet-500">
+                        <div class="text-white font-medium text-sm">Q&A Session</div>
+                        <div class="text-navy-400 text-xs mt-1">Tomorrow at 10:00 AM</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-navy-800 border-l-4 border-amber-500">
+                        <div class="text-white font-medium text-sm">Course Review</div>
+                        <div class="text-navy-400 text-xs mt-1">Friday at 2:00 PM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Top Performing Courses #}
+    <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Top Performing Courses</h2>
+            <button class="text-sm text-harbor-400 hover:text-harbor-300">View All</button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {# Course Card #}
+            <div class="bg-navy-800 rounded-xl p-5 hover:bg-navy-700 transition-colors group cursor-pointer">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-harbor-500 to-violet-500 flex items-center justify-center">
+                        <i data-lucide="code" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-white">Web Development</h3>
+                        <p class="text-xs text-navy-400">248 students</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1 text-amber-400">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                        <span class="text-sm font-semibold">4.9</span>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-semibold">$2,450</span>
+                </div>
+            </div>
+            
+            <div class="bg-navy-800 rounded-xl p-5 hover:bg-navy-700 transition-colors group cursor-pointer">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center">
+                        <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-white">Data Science</h3>
+                        <p class="text-xs text-navy-400">182 students</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1 text-amber-400">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                        <span class="text-sm font-semibold">4.8</span>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-semibold">$1,820</span>
+                </div>
+            </div>
+            
+            <div class="bg-navy-800 rounded-xl p-5 hover:bg-navy-700 transition-colors group cursor-pointer">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                        <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-white">Mobile Development</h3>
+                        <p class="text-xs text-navy-400">156 students</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1 text-amber-400">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                        <span class="text-sm font-semibold">4.7</span>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-semibold">$1,560</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}
