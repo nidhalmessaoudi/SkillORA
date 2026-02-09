@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CourseSectionRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class CourseSection
 {
     #[ORM\Id]
@@ -21,14 +22,26 @@ class CourseSection
     #[ORM\Column]
     private ?int $position = null;
 
-    #[ORM\ManyToOne(inversedBy: 'sections')]
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\ManyToOne(inversedBy: "sections")]
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
     /**
      * @var Collection<int, Lesson>
      */
-    #[ORM\OneToMany(targetEntity: Lesson::class, mappedBy: 'section', orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            targetEntity: Lesson::class,
+            mappedBy: "section",
+            orphanRemoval: true,
+        ),
+    ]
     private Collection $lessons;
 
     public function __construct()
@@ -61,6 +74,30 @@ class CourseSection
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
@@ -105,5 +142,19 @@ class CourseSection
         }
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

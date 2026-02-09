@@ -1,0 +1,193 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Browse Courses - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+    <div class="container-wide py-8">
+        {# Breadcrumb #}
+        <nav class="breadcrumb mb-6">
+            <a href="{{ path('app_home') }}" class="breadcrumb-link">Home</a>
+            <i data-lucide="chevron-right" class="w-4 h-4 breadcrumb-separator"></i>
+            <span class="text-navy-900 dark:text-white">Courses</span>
+        </nav>
+
+        {# Page Header #}
+        <div class="mb-8">
+            <h1 class="font-display font-bold text-display-md text-navy-900 dark:text-white mb-2">
+                Browse Courses
+            </h1>
+            <p class="text-body-md text-navy-600 dark:text-navy-400">
+                {{ total_count }} courses available
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            {# Filters Sidebar #}
+            <aside class="lg:w-72 shrink-0">
+                <div class="card p-6 sticky top-24">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="font-display font-semibold text-navy-900 dark:text-white">Filters</h2>
+                        <a href="{{ path('courses_index') }}" class="text-body-sm text-harbor-600 dark:text-harbor-400 hover:underline">
+                            Clear all
+                        </a>
+                    </div>
+
+                    <form method="get" class="space-y-6">
+                        {# Category Filter #}
+                        <div>
+                            <h3 class="input-label mb-3">Category</h3>
+                            <div class="space-y-2">
+                                {% for category in categories %}
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="category"
+                                        value="{{ category.slug }}"
+                                        class="radio"
+                                        {{ selected_category == category.slug ? 'checked' : '' }}
+                                        onchange="this.form.submit()"
+                                    >
+                                    <span class="text-body-sm text-navy-700 dark:text-navy-300 group-hover:text-harbor-600 dark:group-hover:text-harbor-400">
+                                        {{ category.name }}
+                                    </span>
+                                    <span class="text-caption text-navy-400 ml-auto">{{ category.count }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        {# Level Filter #}
+                        <div>
+                            <h3 class="input-label mb-3">Level</h3>
+                            <div class="space-y-2">
+                                {% for level in ['Beginner', 'Intermediate', 'Advanced'] %}
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="level"
+                                        value="{{ level|lower }}"
+                                        class="radio"
+                                        {{ selected_level == level|lower ? 'checked' : '' }}
+                                        onchange="this.form.submit()"
+                                    >
+                                    <span class="text-body-sm text-navy-700 dark:text-navy-300 group-hover:text-harbor-600 dark:group-hover:text-harbor-400">
+                                        {{ level }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        {# Rating Filter #}
+                        <div>
+                            <h3 class="input-label mb-3">Rating</h3>
+                            <div class="space-y-2">
+                                {% for rating in [4.5, 4.0, 3.5, 3.0] %}
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="rating"
+                                        value="{{ rating }}"
+                                        class="radio"
+                                        {{ selected_rating == rating ? 'checked' : '' }}
+                                        onchange="this.form.submit()"
+                                    >
+                                    <span class="flex items-center gap-1">
+                                        {% for i in 1..5 %}
+                                            {% if i <= rating|round %}
+                                            <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
+                                            {% else %}
+                                            <i data-lucide="star" class="w-4 h-4 text-navy-300 dark:text-navy-600"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="text-body-sm text-navy-500">{{ rating }}+</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            {# Course Grid #}
+            <div class="flex-1">
+                {# Sort & View Controls #}
+                <div class="flex items-center justify-between mb-6">
+                    <p class="text-body-sm text-navy-500">
+                        Showing <span class="font-semibold text-navy-900 dark:text-white">{{ courses|length }}</span> results
+                    </p>
+
+                    <div class="flex items-center gap-4">
+                        {# Sort Dropdown #}
+                        <select
+                            name="sort"
+                            class="select py-2 pl-4 pr-10 text-body-sm"
+                            onchange="window.location.href = '{{ path('courses_index') }}?sort=' + this.value + '{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_level %}&level={{ selected_level }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}'"
+                        >
+                            <option value="popular" {{ sort_by == 'popular' ? 'selected' : '' }}>Most Popular</option>
+                            <option value="newest" {{ sort_by == 'newest' ? 'selected' : '' }}>Newest</option>
+                            <option value="rating" {{ sort_by == 'rating' ? 'selected' : '' }}>Highest Rated</option>
+                        </select>
+
+                        {# View Toggle #}
+                        <div class="hidden sm:flex items-center gap-1 p-1 bg-navy-100 dark:bg-navy-800 rounded-xl">
+                            <button class="p-2 rounded-lg bg-white dark:bg-navy-900 shadow-sm" aria-label="Grid view">
+                                <i data-lucide="grid-3x3" class="w-4 h-4 text-navy-600 dark:text-navy-400"></i>
+                            </button>
+                            <button class="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-navy-900/50 transition-colors" aria-label="List view">
+                                <i data-lucide="list" class="w-4 h-4 text-navy-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {# Courses Grid #}
+                {% if courses|length > 0 %}
+                <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for course in courses %}
+                        {% include 'components/course-card.html.twig' with {course: course} %}
+                    {% endfor %}
+                </div>
+
+                {# Pagination #}
+                <nav class="flex items-center justify-center gap-2 mt-10">
+                    <button class="btn-ghost p-3" disabled>
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl bg-harbor-600 text-white font-semibold">1</button>
+                    <button class="w-10 h-10 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800 text-navy-600 dark:text-navy-400 font-semibold">2</button>
+                    <button class="w-10 h-10 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800 text-navy-600 dark:text-navy-400 font-semibold">3</button>
+                    <span class="text-navy-400 px-2">...</span>
+                    <button class="w-10 h-10 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800 text-navy-600 dark:text-navy-400 font-semibold">12</button>
+                    <button class="btn-ghost p-3">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                </nav>
+                {% else %}
+                {# Empty State #}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i data-lucide="search-x" class="w-16 h-16"></i>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-2">
+                        No courses found
+                    </h3>
+                    <p class="text-body-md text-navy-500 mb-6">
+                        Try adjusting your filters or search for something different.
+                    </p>
+                    <a href="{{ path('courses_index') }}" class="btn-primary">
+                        Clear filters
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

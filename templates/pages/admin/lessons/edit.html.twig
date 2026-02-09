@@ -1,0 +1,79 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Lesson - Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        Edit Lesson
+      </h1>
+      <p class="text-body-md text-navy-600 dark:text-navy-400">
+        Course: <span class="font-medium text-navy-900 dark:text-white">{{ course.title }}</span> ·
+        Section: <span class="font-medium text-navy-900 dark:text-white">{{ section.title }}</span>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{{ path('admin_lessons_show', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" class="btn-secondary btn-sm">
+        View
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </a>
+      <a href="{{ path('admin_sections_show', {courseId: course.id, sectionId: section.id}) }}" class="btn-secondary btn-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+    <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+      Lesson details
+    </h2>
+    <p class="text-body-sm text-navy-500 mt-1">Update content or ordering.</p>
+  </div>
+
+  <div class="p-6">
+    {{ form_start(form) }}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+          {{ form_row(form.title) }}
+        </div>
+
+        <div>
+          {{ form_row(form.type) }}
+        </div>
+        <div>
+          {{ form_row(form.position) }}
+        </div>
+
+        <div class="md:col-span-2">
+          {{ form_row(form.content) }}
+        </div>
+
+        <div class="md:col-span-2">
+          {{ form_row(form.filePath) }}
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-between">
+        <form method="post" action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" onsubmit="return confirm('Delete this lesson?');">
+          <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
+          <button class="btn-danger btn-sm">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Delete
+          </button>
+        </form>
+
+        <button class="btn-primary btn-sm">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          Update
+        </button>
+      </div>
+    {{ form_end(form) }}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Course - Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        Edit Course
+      </h1>
+      <p class="text-body-md text-navy-600 dark:text-navy-400">
+        {{ course.title }}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{{ path('admin_courses_show', {courseId: course.id}) }}" class="btn-secondary btn-sm">
+        Manage sections
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </a>
+      <a href="{{ path('admin_courses_index') }}" class="btn-secondary btn-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+    <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+      Course details
+    </h2>
+    <p class="text-body-sm text-navy-500 mt-1">Update metadata for the catalog.</p>
+  </div>
+
+  <div class="p-6">
+    {{ form_start(form) }}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+          {{ form_row(form.title) }}
+        </div>
+        <div>
+          {{ form_row(form.category) }}
+        </div>
+        <div>
+          {{ form_row(form.status) }}
+        </div>
+        <div class="md:col-span-2">
+          {{ form_row(form.thumbnail) }}
+        </div>
+        <div class="md:col-span-2">
+          {{ form_row(form.description) }}
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-between">
+        <form method="post" action="{{ path('admin_courses_delete', {courseId: course.id}) }}" onsubmit="return confirm('Delete this course? This will remove sections and lessons too.');">
+          <input type="hidden" name="_token" value="{{ csrf_token('delete_course_' ~ course.id) }}">
+          <button class="btn-danger btn-sm">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Delete
+          </button>
+        </form>
+
+        <button class="btn-primary btn-sm">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          Update
+        </button>
+      </div>
+    {{ form_end(form) }}
+  </div>
+</div>
+{% endblock %}

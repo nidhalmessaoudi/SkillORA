@@ -26,14 +26,25 @@ class LessonType extends AbstractType
                     "File" => "file",
                 ],
             ])
-            ->add("content", TextareaType::class, ["required" => false])
-            ->add("filePath", TextType::class, ["required" => false])
+            ->add("content", TextareaType::class, [
+                "required" => false,
+                "help" =>
+                    "For Video lessons, put the URL here. For Text lessons, put the formatted text here.",
+            ])
+            ->add("filePath", TextType::class, [
+                "required" => false,
+                "help" =>
+                    "For File lessons, put a path like /uploads/lessons/file.pdf (we’ll add real upload later).",
+            ])
             ->add("position", IntegerType::class);
-        // section set in controller
+
+        // section + createdAt + updatedAt are set in backend (controller + lifecycle callbacks)
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(["data_class" => Lesson::class]);
+        $resolver->setDefaults([
+            "data_class" => Lesson::class,
+        ]);
     }
 }

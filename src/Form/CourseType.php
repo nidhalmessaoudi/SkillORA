@@ -18,7 +18,15 @@ class CourseType extends AbstractType
     ): void {
         $builder
             ->add("title", TextType::class)
-            ->add("description", TextareaType::class, ["required" => false])
+            ->add("category", TextType::class)
+            ->add("description", TextareaType::class, [
+                "required" => false,
+            ])
+            ->add("thumbnail", TextType::class, [
+                "required" => false,
+                "help" =>
+                    "Put an image URL or a relative path like /uploads/courses/thumb.png",
+            ])
             ->add("status", ChoiceType::class, [
                 "choices" => [
                     "Draft" => "draft",
@@ -26,10 +34,13 @@ class CourseType extends AbstractType
                     "Archived" => "archived",
                 ],
             ]);
+        // createdAt / updatedAt are handled automatically in the entity (PrePersist/PreUpdate)
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(["data_class" => Course::class]);
+        $resolver->setDefaults([
+            "data_class" => Course::class,
+        ]);
     }
 }

@@ -1,0 +1,166 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Manage Course - Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        {{ course.title }}
+      </h1>
+      <p class="text-body-md text-navy-600 dark:text-navy-400">
+        Manage sections (and lessons inside each section).
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{{ path('admin_courses_edit', {courseId: course.id}) }}" class="btn-secondary btn-sm">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
+        Edit course
+      </a>
+      <a href="{{ path('admin_courses_index') }}" class="btn-secondary btn-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <div class="card">
+      <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+              Sections
+            </h2>
+            <p class="text-body-sm text-navy-500 mt-1">Click a section to manage its lessons.</p>
+          </div>
+
+          {# You will create this route in AdminSectionController #}
+          <a href="{{ path('admin_sections_new', {courseId: course.id}) }}" class="btn-primary btn-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add section
+          </a>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-navy-50 dark:bg-navy-900/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                Section
+              </th>
+              <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                Position
+              </th>
+              <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                Created
+              </th>
+              <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+            {% set sections = course.sections|default([]) %}
+            {% for s in sections|sort((a,b) => a.position <=> b.position) %}
+              <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                      <i data-lucide="layers" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <a href="{{ path('admin_sections_show', {courseId: course.id, sectionId: s.id}) }}"
+                         class="font-medium text-navy-900 dark:text-white hover:underline truncate block">
+                        {{ s.title }}
+                      </a>
+                      <div class="text-body-sm text-navy-500 dark:text-navy-400">
+                        {{ s.lessons|length }} lesson(s)
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                  {{ s.position }}
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-500 dark:text-navy-400">
+                  {{ s.createdAt ? s.createdAt|date('M d, Y') : '-' }}
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="inline-flex items-center gap-2">
+                    <a href="{{ path('admin_sections_show', {courseId: course.id, sectionId: s.id}) }}" class="btn-secondary btn-sm">
+                      Lessons
+                      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="{{ path('admin_sections_edit', {courseId: course.id, sectionId: s.id}) }}" class="btn-secondary btn-sm">
+                      <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </a>
+
+                    <form method="post" action="{{ path('admin_sections_delete', {courseId: course.id, sectionId: s.id}) }}" onsubmit="return confirm('Delete this section?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_section_' ~ s.id) }}">
+                      <button class="btn-danger btn-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="px-6 py-12 text-center">
+                  <div class="empty-state-icon mx-auto">
+                    <i data-lucide="layers" class="w-full h-full"></i>
+                  </div>
+                  <p class="text-navy-500">No sections yet</p>
+                  <div class="mt-4">
+                    <a href="{{ path('admin_sections_new', {courseId: course.id}) }}" class="btn-primary btn-sm">
+                      <i data-lucide="plus" class="w-4 h-4"></i>
+                      Add your first section
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg:col-span-1">
+    <div class="card p-6">
+      <h3 class="text-heading-md font-display font-semibold text-navy-900 dark:text-white">Course Summary</h3>
+      <div class="mt-4 space-y-3 text-body-sm text-navy-600 dark:text-navy-300">
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Category</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ course.category }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Status</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ course.status }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Created</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ course.createdAt ? course.createdAt|date('M d, Y') : '-' }}</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <a href="{{ path('admin_courses_edit', {courseId: course.id}) }}" class="btn-secondary btn-sm w-full justify-center">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Edit metadata
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

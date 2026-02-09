@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LessonRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Lesson
 {
     #[ORM\Id]
@@ -17,11 +18,11 @@ class Lesson
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $content = null;
-
     #[ORM\Column(length: 20)]
     private ?string $type = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $content = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $filePath = null;
@@ -29,7 +30,13 @@ class Lesson
     #[ORM\Column]
     private ?int $position = null;
 
-    #[ORM\ManyToOne(inversedBy: 'lessons')]
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\ManyToOne(inversedBy: "lessons")]
     #[ORM\JoinColumn(nullable: false)]
     private ?CourseSection $section = null;
 
@@ -50,18 +57,6 @@ class Lesson
         return $this;
     }
 
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    public function setContent(?string $content): static
-    {
-        $this->content = $content;
-
-        return $this;
-    }
-
     public function getType(): ?string
     {
         return $this->type;
@@ -70,6 +65,18 @@ class Lesson
     public function setType(string $type): static
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(?string $content): static
+    {
+        $this->content = $content;
 
         return $this;
     }
@@ -98,6 +105,30 @@ class Lesson
         return $this;
     }
 
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
     public function getSection(): ?CourseSection
     {
         return $this->section;
@@ -108,5 +139,19 @@ class Lesson
         $this->section = $section;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

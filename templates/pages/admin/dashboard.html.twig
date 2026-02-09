@@ -1,0 +1,161 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Admin Dashboard - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+{# Stats Overview #}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        Dashboard
+    </h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">
+        Welcome back, {{ app.user.fullName }}! Here's what's happening with your platform.
+    </p>
+</div>
+
+{# Statistics Cards #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {# Total Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
+            </div>
+            <span class="badge-primary">Total</span>
+        </div>
+        <div class="stat-value">{{ stats.total|number_format }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+
+    {# Active Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                <i data-lucide="user-check" class="w-6 h-6 text-success-600 dark:text-success-400"></i>
+            </div>
+            <span class="badge-success">Active</span>
+        </div>
+        <div class="stat-value">{{ stats.active|number_format }}</div>
+        <div class="stat-label">Active Users</div>
+    </div>
+
+    {# Banned Users #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
+                <i data-lucide="user-x" class="w-6 h-6 text-danger-600 dark:text-danger-400"></i>
+            </div>
+            <span class="badge-danger">Banned</span>
+        </div>
+        <div class="stat-value">{{ stats.banned|number_format }}</div>
+        <div class="stat-label">Banned Users</div>
+    </div>
+
+    {# New This Week #}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-coral-100 dark:bg-coral-900/30 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-6 h-6 text-coral-500"></i>
+            </div>
+            <span class="badge-coral">New</span>
+        </div>
+        <div class="stat-value">{{ stats.new_this_week|number_format }}</div>
+        <div class="stat-label">New This Week</div>
+    </div>
+</div>
+
+{# Recent Users Table #}
+<div class="card">
+    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+                    Recent Users
+                </h2>
+                <p class="text-body-sm text-navy-500 mt-1">
+                    Latest user registrations on the platform
+                </p>
+            </div>
+            <a href="{{ path('admin_users') }}" class="btn-secondary btn-sm">
+                View All
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-navy-50 dark:bg-navy-900/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                        User
+                    </th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                        Email
+                    </th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                        Role
+                    </th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+                        Joined
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+                {% for user in recent_users %}
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar avatar-md bg-harbor-100 dark:bg-harbor-900/30 text-harbor-600 dark:text-harbor-400">
+                                {{ user.fullName|slice(0, 1)|upper }}
+                            </div>
+                            <div class="font-medium text-navy-900 dark:text-white">
+                                {{ user.fullName }}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
+                        {{ user.email }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if user.isAdmin %}
+                            <span class="badge-primary">Admin</span>
+                        {% else %}
+                            <span class="badge-secondary">User</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if user.isBanned %}
+                            <span class="badge-danger">
+                                <i data-lucide="ban" class="w-3 h-3"></i>
+                                Banned
+                            </span>
+                        {% else %}
+                            <span class="badge-success">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                Active
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-500 dark:text-navy-400">
+                        {{ user.createdAt|date('M d, Y') }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="empty-state-icon mx-auto">
+                            <i data-lucide="users" class="w-full h-full"></i>
+                        </div>
+                        <p class="text-navy-500">No users found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
