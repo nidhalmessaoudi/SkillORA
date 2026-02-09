@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -35,10 +36,55 @@ class EventController extends AbstractController
         ]);
     }
 
+    #[Route('/export', name: 'admin_events_export')]
+    public function export(): Response
+    {
+        $events = $this->entityManager->getRepository(Event::class)->findBy([], ['startDate' => 'DESC']);
+        $salles = $this->entityManager->getRepository(Salle::class)->findAll();
+
+        $salleMap = [];
+        foreach ($salles as $salle) {
+            $salleMap[$salle->getId()] = $salle->getName() ?? 'Unassigned';
+        }
+
+        $rows = [];
+        $rows[] = ['ID', 'Title', 'Start Date', 'End Date', 'Type', 'Price', 'Salle'];
+        foreach ($events as $event) {
+            $rows[] = [
+                (string) $event->getId(),
+                $event->getTitle() ?? '',
+                $event->getStartDate()?->format('Y-m-d H:i') ?? '',
+                $event->getEndDate()?->format('Y-m-d H:i') ?? '',
+                $event->getEventType() ?? '',
+                $event->getPriceType() ?? '',
+                $event->getSalleId() ? ($salleMap[$event->getSalleId()] ?? 'Unassigned') : 'Unassigned',
+            ];
+        }
+
+        $handle = fopen('php://temp', 'r+');
+        foreach ($rows as $row) {
+            fputcsv($handle, $row, ';');
+        }
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        $response = new Response($content);
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'events_export.xls'
+        );
+        $response->headers->set('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
+    }
+
     #[Route('/new', name: 'admin_events_new')]
     public function new(Request $request): Response
     {
         $formData = $this->buildEventFormData($request, null, null);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
             $missing = $this->validateEventForm($formData);
@@ -49,6 +95,31 @@ class EventController extends AbstractController
 
             if (!$startDate || !$endDate) {
                 $missing[] = 'dates';
+            }
+
+            if (!empty($missing)) {
+                $messages = [
+                    'title' => 'Champ obligatoire.',
+                    'start_date' => 'Champ obligatoire.',
+                    'end_date' => 'Champ obligatoire.',
+                    'event_type' => 'Champ obligatoire.',
+                    'price_type' => 'Champ obligatoire.',
+                    'price' => 'Champ obligatoire.',
+                    'salle_name' => 'Champ obligatoire.',
+                    'salle_location' => 'Champ obligatoire.',
+                    'salle_max_participants' => 'Champ obligatoire.',
+                    'salle_duration' => 'Champ obligatoire.',
+                ];
+                foreach ($missing as $field) {
+                    if ($field === 'dates') {
+                        $errors['start_date'] = $messages['start_date'];
+                        $errors['end_date'] = $messages['end_date'];
+                        continue;
+                    }
+                    if (isset($messages[$field])) {
+                        $errors[$field] = $messages[$field];
+                    }
+                }
             }
 
             if (empty($missing)) {
@@ -91,6 +162,7 @@ class EventController extends AbstractController
 
         return $this->render('pages/admin/events/new.html.twig', [
             'form_data' => $formData,
+            'errors' => $errors,
         ]);
     }
 
@@ -117,6 +189,7 @@ class EventController extends AbstractController
         }
 
         $formData = $this->buildEventFormData($request, $event, $salle);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
             $missing = $this->validateEventForm($formData);
@@ -127,6 +200,31 @@ class EventController extends AbstractController
 
             if (!$startDate || !$endDate) {
                 $missing[] = 'dates';
+            }
+
+            if (!empty($missing)) {
+                $messages = [
+                    'title' => 'Champ obligatoire.',
+                    'start_date' => 'Champ obligatoire.',
+                    'end_date' => 'Champ obligatoire.',
+                    'event_type' => 'Champ obligatoire.',
+                    'price_type' => 'Champ obligatoire.',
+                    'price' => 'Champ obligatoire.',
+                    'salle_name' => 'Champ obligatoire.',
+                    'salle_location' => 'Champ obligatoire.',
+                    'salle_max_participants' => 'Champ obligatoire.',
+                    'salle_duration' => 'Champ obligatoire.',
+                ];
+                foreach ($missing as $field) {
+                    if ($field === 'dates') {
+                        $errors['start_date'] = $messages['start_date'];
+                        $errors['end_date'] = $messages['end_date'];
+                        continue;
+                    }
+                    if (isset($messages[$field])) {
+                        $errors[$field] = $messages[$field];
+                    }
+                }
             }
 
             if (empty($missing)) {
@@ -176,6 +274,7 @@ class EventController extends AbstractController
         return $this->render('pages/admin/events/edit.html.twig', [
             'event' => $event,
             'form_data' => $formData,
+            'errors' => $errors,
         ]);
     }
 

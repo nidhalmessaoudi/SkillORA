@@ -14,12 +14,18 @@
     <div class="card p-6 space-y-4">
         <div>
             <label class="input-label" for="name">Name</label>
-            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}" required>
+            {% if errors.name is defined %}
+                <p class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+            {% endif %}
+            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}">
         </div>
 
         <div>
             <label class="input-label" for="location">Location</label>
-            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}" required>
+            {% if errors.location is defined %}
+                <p class="text-red-600 text-sm mt-1">{{ errors.location }}</p>
+            {% endif %}
+            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}">
             <input type="hidden" id="location_lat" name="location_lat" value="{{ form_data.location_lat|default('') }}">
             <input type="hidden" id="location_lng" name="location_lng" value="{{ form_data.location_lng|default('') }}">
             <div id="location-suggestions" class="mt-2 space-y-1"></div>
@@ -89,11 +95,17 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="input-label" for="max_participants">Max Participants</label>
-                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}" required>
+                {% if errors.max_participants is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.max_participants }}</p>
+                {% endif %}
+                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}">
             </div>
             <div>
                 <label class="input-label" for="duration">Duration (minutes)</label>
-                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}" required>
+                {% if errors.duration is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.duration }}</p>
+                {% endif %}
+                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}">
             </div>
         </div>
 

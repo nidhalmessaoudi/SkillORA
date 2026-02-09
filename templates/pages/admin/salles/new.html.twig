@@ -12,12 +12,12 @@
     <div class="card p-6 space-y-4">
         <div>
             <label class="input-label" for="name">Name</label>
-            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}" required>
+            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}">
         </div>
 
         <div>
             <label class="input-label" for="location">Location</label>
-            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}" required>
+            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}">
         </div>
 
         <div>
@@ -34,11 +34,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="input-label" for="max_participants">Max Participants</label>
-                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}" required>
+                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}" >
             </div>
             <div>
                 <label class="input-label" for="duration">Duration (minutes)</label>
-                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}" required>
+                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}">
             </div>
         </div>
 

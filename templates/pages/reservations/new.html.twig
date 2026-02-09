@@ -19,6 +19,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="event_id">Event</label>
+                    {% if errors.event_id is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.event_id }}</p>
+                    {% endif %}
                     {% if form_data.event_id %}
                         {% set selected_event = null %}
                         {% for event in events %}
@@ -29,7 +32,7 @@
                         <input type="hidden" id="event_id" name="event_id" value="{{ form_data.event_id }}">
                         <input type="text" class="input" value="{{ selected_event ? selected_event.title : 'Selected event' }}" readonly>
                     {% else %}
-                        <select id="event_id" name="event_id" class="select" required>
+                        <select id="event_id" name="event_id" class="select">
                             <option value="">Select an event...</option>
                             {% for event in events %}
                                 <option value="{{ event.id }}" {{ form_data.event_id == event.id ? 'selected' : '' }}>{{ event.title }}</option>
@@ -39,6 +42,9 @@
                 </div>
                 <div>
                     <label class="input-label" for="salle_id">Salle</label>
+                    {% if errors.salle_id is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.salle_id }}</p>
+                    {% endif %}
                     {% if form_data.salle_id %}
                         {% set selected_salle = null %}
                         {% for salle in salles %}
@@ -49,7 +55,7 @@
                         <input type="hidden" id="salle_id" name="salle_id" value="{{ form_data.salle_id }}">
                         <input type="text" class="input" value="{{ selected_salle ? selected_salle.name : 'Selected salle' }}" readonly>
                     {% else %}
-                        <select id="salle_id" name="salle_id" class="select" required>
+                        <select id="salle_id" name="salle_id" class="select">
                             <option value="">Select a salle...</option>
                             {% for salle in salles %}
                                 <option value="{{ salle.id }}" {{ form_data.salle_id == salle.id ? 'selected' : '' }}>{{ salle.name }}</option>
@@ -62,18 +68,27 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="prenom">First Name</label>
-                    <input id="prenom" name="prenom" type="text" class="input" value="{{ form_data.prenom|default('') }}" required>
+                    {% if errors.prenom is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.prenom }}</p>
+                    {% endif %}
+                    <input id="prenom" name="prenom" type="text" class="input" value="{{ form_data.prenom|default('') }}">
                 </div>
                 <div>
                     <label class="input-label" for="nom">Last Name</label>
-                    <input id="nom" name="nom" type="text" class="input" value="{{ form_data.nom|default('') }}" required>
+                    {% if errors.nom is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.nom }}</p>
+                    {% endif %}
+                    <input id="nom" name="nom" type="text" class="input" value="{{ form_data.nom|default('') }}">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="telephone">Phone</label>
-                    <input id="telephone" name="telephone" type="text" class="input" value="{{ form_data.telephone|default('') }}" required>
+                    {% if errors.telephone is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.telephone }}</p>
+                    {% endif %}
+                    <input id="telephone" name="telephone" type="text" class="input" value="{{ form_data.telephone|default('') }}">
                 </div>
                 <div>
                     {% if form_data.seats %}
@@ -81,7 +96,10 @@
                         <input id="seats_display" name="seats_display" type="text" class="input" value="{{ form_data.seats|default('') }}" readonly>
                     {% else %}
                         <label class="input-label" for="nombre_places">Seat</label>
-                        <input id="nombre_places" name="nombre_places" type="number" min="1" class="input" value="{{ form_data.nombre_places|default('') }}" {{ form_data.seat_locked ? 'readonly' : '' }} required>
+                        {% if errors.nombre_places is defined %}
+                            <p class="text-red-600 text-sm mt-1">{{ errors.nombre_places }}</p>
+                        {% endif %}
+                        <input id="nombre_places" name="nombre_places" type="number" min="1" class="input" value="{{ form_data.nombre_places|default('') }}" {{ form_data.seat_locked ? 'readonly' : '' }}>
                     {% endif %}
                     {% if form_data.max_participants %}
                         <p class="text-caption text-navy-500 dark:text-navy-400 mt-1">Max seats: {{ form_data.max_participants }}</p>
