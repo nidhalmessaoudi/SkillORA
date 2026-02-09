@@ -103,6 +103,7 @@ class AdminSectionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($section);
             $em->flush();
 
             return $this->redirectToRoute("admin_courses_show", [

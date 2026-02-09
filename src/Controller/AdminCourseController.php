@@ -14,10 +14,8 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminCourseController extends AbstractController
 {
     #[Route("", name: "admin_courses_index", methods: ["GET"])]
-    public function index(
-        EntityManagerInterface $em,
-        Request $request,
-    ): Response {
+    public function index(EntityManagerInterface $em): Response
+    {
         $courses = $em
             ->getRepository(Course::class)
             ->findBy([], ["createdAt" => "DESC"]);
@@ -82,11 +80,10 @@ class AdminCourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($course);
             $em->flush();
 
-            return $this->redirectToRoute("admin_courses_show", [
-                "courseId" => $course->getId(),
-            ]);
+            return $this->redirectToRoute("admin_courses_index");
         }
 
         return $this->render("pages/admin/courses/edit.html.twig", [

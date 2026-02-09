@@ -27,7 +27,7 @@
     <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
       Lesson details
     </h2>
-    <p class="text-body-sm text-navy-500 mt-1">Title + type + content/file + position.</p>
+    <p class="text-body-sm text-navy-500 mt-1">Title + type + content/upload + position.</p>
   </div>
 
   <div class="p-6">
@@ -44,12 +44,12 @@
           {{ form_row(form.position) }}
         </div>
 
-        <div class="md:col-span-2">
+        <div id="lesson-content-row" class="md:col-span-2">
           {{ form_row(form.content) }}
         </div>
 
-        <div class="md:col-span-2">
-          {{ form_row(form.filePath) }}
+        <div id="lesson-upload-row" class="md:col-span-2">
+          {{ form_row(form.upload) }}
         </div>
       </div>
 
@@ -63,4 +63,38 @@
     {{ form_end(form) }}
   </div>
 </div>
+
+<script>
+  (function () {
+    const typeSelect = document.getElementById('{{ form.type.vars.id }}');
+    const contentRow = document.getElementById('lesson-content-row');
+    const uploadRow = document.getElementById('lesson-upload-row');
+    const uploadInput = document.getElementById('{{ form.upload.vars.id }}');
+
+    function syncLessonTypeFields() {
+      const v = (typeSelect && typeSelect.value) ? typeSelect.value : 'text';
+      const isText = v === 'text';
+      const isFile = v === 'pdf' || v === 'video';
+
+      if (contentRow) contentRow.classList.toggle('hidden', !isText);
+      if (uploadRow) uploadRow.classList.toggle('hidden', !isFile);
+
+      if (uploadInput) {
+        if (v === 'pdf') {
+          uploadInput.setAttribute('accept', 'application/pdf,.pdf');
+        } else if (v === 'video') {
+          uploadInput.setAttribute('accept', 'video/*');
+        } else {
+          uploadInput.removeAttribute('accept');
+          uploadInput.value = '';
+        }
+      }
+    }
+
+    if (typeSelect) {
+      typeSelect.addEventListener('change', syncLessonTypeFields);
+      syncLessonTypeFields();
+    }
+  })();
+</script>
 {% endblock %}

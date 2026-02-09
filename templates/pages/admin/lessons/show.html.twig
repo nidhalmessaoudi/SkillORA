@@ -35,7 +35,7 @@
         <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
           Preview
         </h2>
-        <p class="text-body-sm text-navy-500 mt-1">Basic preview (no fancy rendering yet).</p>
+        <p class="text-body-sm text-navy-500 mt-1">Basic preview (local uploads).</p>
       </div>
 
       <div class="p-6">
@@ -43,20 +43,57 @@
 
         {% if t == 'video' %}
           <div class="rounded-2xl border border-navy-100 dark:border-navy-800 p-4">
-            <p class="text-body-sm text-navy-500 mb-2">Video URL</p>
-            <p class="font-medium text-navy-900 dark:text-white break-words">
-              {{ lesson.content ?: 'No URL provided' }}
-            </p>
+            {% if lesson.filePath %}
+              <div class="flex items-center justify-end gap-2 mb-3">
+                <a class="btn-secondary btn-sm" href="{{ lesson.filePath }}" target="_blank" rel="noopener">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                  Open
+                </a>
+              </div>
+
+              <video controls class="w-full rounded-xl border border-navy-100 dark:border-navy-800">
+                <source src="{{ lesson.filePath }}">
+                Your browser does not support the video tag.
+              </video>
+            {% else %}
+              <p class="text-body-sm text-navy-500">No video uploaded.</p>
+            {% endif %}
           </div>
-        {% elseif t == 'file' %}
+
+        {% elseif t == 'pdf' %}
           <div class="rounded-2xl border border-navy-100 dark:border-navy-800 p-4">
-            <p class="text-body-sm text-navy-500 mb-2">File path</p>
-            <p class="font-medium text-navy-900 dark:text-white break-words">
-              {{ lesson.filePath ?: 'No file path provided' }}
-            </p>
+            {% if lesson.filePath %}
+              <div class="flex items-center justify-end gap-2 mb-3">
+                <button type="button" id="pdf-fullscreen-btn" class="btn-secondary btn-sm">
+                  <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                  Fullscreen
+                </button>
+                <a class="btn-secondary btn-sm" href="{{ lesson.filePath }}" target="_blank" rel="noopener">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                  Open
+                </a>
+              </div>
+
+              <div id="pdf-frame-wrap" class="rounded-2xl overflow-hidden border border-navy-100 dark:border-navy-800 bg-white dark:bg-navy-950">
+                <iframe
+                  id="pdf-frame"
+                  src="{{ lesson.filePath }}"
+                  class="w-full"
+                  style="height: 75vh;"
+                  title="PDF preview"
+                ></iframe>
+              </div>
+
+              <p class="text-caption text-navy-500 mt-3">
+                If the preview doesn’t show, click “Open”.
+              </p>
+            {% else %}
+              <p class="text-body-sm text-navy-500">No PDF uploaded.</p>
+            {% endif %}
           </div>
+
         {% else %}
-          <div class="prose dark:prose-invert max-w-none">
+          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap break-words">
             {{ (lesson.content ?: 'No content yet')|nl2br }}
           </div>
         {% endif %}
@@ -102,4 +139,44 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const btn = document.getElementById('pdf-fullscreen-btn');
+    const frame = document.getElementById('pdf-frame');
+
+    if (!btn || !frame) return;
+
+    function isFullscreen() {
+      return !!document.fullscreenElement;
+    }
+
+    btn.addEventListener('click', async () => {
+      try {
+        if (!isFullscreen()) {
+          await frame.requestFullscreen();
+          btn.innerHTML = '<i data-lucide="minimize-2" class="w-4 h-4"></i> Exit';
+        } else {
+          await document.exitFullscreen();
+        }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      } catch (e) {
+        // fallback: open in new tab if fullscreen isn't allowed
+        if (frame.src) window.open(frame.src, '_blank', 'noopener');
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!btn) return;
+      if (!isFullscreen()) {
+        btn.innerHTML = '<i data-lucide="maximize-2" class="w-4 h-4"></i> Fullscreen';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+    });
+  })();
+</script>
 {% endblock %}

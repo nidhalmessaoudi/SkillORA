@@ -37,7 +37,6 @@
         <p class="text-body-sm text-navy-500 mt-1">Basic list (title + type + position).</p>
       </div>
 
-      {# We’ll create this route in AdminLessonController next #}
       <a href="{{ path('admin_lessons_new', {courseId: course.id, sectionId: section.id}) }}" class="btn-primary btn-sm">
         <i data-lucide="plus" class="w-4 h-4"></i>
         Add lesson
@@ -67,11 +66,19 @@
       <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
         {% set lessons = section.lessons|default([]) %}
         {% for lesson in lessons|sort((a,b) => a.position <=> b.position) %}
+          {% set t = lesson.type|default('text') %}
+
           <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
-                  <i data-lucide="file-text" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                  {% if t == 'video' %}
+                    <i data-lucide="play-circle" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                  {% elseif t == 'pdf' %}
+                    <i data-lucide="file-text" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                  {% else %}
+                    <i data-lucide="align-left" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                  {% endif %}
                 </div>
                 <div class="min-w-0">
                   <a href="{{ path('admin_lessons_show', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}"
@@ -83,19 +90,19 @@
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap">
-              {% set t = lesson.type|default('text') %}
               {% if t == 'video' %}
                 <span class="badge-primary"><i data-lucide="play-circle" class="w-3 h-3"></i> Video</span>
-              {% elseif t == 'file' %}
-                <span class="badge-secondary"><i data-lucide="paperclip" class="w-3 h-3"></i> File</span>
+              {% elseif t == 'pdf' %}
+                <span class="badge-secondary"><i data-lucide="file-text" class="w-3 h-3"></i> PDF</span>
               {% else %}
-                <span class="badge-success"><i data-lucide="file-text" class="w-3 h-3"></i> Text</span>
+                <span class="badge-success"><i data-lucide="align-left" class="w-3 h-3"></i> Text</span>
               {% endif %}
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">
               {{ lesson.position }}
             </td>
+
             <td class="px-6 py-4 whitespace-nowrap text-right">
               <div class="inline-flex items-center gap-2">
                 <a href="{{ path('admin_lessons_edit', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" class="btn-secondary btn-sm">

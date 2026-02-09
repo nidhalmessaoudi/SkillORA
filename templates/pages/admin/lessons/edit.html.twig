@@ -50,24 +50,22 @@
           {{ form_row(form.position) }}
         </div>
 
-        <div class="md:col-span-2">
+        <div id="lesson-content-row" class="md:col-span-2">
           {{ form_row(form.content) }}
         </div>
 
-        <div class="md:col-span-2">
-          {{ form_row(form.filePath) }}
+        <div id="lesson-upload-row" class="md:col-span-2">
+          {{ form_row(form.upload) }}
+          {% if lesson.filePath %}
+            <div class="mt-2 text-body-sm text-navy-500 break-words">
+              Current file: <a class="underline" href="{{ lesson.filePath }}" target="_blank" rel="noopener">{{ lesson.filePath }}</a>
+            </div>
+          {% endif %}
         </div>
       </div>
 
-      <div class="mt-6 flex items-center justify-between">
-        <form method="post" action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" onsubmit="return confirm('Delete this lesson?');">
-          <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
-          <button class="btn-danger btn-sm">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            Delete
-          </button>
-        </form>
-
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <a href="{{ path('admin_sections_show', {courseId: course.id, sectionId: section.id}) }}" class="btn-secondary btn-sm">Cancel</a>
         <button class="btn-primary btn-sm">
           <i data-lucide="save" class="w-4 h-4"></i>
           Update
@@ -76,4 +74,66 @@
     {{ form_end(form) }}
   </div>
 </div>
+
+<div class="card mt-6 border border-red-200 dark:border-red-900/40">
+  <div class="p-6 border-b border-red-200 dark:border-red-900/40">
+    <h2 class="text-heading-lg font-display font-semibold text-red-700 dark:text-red-300">
+      Danger zone
+    </h2>
+    <p class="text-body-sm text-navy-500 mt-1">
+      Deleting this lesson will remove its content/file.
+    </p>
+  </div>
+
+  <div class="p-6 flex items-center justify-between gap-4">
+    <div class="min-w-0">
+      <p class="font-medium text-navy-900 dark:text-white">Delete lesson</p>
+      <p class="text-body-sm text-navy-500">This action can’t be undone.</p>
+    </div>
+
+    <form method="post"
+          action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}"
+          onsubmit="return confirm('Delete this lesson?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
+      <button class="btn-danger btn-sm">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+        Delete
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const typeSelect = document.getElementById('{{ form.type.vars.id }}');
+    const contentRow = document.getElementById('lesson-content-row');
+    const uploadRow = document.getElementById('lesson-upload-row');
+    const uploadInput = document.getElementById('{{ form.upload.vars.id }}');
+
+    function syncLessonTypeFields() {
+      const v = (typeSelect && typeSelect.value) ? typeSelect.value : 'text';
+      const isText = v === 'text';
+      const isFile = v === 'pdf' || v === 'video';
+
+      if (contentRow) contentRow.classList.toggle('hidden', !isText);
+      if (uploadRow) uploadRow.classList.toggle('hidden', !isFile);
+
+      if (uploadInput) {
+        if (v === 'pdf') {
+          uploadInput.setAttribute('accept', 'application/pdf,.pdf');
+        } else if (v === 'video') {
+          uploadInput.setAttribute('accept', 'video/*');
+        } else {
+          uploadInput.removeAttribute('accept');
+          uploadInput.value = '';
+        }
+      }
+    }
+
+    if (typeSelect) {
+      typeSelect.addEventListener('change', syncLessonTypeFields);
+      syncLessonTypeFields();
+    }
+  })();
+</script>
 {% endblock %}

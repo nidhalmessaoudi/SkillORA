@@ -40,21 +40,42 @@
         </div>
       </div>
 
-      <div class="mt-6 flex items-center justify-between">
-        <form method="post" action="{{ path('admin_sections_delete', {courseId: course.id, sectionId: section.id}) }}" onsubmit="return confirm('Delete this section?');">
-          <input type="hidden" name="_token" value="{{ csrf_token('delete_section_' ~ section.id) }}">
-          <button class="btn-danger btn-sm">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            Delete
-          </button>
-        </form>
-
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <a href="{{ path('admin_courses_show', {courseId: course.id}) }}" class="btn-secondary btn-sm">Cancel</a>
         <button class="btn-primary btn-sm">
           <i data-lucide="save" class="w-4 h-4"></i>
           Update
         </button>
       </div>
     {{ form_end(form) }}
+  </div>
+</div>
+
+<div class="card mt-6 border border-red-200 dark:border-red-900/40">
+  <div class="p-6 border-b border-red-200 dark:border-red-900/40">
+    <h2 class="text-heading-lg font-display font-semibold text-red-700 dark:text-red-300">
+      Danger zone
+    </h2>
+    <p class="text-body-sm text-navy-500 mt-1">
+      Deleting this section will remove its lessons too.
+    </p>
+  </div>
+
+  <div class="p-6 flex items-center justify-between gap-4">
+    <div class="min-w-0">
+      <p class="font-medium text-navy-900 dark:text-white">Delete section</p>
+      <p class="text-body-sm text-navy-500">This action can’t be undone.</p>
+    </div>
+
+    <form method="post"
+          action="{{ path('admin_sections_delete', {courseId: course.id, sectionId: section.id}) }}"
+          onsubmit="return confirm('Delete this section?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete_section_' ~ section.id) }}">
+      <button class="btn-danger btn-sm">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+        Delete
+      </button>
+    </form>
   </div>
 </div>
 {% endblock %}
