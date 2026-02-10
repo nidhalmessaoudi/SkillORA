@@ -2,128 +2,241 @@
 
 namespace App\Controller;
 
-use App\DataFixtures\SampleData;
+use App\Entity\Course;
+use App\Entity\CourseSection;
+use App\Entity\Lesson;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class CourseController extends AbstractController
 {
-    #[Route('/courses', name: 'courses_index')]
-    public function index(Request $request): Response
-    {
-        $courses = SampleData::getCourses();
-        $categories = SampleData::getCategories();
-        $instructors = SampleData::getInstructors();
+    #[Route("/courses", name: "courses_index")]
+    public function index(
+        Request $request,
+        EntityManagerInterface $em,
+    ): Response {
+        $slugger = new AsciiSlugger();
 
-        // Map instructor data to courses
-        $coursesWithInstructors = array_map(function($course) use ($instructors) {
-            $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-            return array_merge($course, ['instructor' => $instructor]);
-        }, $courses);
+        $selectedCategory = (string) $request->query->get("category", "");
+        $sortBy = (string) $request->query->get("sort", "newest");
 
-        // Apply filters (UI only - in real app this would be database queries)
-        $selectedCategory = $request->query->get('category');
-        $selectedLevel = $request->query->get('level');
-        $selectedRating = $request->query->get('rating');
-        $sortBy = $request->query->get('sort', 'popular');
+        $qb = $em
+            ->getRepository(Course::class)
+            ->createQueryBuilder("c")
+            ->andWhere("c.status = :status")
+            ->setParameter("status", "published");
 
-        // Filter logic (simplified)
-        if ($selectedCategory) {
-            $categoryId = array_values(array_filter($categories, fn($c) => $c['slug'] === $selectedCategory))[0]['id'] ?? null;
-            if ($categoryId) {
-                $coursesWithInstructors = array_filter($coursesWithInstructors, fn($c) => $c['category_id'] === $categoryId);
-            }
+        if ($selectedCategory !== "") {
+            $qb->andWhere("LOWER(c.category) = :cat")->setParameter(
+                "cat",
+                strtolower(str_replace("-", " ", $selectedCategory)),
+            );
         }
 
-        if ($selectedLevel) {
-            $coursesWithInstructors = array_filter($coursesWithInstructors, fn($c) => strtolower($c['level']) === strtolower($selectedLevel));
-        }
-
-        if ($selectedRating) {
-            $coursesWithInstructors = array_filter($coursesWithInstructors, fn($c) => $c['rating'] >= floatval($selectedRating));
-        }
-
-        // Sort logic
         switch ($sortBy) {
-            case 'newest':
-                usort($coursesWithInstructors, fn($a, $b) => strtotime($b['updated_at']) - strtotime($a['updated_at']));
+            case "oldest":
+                $qb->orderBy("c.updatedAt", "ASC");
                 break;
-            case 'rating':
-                usort($coursesWithInstructors, fn($a, $b) => $b['rating'] <=> $a['rating']);
+            case "title_asc":
+                $qb->orderBy("c.title", "ASC");
                 break;
-            case 'popular':
+            case "title_desc":
+                $qb->orderBy("c.title", "DESC");
+                break;
+            case "newest":
             default:
-                usort($coursesWithInstructors, fn($a, $b) => $b['students_count'] <=> $a['students_count']);
+                $qb->orderBy("c.updatedAt", "DESC");
                 break;
         }
 
-        return $this->render('pages/courses/index.html.twig', [
-            'courses' => array_values($coursesWithInstructors),
-            'categories' => $categories,
-            'selected_category' => $selectedCategory,
-            'selected_level' => $selectedLevel,
-            'selected_rating' => $selectedRating,
-            'sort_by' => $sortBy,
-            'total_count' => count($coursesWithInstructors),
+        $courses = $qb->getQuery()->getResult();
+
+        $allPublishedCourses = $em
+            ->getRepository(Course::class)
+            ->findBy(["status" => "published"]);
+        $counts = [];
+
+        foreach ($allPublishedCourses as $c) {
+            $name = trim((string) ($c->getCategory() ?? ""));
+            if ($name === "") {
+                continue;
+            }
+            $counts[$name] = ($counts[$name] ?? 0) + 1;
+        }
+
+        ksort($counts);
+
+        $categories = [];
+        foreach ($counts as $name => $count) {
+            $categories[] = [
+                "name" => $name,
+                "slug" => strtolower((string) $slugger->slug($name)),
+                "count" => $count,
+            ];
+        }
+
+        return $this->render("pages/courses/index.html.twig", [
+            "courses" => $courses,
+            "categories" => $categories,
+            "selected_category" => $selectedCategory ?: null,
+            "sort_by" => $sortBy,
+            "total_count" => count($courses),
         ]);
     }
 
-    #[Route('/courses/{slug}', name: 'course_show')]
-    public function show(string $slug): Response
+    #[
+        Route(
+            "/courses/{courseId}",
+            name: "course_show",
+            requirements: ["courseId" => "\d+"],
+        ),
+    ]
+    public function show(int $courseId, EntityManagerInterface $em): Response
     {
-        $courses = SampleData::getCourses();
-        $instructors = SampleData::getInstructors();
-        $sections = SampleData::getSections();
-        $lessons = SampleData::getLessons();
-        $reviews = SampleData::getReviews();
-
-        // Find course by slug
-        $course = array_values(array_filter($courses, fn($c) => $c['slug'] === $slug))[0] ?? null;
-
-        if (!$course) {
-            throw $this->createNotFoundException('Course not found');
+        /** @var Course|null $course */
+        $course = $em->getRepository(Course::class)->find($courseId);
+        if (!$course || $course->getStatus() !== "published") {
+            throw $this->createNotFoundException("Course not found");
         }
 
-        // Get instructor
-        $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-        $course['instructor'] = $instructor;
+        // sections + lessons sorted by position
+        $sections = $course->getSections()->toArray();
+        usort(
+            $sections,
+            fn(CourseSection $a, CourseSection $b) => ($a->getPosition() ??
+                0) <=>
+                ($b->getPosition() ?? 0),
+        );
 
-        // Get course sections and lessons
-        $courseSections = array_filter($sections, fn($s) => $s['course_id'] === $course['id']);
-        $courseSections = array_map(function($section) use ($lessons) {
-            $sectionLessons = array_values(array_filter($lessons, fn($l) => $l['section_id'] === $section['id']));
-            usort($sectionLessons, fn($a, $b) => $a['order'] <=> $b['order']);
-            return array_merge($section, ['lessons' => $sectionLessons]);
-        }, $courseSections);
-        usort($courseSections, fn($a, $b) => $a['order'] <=> $b['order']);
+        $sectionsView = [];
+        foreach ($sections as $section) {
+            $lessons = $section->getLessons()->toArray();
+            usort(
+                $lessons,
+                fn(Lesson $a, Lesson $b) => ($a->getPosition() ?? 0) <=>
+                    ($b->getPosition() ?? 0),
+            );
 
-        // Get reviews
-        $courseReviews = array_values(array_filter($reviews, fn($r) => $r['course_id'] === $course['id']));
+            $sectionsView[] = [
+                "section" => $section,
+                "lessons" => $lessons,
+            ];
+        }
 
-        // Calculate rating distribution (mock data)
-        $ratingDistribution = [
-            5 => 65,
-            4 => 22,
-            3 => 8,
-            2 => 3,
-            1 => 2,
-        ];
+        $related = $em
+            ->getRepository(Course::class)
+            ->createQueryBuilder("c")
+            ->andWhere("c.status = :status")
+            ->andWhere("c.category = :cat")
+            ->andWhere("c.id != :id")
+            ->setParameter("status", "published")
+            ->setParameter("cat", $course->getCategory())
+            ->setParameter("id", $course->getId())
+            ->orderBy("c.updatedAt", "DESC")
+            ->setMaxResults(3)
+            ->getQuery()
+            ->getResult();
 
-        // Related courses
-        $relatedCourses = array_slice(array_values(array_filter($courses, fn($c) => $c['id'] !== $course['id'] && $c['category_id'] === $course['category_id'])), 0, 3);
-        $relatedCourses = array_map(function($c) use ($instructors) {
-            $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $c['instructor_id']))[0] ?? null;
-            return array_merge($c, ['instructor' => $instructor]);
-        }, $relatedCourses);
+        return $this->render("pages/courses/show.html.twig", [
+            "course" => $course,
+            "sections" => $sectionsView,
+            "related_courses" => $related,
+        ]);
+    }
 
-        return $this->render('pages/courses/show.html.twig', [
-            'course' => $course,
-            'sections' => array_values($courseSections),
-            'reviews' => $courseReviews,
-            'rating_distribution' => $ratingDistribution,
-            'related_courses' => $relatedCourses,
+    #[
+        Route(
+            "/courses/{courseId}/lessons/{lessonId}",
+            name: "lesson_show",
+            requirements: ["courseId" => "\d+", "lessonId" => "\d+"],
+        ),
+    ]
+    public function showLesson(
+        int $courseId,
+        int $lessonId,
+        EntityManagerInterface $em,
+    ): Response {
+        /** @var Course|null $course */
+        $course = $em->getRepository(Course::class)->find($courseId);
+        if (!$course || $course->getStatus() !== "published") {
+            throw $this->createNotFoundException("Course not found");
+        }
+
+        /** @var Lesson|null $lesson */
+        $lesson = $em->getRepository(Lesson::class)->find($lessonId);
+        if (!$lesson) {
+            throw $this->createNotFoundException("Lesson not found");
+        }
+
+        $section = $lesson->getSection();
+        if (
+            !$section ||
+            !$section->getCourse() ||
+            $section->getCourse()->getId() !== $course->getId()
+        ) {
+            throw $this->createNotFoundException(
+                "Lesson not found for this course",
+            );
+        }
+
+        // Build sidebar + ordered list for prev/next
+        $sections = $course->getSections()->toArray();
+        usort(
+            $sections,
+            fn(CourseSection $a, CourseSection $b) => ($a->getPosition() ??
+                0) <=>
+                ($b->getPosition() ?? 0),
+        );
+
+        $sectionsView = [];
+        $orderedLessons = [];
+
+        foreach ($sections as $s) {
+            $lessons = $s->getLessons()->toArray();
+            usort(
+                $lessons,
+                fn(Lesson $a, Lesson $b) => ($a->getPosition() ?? 0) <=>
+                    ($b->getPosition() ?? 0),
+            );
+
+            foreach ($lessons as $l) {
+                $orderedLessons[] = $l;
+            }
+
+            $sectionsView[] = [
+                "section" => $s,
+                "lessons" => $lessons,
+            ];
+        }
+
+        $currentIndex = null;
+        foreach ($orderedLessons as $i => $l) {
+            if ($l->getId() === $lesson->getId()) {
+                $currentIndex = $i;
+                break;
+            }
+        }
+
+        $prevLesson =
+            $currentIndex !== null && $currentIndex > 0
+                ? $orderedLessons[$currentIndex - 1]
+                : null;
+        $nextLesson =
+            $currentIndex !== null && $currentIndex < count($orderedLessons) - 1
+                ? $orderedLessons[$currentIndex + 1]
+                : null;
+
+        return $this->render("pages/lessons/show.html.twig", [
+            "course" => $course,
+            "section" => $section,
+            "lesson" => $lesson,
+            "sections" => $sectionsView,
+            "prev_lesson" => $prevLesson,
+            "next_lesson" => $nextLesson,
         ]);
     }
 }

@@ -3,44 +3,44 @@
 namespace App\Controller;
 
 use App\DataFixtures\SampleData;
+use App\Entity\Course;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    #[Route('/', name: 'app_home')]
-    public function index(): Response
+    #[Route("/", name: "app_home")]
+    public function index(EntityManagerInterface $em): Response
     {
-        $courses = SampleData::getCourses();
+        // keep everything else as-is (from SampleData)
         $categories = SampleData::getCategories();
         $instructors = SampleData::getInstructors();
         $testimonials = SampleData::getTestimonials();
 
-        // Get featured courses
-        $featuredCourses = array_filter($courses, fn($c) => $c['is_featured'] ?? false);
+        // UPDATED: fetch courses from DB (published only)
+        $publishedCourses = $em
+            ->getRepository(Course::class)
+            ->createQueryBuilder("c")
+            ->andWhere("c.status = :status")
+            ->setParameter("status", "published")
+            ->orderBy("c.updatedAt", "DESC")
+            ->addOrderBy("c.id", "DESC")
+            ->getQuery()
+            ->getResult();
 
-        // Get bestsellers
-        $bestsellers = array_filter($courses, fn($c) => $c['is_bestseller'] ?? false);
+        // Since we currently removed "is_featured" / "is_bestseller" from real entities,
+        // we simply split the latest published courses into 2 blocks.
+        $featuredCourses = array_slice($publishedCourses, 0, 4);
+        $bestsellers = array_slice($publishedCourses, 4, 4);
 
-        // Map instructor data to courses
-        $coursesWithInstructors = array_map(function($course) use ($instructors) {
-            $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-            return array_merge($course, ['instructor' => $instructor]);
-        }, $courses);
-
-        return $this->render('pages/home/index.html.twig', [
-            'featured_courses' => array_slice(array_values(array_map(function($course) use ($instructors) {
-                $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-                return array_merge($course, ['instructor' => $instructor]);
-            }, $featuredCourses)), 0, 4),
-            'bestsellers' => array_slice(array_values(array_map(function($course) use ($instructors) {
-                $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-                return array_merge($course, ['instructor' => $instructor]);
-            }, $bestsellers)), 0, 4),
-            'categories' => $categories,
-            'instructors' => array_slice($instructors, 0, 4),
-            'testimonials' => $testimonials,
+        return $this->render("pages/home/index.html.twig", [
+            "featured_courses" => $featuredCourses,
+            "bestsellers" => $bestsellers,
+            "categories" => $categories,
+            "instructors" => array_slice($instructors, 0, 4),
+            "testimonials" => $testimonials,
         ]);
     }
 }
