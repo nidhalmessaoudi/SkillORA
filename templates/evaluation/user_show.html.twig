@@ -1,0 +1,36 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}{{ evaluation.title }}{% endblock %}
+
+{% block content %}
+    <h1 class="text-2xl font-bold mb-4">{{ evaluation.title }}</h1>
+
+    <div class="mb-4 text-sm text-gray-600">{{ evaluation.description|default('Pas de description') }}</div>
+
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 border rounded">
+            <strong>Durée</strong>
+            <div>{{ evaluation.duration }} minutes</div>
+        </div>
+        <div class="p-4 border rounded">
+            <strong>Type</strong>
+            <div>{{ evaluation.type }}</div>
+        </div>
+        <div class="p-4 border rounded">
+            <strong>Points totaux</strong>
+            <div>{{ evaluation.totalScore }}</div>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        {% if userEvaluation is not null and userEvaluation.submittedAt is not null %}
+            <a href="{{ path('user_evaluation_result', {'id': userEvaluation.id}) }}" class="btn-primary">Voir le résultat</a>
+        {% elseif userEvaluation is not null %}
+            <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}" class="btn-primary">Continuer l'évaluation</a>
+        {% else %}
+            <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}" class="btn-primary">Commencer l'évaluation</a>
+        {% endif %}
+        <a href="{{ path('user_evaluation_index') }}" class="btn-secondary ml-2">Retour</a>
+    </div>
+
+{% endblock %}

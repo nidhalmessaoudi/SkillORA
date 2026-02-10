@@ -125,6 +125,36 @@
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span>Statistics</span>
                 </a>
+                 {# === Evaluation submenu with arrows ➤ === #}
+<div class="sidebar-group">
+
+  <a href="{{ path('evaluation_index') }}"
+     class="sidebar-nav-item {% if currentRoute starts with 'evaluation_' %}sidebar-nav-item-active{% endif %}">
+    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+    <span>Evaluation</span>
+  </a>
+
+  {% if currentRoute starts with 'evaluation_' %}
+    <div class="sidebar-submenu mt-2 flex flex-col items-center space-y-1">
+
+      <a href="{{ path('admin_question_index') }}"
+   class="sidebar-nav-subitem text-gray-600 flex items-center gap-2">
+  <span>➤</span>
+  <span>Questions</span>
+</a>
+
+
+      <div class="sidebar-nav-subitem text-gray-600 flex items-center gap-2">
+        <span>➤</span>
+        <span>Answers</span>
+      </div>
+
+    </div>
+  {% endif %}
+
+</div>
+
+
             </nav>
         </aside>
 

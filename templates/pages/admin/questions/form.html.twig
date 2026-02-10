@@ -1,0 +1,98 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}
+  {{ mode == 'new' ? 'New Question' : 'Edit Question' }} - Admin
+{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-display-lg font-bold mb-6">
+  {{ mode == 'new' ? 'Create Question' : 'Edit Question' }}
+</h1>
+
+<div class="card p-6 max-w-4xl">
+  {{ form_start(form) }}
+
+  <div class="space-y-5">
+
+    {# Question content #}
+    {{ form_row(form.content) }}
+
+    {# Type + Score #}
+    <div class="grid grid-cols-2 gap-4">
+      {{ form_row(form.type) }}
+      {{ form_row(form.score) }}
+    </div>
+
+    {# Evaluation selector #}
+    {{ form_row(form.evaluation) }}
+
+    {# ✅ CHOICES (A/B/C/D) - seulement si type = MCQ #}
+    <div id="mcq-block" class="mt-6">
+      <h3 class="text-heading-md font-semibold mb-3 text-navy-900 dark:text-white">
+        Choices (A / B / C / D)
+      </h3>
+
+      <div class="space-y-3">
+        {% set letters = ['A','B','C','D','E','F'] %}
+
+        {# si tu n'as pas encore ajouté answers dans QuestionType => form.answers n'existe pas #}
+        {% if form.answers is defined %}
+          {% for choiceForm in form.answers %}
+            <div class="flex items-center gap-3">
+              <div class="w-10 font-bold text-navy-700 dark:text-navy-200">
+                {{ letters[loop.index0] }}.
+              </div>
+
+              <div class="flex-1">
+                {{ form_row(choiceForm.content, { label: false }) }}
+              </div>
+
+              <div class="w-28">
+                {{ form_row(choiceForm.isCorrect, { label: 'Correct' }) }}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="p-3 rounded bg-yellow-50 text-yellow-800 border border-yellow-200">
+            ⚠️ Le champ <b>answers</b> n'existe pas dans le formulaire.
+            Ajoute <b>answers</b> (CollectionType) dans <b>QuestionType</b> pour afficher les choix.
+          </div>
+        {% endif %}
+      </div>
+
+      <p class="text-caption text-navy-500 mt-3">
+        Tip: coche “Correct” sur la bonne réponse.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="mt-6 flex gap-3">
+    <button class="btn-primary">
+      {{ mode == 'new' ? 'Create' : 'Update' }}
+    </button>
+
+    <a href="{{ path('admin_question_index') }}" class="btn-secondary">
+      Cancel
+    </a>
+  </div>
+
+  {{ form_end(form) }}
+</div>
+
+{# ✅ JS : afficher/masquer le bloc choices selon le type #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const typeSelect = document.querySelector('[name$="[type]"]');
+  const mcqBlock = document.getElementById('mcq-block');
+
+  function toggleChoices() {
+    if (!typeSelect || !mcqBlock) return;
+    mcqBlock.style.display = (typeSelect.value === 'MCQ') ? 'block' : 'none';
+  }
+
+  toggleChoices();
+  if (typeSelect) typeSelect.addEventListener('change', toggleChoices);
+});
+</script>
+{% endblock %}
