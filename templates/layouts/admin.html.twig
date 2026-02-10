@@ -112,6 +112,23 @@
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span>Statistics</span>
                 </a>
+                
+                {# Event Management Section #}
+                <div class="pt-4 pb-2 px-3">
+                    <span class="text-caption font-semibold text-navy-400 uppercase tracking-wider">Event Management</span>
+                </div>
+                <a href="{{ path('admin_events_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_events' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                    <span>Events</span>
+                </a>
+                <a href="{{ path('admin_salles_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_salles' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                    <span>Salles</span>
+                </a>
+                <a href="{{ path('admin_reservations_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_reservations' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="ticket" class="w-5 h-5"></i>
+                    <span>Reservations</span>
+                </a>
             </nav>
         </aside>
 

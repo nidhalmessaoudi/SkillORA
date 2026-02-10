@@ -23,13 +23,16 @@
         <div class="grid lg:grid-cols-3 gap-8">
             {# Main Form #}
             <div class="lg:col-span-2">
-                <form class="space-y-6">
+                <form action="{{ path('community_create') }}" method="post" class="space-y-6">
+                    {#<input type="hidden" name="_csrf_token" value="{{ csrf_token('community_create') }}">#}
+
                     {# Post Type #}
                     <div class="card p-6">
                         <label class="block text-sm font-medium text-slate-900 dark:text-white mb-4">Post Type</label>
                         <div class="grid grid-cols-3 gap-3">
                             <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="question" class="peer sr-only" checked>
+                                <input type="radio" name="type" value="question" class="peer sr-only"
+                                       {{ (app.request.get('type', 'question') == 'question') ? 'checked' : '' }}>
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700">
                                     <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2 text-emerald-600 dark:text-emerald-400"></i>
                                     <p class="font-medium text-slate-900 dark:text-white">Question</p>
@@ -37,7 +40,8 @@
                                 </div>
                             </label>
                             <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="discussion" class="peer sr-only">
+                                <input type="radio" name="type" value="discussion" class="peer sr-only"
+                                       {{ app.request.get('type') == 'discussion' ? 'checked' : '' }}>
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-violet-500 peer-checked:bg-violet-50 dark:peer-checked:bg-violet-900/20 hover:border-violet-300 dark:hover:border-violet-700">
                                     <i data-lucide="message-circle" class="w-8 h-8 mx-auto mb-2 text-violet-600 dark:text-violet-400"></i>
                                     <p class="font-medium text-slate-900 dark:text-white">Discussion</p>
@@ -45,7 +49,8 @@
                                 </div>
                             </label>
                             <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="article" class="peer sr-only">
+                                <input type="radio" name="type" value="article" class="peer sr-only"
+                                       {{ app.request.get('type') == 'article' ? 'checked' : '' }}>
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/20 hover:border-harbor-300 dark:hover:border-harbor-700">
                                     <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2 text-harbor-600 dark:text-harbor-400"></i>
                                     <p class="font-medium text-slate-900 dark:text-white">Article</p>
@@ -59,21 +64,22 @@
                     <div class="card p-6 space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Title</label>
-                            <input type="text" class="input" placeholder="What's your question or topic?">
+                            <input type="text" name="title" class="input" placeholder="What's your question or topic?"
+                                   value="{{ app.request.get('title')|e }}">
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Be specific and imagine you're asking a question to another person.</p>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Topic</label>
-                            <select class="input">
+                            <select name="topic" class="input">
                                 <option value="">Select a topic...</option>
-                                <option value="web-dev">Web Development</option>
-                                <option value="data-science">Data Science</option>
-                                <option value="mobile">Mobile Development</option>
-                                <option value="design">UI/UX Design</option>
-                                <option value="devops">DevOps & Cloud</option>
-                                <option value="career">Career & Growth</option>
-                                <option value="general">General Discussion</option>
+                                <option value="web-dev" {{ app.request.get('topic') == 'web-dev' ? 'selected' : '' }}>Web Development</option>
+                                <option value="data-science" {{ app.request.get('topic') == 'data-science' ? 'selected' : '' }}>Data Science</option>
+                                <option value="mobile" {{ app.request.get('topic') == 'mobile' ? 'selected' : '' }}>Mobile Development</option>
+                                <option value="design" {{ app.request.get('topic') == 'design' ? 'selected' : '' }}>UI/UX Design</option>
+                                <option value="devops" {{ app.request.get('topic') == 'devops' ? 'selected' : '' }}>DevOps & Cloud</option>
+                                <option value="career" {{ app.request.get('topic') == 'career' ? 'selected' : '' }}>Career & Growth</option>
+                                <option value="general" {{ app.request.get('topic') == 'general' ? 'selected' : '' }}>General Discussion</option>
                             </select>
                         </div>
                     </div>
@@ -112,12 +118,7 @@
                             </button>
                         </div>
 
-                        <textarea class="input rounded-t-none min-h-[250px]" placeholder="Describe your question or topic in detail...
-
-Include:
-- What you're trying to achieve
-- What you've already tried
-- Any relevant code or error messages"></textarea>
+                        <textarea name="content" class="input rounded-t-none min-h-[250px]" placeholder="Describe your question or topic in detail...">{{ app.request.get('content')|e }}</textarea>
 
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
                             <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
@@ -128,7 +129,8 @@ Include:
                     {# Tags #}
                     <div class="card p-6">
                         <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Tags</label>
-                        <input type="text" class="input" placeholder="Add up to 5 tags (e.g., react, hooks, javascript)">
+                        <input type="text" name="tags" class="input" placeholder="Add up to 5 tags (e.g., react, hooks, javascript)"
+                               value="{{ app.request.get('tags')|e }}">
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Press enter or comma to add a tag. Tags help others find your post.</p>
 
                         {# Popular Tags #}
@@ -137,7 +139,7 @@ Include:
                             <div class="flex flex-wrap gap-2">
                                 {% set popularTags = ['javascript', 'react', 'python', 'css', 'typescript', 'node', 'sql'] %}
                                 {% for tag in popularTags %}
-                                <button type="button" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                                <button type="button" data-tag="{{ tag }}" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                                     {{ tag }}
                                 </button>
                                 {% endfor %}
@@ -249,5 +251,19 @@ const x = 1;
 {{ parent() }}
 <script>
     lucide.createIcons();
+
+    // small helper: append popular tag to tags input when clicking a popular tag button
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-tag]');
+        if (!btn) return;
+        const tag = btn.getAttribute('data-tag');
+        const input = document.querySelector('input[name="tags"]');
+        if (!input) return;
+        const existing = input.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(tag)) {
+            existing.push(tag);
+            input.value = existing.join(', ');
+        }
+    });
 </script>
 {% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Create Salle - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Create Salle</h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">Add a new salle for hosting events.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+    <div class="card p-6 space-y-4">
+        <div>
+            <label class="input-label" for="name">Name</label>
+            <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}">
+        </div>
+
+        <div>
+            <label class="input-label" for="location">Location</label>
+            <input id="location" name="location" type="text" class="input" value="{{ form_data.location|default('') }}">
+        </div>
+
+        <div>
+            <label class="input-label" for="event_id">Event</label>
+            <select id="event_id" name="event_id" class="select">
+                <option value="">Select an event...</option>
+                {% for event in events %}
+                    <option value="{{ event.id }}" {{ form_data.event_id == event.id ? 'selected' : '' }}>{{ event.title }}</option>
+                {% endfor %}
+            </select>
+            <p class="input-hint">Optional: link this salle to an existing event.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="input-label" for="max_participants">Max Participants</label>
+                <input id="max_participants" name="max_participants" type="number" min="1" class="input" value="{{ form_data.max_participants|default('') }}" >
+            </div>
+            <div>
+                <label class="input-label" for="duration">Duration (minutes)</label>
+                <input id="duration" name="duration" type="number" min="1" class="input" value="{{ form_data.duration|default('') }}">
+            </div>
+        </div>
+
+        <div>
+            <label class="input-label" for="image_3d">3D Model (.glb/.gltf)</label>
+            <input id="image_3d" name="image_3d" type="file" accept=".glb,.gltf" class="input">
+            <p class="input-hint">Upload a 3D model file. The path will be stored in the database.</p>
+        </div>
+
+        <div>
+            <label class="input-label" for="equipment">Equipment</label>
+            <textarea id="equipment" name="equipment" class="textarea" rows="4">{{ form_data.equipment|default('') }}</textarea>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">Create Salle</button>
+        <a href="{{ path('admin_salles_index') }}" class="btn-ghost btn-sm">Cancel</a>
+    </div>
+</form>
+{% endblock %}

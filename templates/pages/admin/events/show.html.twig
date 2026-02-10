@@ -1,0 +1,66 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Event Details - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">{{ event.title }}</h1>
+        <p class="text-body-md text-navy-600 dark:text-navy-400">Event details and salle information.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{{ path('admin_events_edit', {id: event.id}) }}" class="btn-secondary btn-sm">Edit</a>
+        <form method="post" action="{{ path('admin_events_delete', {id: event.id}) }}" onsubmit="return confirmDelete('Delete this event?');">
+            <button type="submit" class="btn-danger btn-sm">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card p-6 space-y-3">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Event Details</h2>
+        <div class="text-body-sm text-navy-600 dark:text-navy-300">
+            <p><strong>Type:</strong> {{ event.eventType }}</p>
+            <p><strong>Price:</strong> {{ event.priceType }}</p>
+            <p><strong>Start:</strong> {{ event.startDate|date('M d, Y H:i') }}</p>
+            <p><strong>End:</strong> {{ event.endDate|date('M d, Y H:i') }}</p>
+        </div>
+        {% if event.image %}
+            <div>
+                {% if event.image matches '/\.(mp4|webm|ogg)$/i' %}
+                    <video class="w-full max-h-72 rounded-2xl border border-navy-200 object-contain" controls src="{{ event.image }}"></video>
+                {% else %}
+                    <img class="w-full max-h-72 rounded-2xl border border-navy-200 object-contain" src="{{ event.image }}" alt="{{ event.title }}">
+                {% endif %}
+            </div>
+        {% endif %}
+        {% if event.description %}
+            <p class="text-body-sm text-navy-600 dark:text-navy-300">{{ event.description }}</p>
+        {% endif %}
+    </div>
+
+    <div class="card p-6 space-y-3">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Salle Details</h2>
+        {% if salle %}
+            <div class="text-body-sm text-navy-600 dark:text-navy-300">
+                <p><strong>Name:</strong> {{ salle.name }}</p>
+                <p><strong>Location:</strong> {{ salle.location }}</p>
+                <p><strong>Max Participants:</strong> {{ salle.maxParticipants }}</p>
+                <p><strong>Duration:</strong> {{ salle.duration }} minutes</p>
+                {% if salle.image3d %}
+                    <p><strong>3D Image:</strong> {{ salle.image3d }}</p>
+                {% endif %}
+                {% if salle.equipment %}
+                    <p><strong>Equipment:</strong> {{ salle.equipment }}</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="text-body-sm text-navy-500">No salle assigned.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-6">
+    <a href="{{ path('admin_events_index') }}" class="btn-ghost btn-sm">Back to Events</a>
+</div>
+{% endblock %}
