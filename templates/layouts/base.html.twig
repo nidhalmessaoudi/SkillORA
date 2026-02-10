@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
     {# Styles #}
-    <link rel="stylesheet" href="/build/app.css">
+    <link rel="stylesheet" href="/build/app.dev.css?v={{ random() }}">
 
     {# Icons - Lucide #}
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -99,8 +99,15 @@
             }
         }
 
-        // Close dropdowns when clicking outside
+        // Close dropdowns when clicking outside or on links
         document.addEventListener('click', function(e) {
+            // If clicking on a dropdown link, allow navigation and close dropdown
+            if (e.target.closest('.dropdown a')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+                return; // Allow the link to work normally
+            }
+            
+            // Close dropdowns when clicking outside
             if (!e.target.closest('[data-dropdown]')) {
                 document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
             }

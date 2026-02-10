@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Post;
 use App\Entity\Reply;
 use App\Entity\Tag;
-use App\Entity\Vote;
+use App\Entity\Reaction;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CommunityController extends AbstractController
 {
@@ -22,92 +25,116 @@ class CommunityController extends AbstractController
         $this->em = $em;
     }
 
-    /**
-     * Returns a static user array used only for UI/testing.
-     */
-    private function getStaticUser(): array
+    #[Route('/community', name: 'community_index')]
+    public function index(Request $request): Response
     {
-        return [
-            'id' => 0,
-            'username' => 'tester',
-            'displayName' => 'Test User',
-            'avatar' => '/images/avatar-placeholder.png',
-            'xp' => 1234,
-        ];
+        $tab = $request->query->get('tab', 'hot');
+        $topic = $request->query->get('topic', null);
+
+        $qb = $this->em->getRepository(Post::class)->createQueryBuilder('p');
+
+        if ($topic) {
+            $qb->andWhere('p.topic = :topic')->setParameter('topic', $topic);
+        }
+
+        switch ($tab) {
+            case 'new':
+                $qb->orderBy('p.createdAt', 'DESC');
+                break;
+
+            case 'top':
+                $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
+                   ->groupBy('p.id')
+                   ->orderBy('COUNT(r.id)', 'DESC')
+                   ->addOrderBy('p.createdAt', 'DESC');
+                break;
+
+            case 'unanswered':
+                $qb->leftJoin('p.replies', 'rep')
+                   ->groupBy('p.id')
+                   ->having('COUNT(rep.id) = 0')
+                   ->orderBy('p.createdAt', 'DESC');
+                break;
+
+            case 'hot':
+            default:
+                $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
+                   ->groupBy('p.id')
+                   ->orderBy('COUNT(r.id)', 'DESC')
+                   ->addOrderBy('p.createdAt', 'DESC');
+                break;
+        }
+
+        $posts = $qb->getQuery()->getResult();
+
+        // Get current user for reactions
+        $currentUser = $this->getUser();
+        $reactionData = ($currentUser instanceof User) ? $this->getPostsReactionData($posts, $currentUser) : [];
+
+        $topicsQ = $this->em->getRepository(Post::class)
+            ->createQueryBuilder('p')
+            ->select('DISTINCT p.topic as topic')
+            ->where('p.topic IS NOT NULL')
+            ->orderBy('p.topic', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        $topics = array_values(array_filter(array_map(fn($r) => $r['topic'] ?? null, $topicsQ)));
+
+        return $this->render('pages/community/index.html.twig', [
+            'posts' => $posts,
+            'current_tab' => $tab,
+            'current_topic' => $topic,
+            'topics' => $topics,
+            'reactionData' => $reactionData,
+        ]);
     }
 
-    // inside App\Controller\CommunityController
+    private function getPostsReactionData(array $posts, User $user): array
+    {
+        $data = [];
+        $reactionRepo = $this->em->getRepository(Reaction::class);
 
-#[Route('/community', name: 'community_index')]
-public function index(Request $request): Response
-{
-    $tab = $request->query->get('tab', 'hot');       // hot | new | top | unanswered
-    $topic = $request->query->get('topic', null);    // topic slug or topic name
+        foreach ($posts as $post) {
+            $userReaction = $reactionRepo->findOneBy([
+                'user' => $user,
+                'post' => $post
+            ]);
 
-    $qb = $this->em->getRepository(Post::class)->createQueryBuilder('p');
+            $qb = $reactionRepo->createQueryBuilder('r')
+                ->select('r.type, COUNT(r.id) as count')
+                ->where('r.post = :post')
+                ->setParameter('post', $post)
+                ->groupBy('r.type');
 
-    // optional topic filter
-    if ($topic) {
-        // if you store topic as string field:
-        $qb->andWhere('p.topic = :topic')->setParameter('topic', $topic);
+            $counts = $qb->getQuery()->getResult();
+            
+            $reactionCounts = [];
+            $total = 0;
+            foreach ($counts as $row) {
+                $reactionCounts[$row['type']] = (int)$row['count'];
+                $total += (int)$row['count'];
+            }
+
+            $data[$post->getId()] = [
+                'userReaction' => $userReaction ? $userReaction->getType() : null,
+                'counts' => $reactionCounts,
+                'total' => $total
+            ];
+        }
+
+        return $data;
     }
-
-    // apply tab sorting / filter
-    switch ($tab) {
-        case 'new':
-            $qb->orderBy('p.createdAt', 'DESC');
-            break;
-
-        case 'top':
-            // top by upvotes field
-            $qb->orderBy('p.upvotes', 'DESC');
-            $qb->addOrderBy('p.createdAt', 'DESC');
-            break;
-
-        case 'unanswered':
-            // left join replies and return posts with zero replies
-            $qb->leftJoin('p.replies', 'r')
-               ->groupBy('p.id')
-               ->having('COUNT(r.id) = 0')
-               ->orderBy('p.createdAt', 'DESC');
-            break;
-
-        case 'hot':
-        default:
-            // "hot" heuristic: prefer upvotes then recent posts
-            $qb->orderBy('p.upvotes', 'DESC');
-            $qb->addOrderBy('p.createdAt', 'DESC');
-            break;
-    }
-
-    // pagination: optionally add ->setMaxResults(...) / offset if you want
-    $posts = $qb->getQuery()->getResult();
-
-    // gather available topics for the dropdown (distinct non-null topic strings)
-    $topicsQ = $this->em->getRepository(Post::class)
-        ->createQueryBuilder('p')
-        ->select('DISTINCT p.topic as topic')
-        ->where('p.topic IS NOT NULL')
-        ->orderBy('p.topic', 'ASC')
-        ->getQuery()
-        ->getArrayResult();
-
-    // flatten the array of arrays into simple list of strings
-    $topics = array_values(array_filter(array_map(fn($r) => $r['topic'] ?? null, $topicsQ)));
-
-    return $this->render('pages/community/index.html.twig', [
-        'posts' => $posts,
-        'user' => $this->getStaticUser(),
-        'current_tab' => $tab,
-        'current_topic' => $topic,
-        'topics' => $topics,
-    ]);
-}
-
 
     #[Route('/community/create', name: 'community_create', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
     public function create(Request $request): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('You must be logged in to create a post.');
+        }
+
         if ($request->isMethod('POST')) {
             $type = $request->request->get('type', 'question');
             $title = trim((string) $request->request->get('title', ''));
@@ -123,13 +150,12 @@ public function index(Request $request): Response
                 $post->setTitle($title);
                 $post->setTopic($topic === '' ? null : $topic);
                 $post->setContent($content);
+                $post->setAuthor($user);
 
-                // handle tags: comma separated
                 $tagNames = array_filter(array_unique(array_map('trim', preg_split('/[,]+/', $tagsRaw))));
                 foreach ($tagNames as $tagName) {
-                    if ($tagName === '') {
-                        continue;
-                    }
+                    if ($tagName === '') continue;
+                    
                     $existing = $this->em->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
                     if ($existing) {
                         $post->addTag($existing);
@@ -151,9 +177,7 @@ public function index(Request $request): Response
             }
         }
 
-        return $this->render('pages/community/create.html.twig', [
-            'user' => $this->getStaticUser(),
-        ]);
+        return $this->render('pages/community/create.html.twig');
     }
 
     #[Route('/community/{id}', name: 'community_post', requirements: ['id' => '\d+'])]
@@ -164,82 +188,144 @@ public function index(Request $request): Response
             throw $this->createNotFoundException('Post not found');
         }
 
-        // static user identifier for testing
-        $user = $this->getStaticUser();
-        $uid = $user['username'] ?? ('guest_'.session_id());
+        $currentUser = $this->getUser();
+        $reactionRepo = $this->em->getRepository(Reaction::class);
 
-        $voteRepo = $this->em->getRepository(Vote::class);
-
-        // current user's vote on the post
-        $postVote = $voteRepo->findOneBy(['userIdentifier' => $uid, 'post' => $post]);
-        $userPostVote = $postVote ? $postVote->getValue() : 0;
-
-        // compute per-reply user votes and totals
-        $replyUserVotes = [];
-        $replyCounts = []; // [id => ['up' => int, 'down' => int]]
-        foreach ($post->getReplies() as $reply) {
-            $rv = $voteRepo->findOneBy(['userIdentifier' => $uid, 'reply' => $reply]);
-            $replyUserVotes[$reply->getId()] = $rv ? $rv->getValue() : 0;
-
-            $up = (int) $voteRepo->createQueryBuilder('v')
-                ->select('COUNT(v.id)')
-                ->where('v.reply = :r AND v.value = 1')
-                ->setParameter('r', $reply)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            $down = (int) $voteRepo->createQueryBuilder('v')
-                ->select('COUNT(v.id)')
-                ->where('v.reply = :r AND v.value = -1')
-                ->setParameter('r', $reply)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            $replyCounts[$reply->getId()] = ['up' => $up, 'down' => $down];
+        // Get user's reaction on the post
+        $userPostReaction = null;
+        if ($currentUser instanceof User) {
+            $postReaction = $reactionRepo->findOneBy(['user' => $currentUser, 'post' => $post]);
+            $userPostReaction = $postReaction ? $postReaction->getType() : null;
         }
 
-        // post totals
-        $postUp = (int) $voteRepo->createQueryBuilder('v')
-            ->select('COUNT(v.id)')
-            ->where('v.post = :p AND v.value = 1')
-            ->setParameter('p', $post)
-            ->getQuery()
-            ->getSingleScalarResult();
+        // Get post reaction counts
+        $postReactionCounts = $this->getReactionCounts($post, null);
 
-        $postDown = (int) $voteRepo->createQueryBuilder('v')
-            ->select('COUNT(v.id)')
-            ->where('v.post = :p AND v.value = -1')
-            ->setParameter('p', $post)
-            ->getQuery()
-            ->getSingleScalarResult();
+        // Get reply reaction data
+        $replyReactionData = [];
+        foreach ($post->getReplies() as $reply) {
+            $userReaction = null;
+            if ($currentUser instanceof User) {
+                $replyReaction = $reactionRepo->findOneBy(['user' => $currentUser, 'reply' => $reply]);
+                $userReaction = $replyReaction ? $replyReaction->getType() : null;
+            }
+            
+            $replyReactionData[$reply->getId()] = [
+                'userReaction' => $userReaction,
+                'counts' => $this->getReactionCounts(null, $reply),
+            ];
+        }
 
         return $this->render('pages/community/show.html.twig', [
             'post' => $post,
-            'user' => $user,
-            'userPostVote' => $userPostVote,
-            'replyUserVotes' => $replyUserVotes,
-            'replyCounts' => $replyCounts,
-            'postCounts' => ['up' => $postUp, 'down' => $postDown],
+            'userPostReaction' => $userPostReaction,
+            'postReactionCounts' => $postReactionCounts,
+            'replyReactionData' => $replyReactionData,
         ]);
     }
 
+    private function getReactionCounts(?Post $post, ?Reply $reply): array
+    {
+        $qb = $this->em->getRepository(Reaction::class)->createQueryBuilder('r')
+            ->select('r.type, COUNT(r.id) as count')
+            ->groupBy('r.type');
+
+        if ($post) {
+            $qb->where('r.post = :post')->setParameter('post', $post);
+        } elseif ($reply) {
+            $qb->where('r.reply = :reply')->setParameter('reply', $reply);
+        }
+
+        $results = $qb->getQuery()->getResult();
+        
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['type']] = (int)$row['count'];
+        }
+
+        return $counts;
+    }
+
+    #[Route('/community/{id}/edit', name: 'community_edit_post', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function editPost(Request $request, Post $post): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // Check if user owns this post
+        if ($post->getAuthor()->getId() !== $user->getId()) {
+            $this->addFlash('danger', 'You can only edit your own posts.');
+            return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
+        }
+
+        if ($request->isMethod('POST')) {
+            $title = trim((string) $request->request->get('title', ''));
+            $content = trim((string) $request->request->get('content', ''));
+            $topic = trim((string) $request->request->get('topic', ''));
+
+            if ($title === '' || $content === '') {
+                $this->addFlash('danger', 'Title and content are required.');
+            } else {
+                $post->setTitle($title);
+                $post->setContent($content);
+                $post->setTopic($topic === '' ? null : $topic);
+
+                $this->em->flush();
+
+                $this->addFlash('success', 'Post updated successfully.');
+                return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
+            }
+        }
+
+        return $this->render('pages/community/edit.html.twig', [
+            'post' => $post,
+        ]);
+    }
+
+    #[Route('/community/{id}/delete', name: 'community_delete_post', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function deletePost(Post $post): RedirectResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // Check if user owns this post or is admin
+        if ($post->getAuthor()->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('danger', 'You can only delete your own posts.');
+            return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
+        }
+
+        $this->em->remove($post);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Post deleted successfully.');
+        return $this->redirectToRoute('community_index');
+    }
+
     #[Route('/community/{id}/reply', name: 'community_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function reply(Request $request, Post $post): RedirectResponse
     {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
         $content = trim((string) $request->request->get('content', ''));
         if ($content === '') {
             $this->addFlash('danger', 'Reply content cannot be empty.');
             return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
         }
 
-        // static UI user name
-        $user = $this->getStaticUser();
-        $authorName = $user['displayName'] ?? ($user['username'] ?? 'Guest');
-
         $reply = new Reply();
         $reply->setPost($post);
         $reply->setContent($content);
-        $reply->setAuthorName($authorName);
+        $reply->setAuthor($user);
 
         $this->em->persist($reply);
         $this->em->flush();
@@ -249,118 +335,153 @@ public function index(Request $request): Response
         return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
     }
 
-#[Route('/community/{id}/vote', name: 'community_vote_post', methods: ['POST'])]
-public function votePost(Request $request, Post $post): JsonResponse
-{
-    // Use the service entity manager property ($this->em) already injected in constructor
-    $em = $this->em;
-
-    $action = $request->request->get('action', 'up');
-    $value = ($action === 'up') ? 1 : -1;
-
-    // NOTE: static user until you implement real users
-    $user = $this->getStaticUser();
-    $uid = $user['username'] ?? ('guest_' . session_id());
-
-    $voteRepo = $em->getRepository(Vote::class);
-
-    // Find existing vote row for this user + post
-    $existing = $voteRepo->findOneBy(['userIdentifier' => $uid, 'post' => $post]);
-
-    if ($existing) {
-        if ($existing->getValue() === $value) {
-            // same vote clicked again => remove (toggle off)
-            $em->remove($existing);
-            $userVote = 0;
-        } else {
-            // switch vote (up -> down or down -> up)
-            $existing->setValue($value);
-            $em->persist($existing);
-            $userVote = $value;
+    #[Route('/community/reply/{id}/edit', name: 'community_edit_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function editReply(Request $request, Reply $reply): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
         }
-    } else {
-        // create new vote
-        $v = new Vote();
-        $v->setUserIdentifier($uid)
-          ->setValue($value)
-          ->setPost($post)
-          ->setReply(null);
-        $em->persist($v);
-        $userVote = $value;
+
+        // Check if user owns this reply
+        if ($reply->getAuthor()->getId() !== $user->getId()) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $content = trim((string) $request->request->get('content', ''));
+        if ($content === '') {
+            return $this->json(['ok' => false, 'error' => 'Content cannot be empty'], 400);
+        }
+
+        $reply->setContent($content);
+        $reply->setUpdatedAt(new \DateTime());
+        $this->em->flush();
+
+        return $this->json([
+            'ok' => true,
+            'content' => $content,
+            'updatedAt' => $reply->getUpdatedAt()->format('M j, Y, H:i')
+        ]);
     }
 
-    $em->flush();
-
-    // totals: count up and down separately
-    $qb = $voteRepo->createQueryBuilder('v')
-        ->select('SUM(CASE WHEN v.value = 1 THEN 1 ELSE 0 END) as upCount, SUM(CASE WHEN v.value = -1 THEN 1 ELSE 0 END) as downCount')
-        ->where('v.post = :p')
-        ->setParameter('p', $post);
-
-    // execute raw (DB-agnostic)
-    $row = (array) $qb->getQuery()->getSingleResult();
-
-    $up = (int) ($row['upCount'] ?? 0);
-    $down = (int) ($row['downCount'] ?? 0);
-
-    return $this->json([
-        'ok' => true,
-        'upvotes' => $up,
-        'downvotes' => $down,
-        'userVote' => $userVote
-    ]);
-}
-
-#[Route('/community/reply/{id}/vote', name: 'community_vote_reply', methods: ['POST'])]
-public function voteReply(Request $request, Reply $reply): JsonResponse
-{
-    $em = $this->em;
-    $action = $request->request->get('action', 'up');
-    $value = ($action === 'up') ? 1 : -1;
-
-    $user = $this->getStaticUser();
-    $uid = $user['username'] ?? ('guest_' . session_id());
-
-    $voteRepo = $em->getRepository(Vote::class);
-
-    $existing = $voteRepo->findOneBy(['userIdentifier' => $uid, 'reply' => $reply]);
-
-    if ($existing) {
-        if ($existing->getValue() === $value) {
-            $em->remove($existing);
-            $userVote = 0;
-        } else {
-            $existing->setValue($value);
-            $em->persist($existing);
-            $userVote = $value;
+    #[Route('/community/reply/{id}/delete', name: 'community_delete_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function deleteReply(Reply $reply): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
         }
-    } else {
-        $v = new Vote();
-        $v->setUserIdentifier($uid)
-          ->setValue($value)
-          ->setReply($reply)
-          ->setPost(null);
-        $em->persist($v);
-        $userVote = $value;
+
+        // Check if user owns this reply or is admin
+        if ($reply->getAuthor()->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $this->em->remove($reply);
+        $this->em->flush();
+
+        return $this->json(['ok' => true]);
     }
 
-    $em->flush();
+    #[Route('/community/{id}/react', name: 'community_react_post', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function reactToPost(Request $request, Post $post): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
+        }
 
-    $qb = $voteRepo->createQueryBuilder('v')
-        ->select('SUM(CASE WHEN v.value = 1 THEN 1 ELSE 0 END) as upCount, SUM(CASE WHEN v.value = -1 THEN 1 ELSE 0 END) as downCount')
-        ->where('v.reply = :r')
-        ->setParameter('r', $reply);
+        $reactionType = $request->request->get('type', 'like');
 
-    $row = (array) $qb->getQuery()->getSingleResult();
+        if (!in_array($reactionType, Reaction::AVAILABLE_TYPES, true)) {
+            return $this->json(['ok' => false, 'error' => 'Invalid reaction type'], 400);
+        }
 
-    $up = (int) ($row['upCount'] ?? 0);
-    $down = (int) ($row['downCount'] ?? 0);
+        $reactionRepo = $this->em->getRepository(Reaction::class);
+        $existing = $reactionRepo->findOneBy(['user' => $user, 'post' => $post]);
 
-    return $this->json([
-        'ok' => true,
-        'upvotes' => $up,
-        'downvotes' => $down,
-        'userVote' => $userVote
-    ]);
-}
+        if ($existing) {
+            if ($existing->getType() === $reactionType) {
+                $this->em->remove($existing);
+                $userReaction = null;
+            } else {
+                $existing->setType($reactionType);
+                $this->em->persist($existing);
+                $userReaction = $reactionType;
+            }
+        } else {
+            $reaction = new Reaction();
+            $reaction->setUser($user)
+                ->setType($reactionType)
+                ->setPost($post)
+                ->setReply(null);
+            $this->em->persist($reaction);
+            $userReaction = $reactionType;
+        }
+
+        $this->em->flush();
+
+        $counts = $this->getReactionCounts($post, null);
+        $total = array_sum($counts);
+
+        return $this->json([
+            'ok' => true,
+            'userReaction' => $userReaction,
+            'counts' => $counts,
+            'total' => $total
+        ]);
+    }
+
+    #[Route('/community/reply/{id}/react', name: 'community_react_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function reactToReply(Request $request, Reply $reply): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        $reactionType = $request->request->get('type', 'like');
+
+        if (!in_array($reactionType, Reaction::AVAILABLE_TYPES, true)) {
+            return $this->json(['ok' => false, 'error' => 'Invalid reaction type'], 400);
+        }
+
+        $reactionRepo = $this->em->getRepository(Reaction::class);
+        $existing = $reactionRepo->findOneBy(['user' => $user, 'reply' => $reply]);
+
+        if ($existing) {
+            if ($existing->getType() === $reactionType) {
+                $this->em->remove($existing);
+                $userReaction = null;
+            } else {
+                $existing->setType($reactionType);
+                $this->em->persist($existing);
+                $userReaction = $reactionType;
+            }
+        } else {
+            $reaction = new Reaction();
+            $reaction->setUser($user)
+                ->setType($reactionType)
+                ->setReply($reply)
+                ->setPost(null);
+            $this->em->persist($reaction);
+            $userReaction = $reactionType;
+        }
+
+        $this->em->flush();
+
+        $counts = $this->getReactionCounts(null, $reply);
+        $total = array_sum($counts);
+
+        return $this->json([
+            'ok' => true,
+            'userReaction' => $userReaction,
+            'counts' => $counts,
+            'total' => $total
+        ]);
+    }
 }

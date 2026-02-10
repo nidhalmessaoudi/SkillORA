@@ -14,8 +14,8 @@ framework:
     php_errors:
         log: true
 
-    # CSRF protection disabled (UI mockup only)
-    csrf_protection: false
+    # CSRF protection enabled for security
+    csrf_protection: true
 
     # Configure assets
     assets:

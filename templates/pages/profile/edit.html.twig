@@ -1,0 +1,150 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Edit Profile - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-navy-50 dark:bg-navy-950 py-12">
+    <div class="container mx-auto px-4 max-w-2xl">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2 text-navy-600 dark:text-navy-400 hover:text-harbor-600 mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Home
+            </a>
+            <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">
+                Edit Profile
+            </h1>
+            <p class="text-body-md text-navy-600 dark:text-navy-400 mt-2">
+                Update your account information and settings
+            </p>
+        </div>
+
+        {# Success Message #}
+        {% for message in app.flashes('success') %}
+            <div class="mb-6 p-4 rounded-2xl bg-success-100 dark:bg-success-900/30 border border-success-200 dark:border-success-800">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-success-600 dark:text-success-400"></i>
+                    <p class="text-body-sm text-success-700 dark:text-success-400">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        {# Error Message #}
+        {% if error %}
+            <div class="mb-6 p-4 rounded-2xl bg-danger-100 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-danger-600 dark:text-danger-400"></i>
+                    <p class="text-body-sm text-danger-700 dark:text-danger-400">{{ error }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {# Profile Form #}
+        <div class="card mb-6">
+            <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+                <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+                    Personal Information
+                </h2>
+            </div>
+            <form method="post" action="{{ path('user_profile_edit') }}" class="p-6 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="input-label">First Name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ user.firstName }}" class="input" required>
+                    </div>
+                    <div>
+                        <label for="last_name" class="input-label">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ user.lastName }}" class="input" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="input-label">Email</label>
+                    <input type="email" id="email" name="email" value="{{ user.email }}" class="input" required>
+                </div>
+
+                <div class="pt-4 border-t border-navy-100 dark:border-navy-800">
+                    <h3 class="text-heading-md font-display font-semibold text-navy-900 dark:text-white mb-4">
+                        Change Password
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="current_password" class="input-label">Current Password</label>
+                            <input type="password" id="current_password" name="current_password" class="input" autocomplete="current-password">
+                            <p class="text-caption text-navy-500 mt-1">Required only if changing password</p>
+                        </div>
+                        <div>
+                            <label for="new_password" class="input-label">New Password</label>
+                            <input type="password" id="new_password" name="new_password" class="input" autocomplete="new-password">
+                            <p class="text-caption text-navy-500 mt-1">Leave blank to keep current password</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save Changes
+                    </button>
+                    <a href="{{ path('app_home') }}" class="btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {# Danger Zone #}
+        <div class="card border-2 border-danger-200 dark:border-danger-800">
+            <div class="p-6 bg-danger-50 dark:bg-danger-900/20">
+                <h2 class="text-heading-lg font-display font-semibold text-danger-700 dark:text-danger-400 mb-2">
+                    Danger Zone
+                </h2>
+                <p class="text-body-sm text-danger-600 dark:text-danger-400 mb-4">
+                    Once you delete your account, there is no going back. Please be certain.
+                </p>
+                <button onclick="confirmDelete()" class="btn-sm bg-danger-500 text-white hover:bg-danger-600">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Delete Confirmation Modal #}
+<div id="delete-modal" class="hidden fixed inset-0 bg-navy-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-strong max-w-md w-full p-6">
+        <div class="w-12 h-12 rounded-2xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center mb-4">
+            <i data-lucide="alert-triangle" class="w-6 h-6 text-danger-600 dark:text-danger-400"></i>
+        </div>
+        <h3 class="text-heading-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+            Delete Account?
+        </h3>
+        <p class="text-body-md text-navy-600 dark:text-navy-400 mb-6">
+            This action cannot be undone. All your data will be permanently deleted.
+        </p>
+        <form method="post" action="{{ path('user_profile_delete') }}">
+            <label for="delete_password" class="input-label">Enter your password to confirm</label>
+            <input type="password" id="delete_password" name="password" class="input mb-4" required>
+            <div class="flex items-center gap-3">
+                <button type="submit" class="flex-1 btn-sm bg-danger-500 text-white hover:bg-danger-600">
+                    Yes, Delete My Account
+                </button>
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 btn-secondary btn-sm">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function confirmDelete() {
+        document.getElementById('delete-modal').classList.remove('hidden');
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

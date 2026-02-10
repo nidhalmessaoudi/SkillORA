@@ -28,8 +28,9 @@ class Post
     #[ORM\Column(type: 'text')]
     private string $content;
 
-    #[ORM\Column(type: 'integer')]
-    private int $upvotes = 0;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
+    private User $author;
 
     #[ORM\Column(type: 'datetime')]
     private \DateTime $createdAt;
@@ -44,7 +45,6 @@ class Post
     #[ORM\OneToMany(mappedBy: 'post', targetEntity: Reply::class, cascade: ['persist','remove'], orphanRemoval: true)]
     private Collection $replies;
 
-
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -54,16 +54,16 @@ class Post
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $this->createdAt = new \DateTime(); // <- changed to DateTime
+        $this->createdAt = new \DateTime();
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new \DateTime(); // <- changed to DateTime
+        $this->updatedAt = new \DateTime();
     }
 
-    // ---------------- Getters / Setters ----------------
+    // Getters / Setters
 
     public function getId(): ?int { return $this->id; }
 
@@ -79,9 +79,8 @@ class Post
     public function getContent(): string { return $this->content; }
     public function setContent(string $content): self { $this->content = $content; return $this; }
 
-    public function getUpvotes(): int { return $this->upvotes; }
-    public function setUpvotes(int $upvotes): self { $this->upvotes = $upvotes; return $this; }
-    public function upvote(): self { $this->upvotes++; return $this; }
+    public function getAuthor(): User { return $this->author; }
+    public function setAuthor(User $author): self { $this->author = $author; return $this; }
 
     public function getCreatedAt(): \DateTime { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTime { return $this->updatedAt; }
@@ -101,7 +100,7 @@ class Post
         return $this;
     }
 
-     /** @return Collection|Reply[] */
+    /** @return Collection|Reply[] */
     public function getReplies(): Collection
     {
         return $this->replies;
@@ -120,28 +119,12 @@ class Post
     {
         if ($this->replies->contains($reply)) {
             $this->replies->removeElement($reply);
-            // if needed, unset owning side
-            // if ($reply->getPost() === $this) $reply->setPost(null);
         }
         return $this;
     }
 
     public function getReplyCount(): int
     {
-        // $this->replies is a Collection
         return $this->replies->count();
     }
-
-    public function incrementUpvotes(): self
-    {
-        $this->upvotes = $this->upvotes + 1;
-        return $this;
-    }
-
-    public function decrementUpvotes(): self
-    {
-        $this->upvotes = max(0, $this->upvotes - 1);
-        return $this;
-    }
-
 }

@@ -1,0 +1,540 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Admin Dashboard - SkillHarbor{% endblock %}
+
+{% block head %}
+{# Chart.js for beautiful charts #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+<style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(38, 139, 255, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(38, 139, 255, 0.6); }
+    }
+    
+    @keyframes count-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .stat-card-creative {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--color-start), var(--color-end));
+        border-radius: 24px;
+        padding: 28px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        transition: all 0.4s ease;
+    }
+    
+    .stat-card-creative:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+    
+    .stat-card-creative::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 8px;
+        animation: count-up 0.8s ease-out;
+    }
+    
+    .trend-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .dark .chart-container {
+        background: #1a2332;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .activity-item:hover {
+        background: rgba(38, 139, 255, 0.05);
+        transform: translateX(8px);
+    }
+    
+    .activity-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        flex-shrink: 0;
+    }
+    
+    .quick-action-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 24px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .quick-action-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+    }
+    
+    .quick-action-card:hover::after {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+{# Welcome Header #}
+<div class="mb-8">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-display font-bold text-navy-900 dark:text-white mb-2 flex items-center gap-3">
+                <span class="inline-block animate-wave">👋</span>
+                Welcome back, {{ app.user.firstName }}!
+            </h1>
+            <p class="text-lg text-navy-600 dark:text-navy-400">
+                Here's what's happening with SkillHarbor today
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="px-4 py-2 bg-white dark:bg-navy-900 border border-navy-200 dark:border-navy-700 rounded-xl flex items-center gap-2">
+                <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span class="text-sm font-medium text-navy-700 dark:text-navy-300">All Systems Operational</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Advanced Statistics Cards #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {# Total Users - Harbor Blue #}
+    <div class="stat-card-creative" style="--color-start: #268bff; --color-end: #0070f3;">
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                    <i data-lucide="users" class="w-7 h-7"></i>
+                </div>
+                <span class="trend-badge">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i>
+                    +12.5%
+                </span>
+            </div>
+            <div class="stat-number">{{ stats.total|number_format }}</div>
+            <div class="text-white/90 font-medium text-sm">Total Users</div>
+            <div class="text-white/70 text-xs mt-1">All registered accounts</div>
+        </div>
+    </div>
+
+    {# Active Users - Emerald Green #}
+    <div class="stat-card-creative" style="--color-start: #10b981; --color-end: #059669;">
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                    <i data-lucide="user-check" class="w-7 h-7"></i>
+                </div>
+                <span class="trend-badge">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i>
+                    +8.2%
+                </span>
+            </div>
+            <div class="stat-number">{{ stats.active|number_format }}</div>
+            <div class="text-white/90 font-medium text-sm">Active Users</div>
+            <div class="text-white/70 text-xs mt-1">{{ ((stats.active / stats.total) * 100)|number_format(1) }}% of total</div>
+        </div>
+    </div>
+
+    {# New This Week - Violet Purple #}
+    <div class="stat-card-creative" style="--color-start: #8b5cf6; --color-end: #7c3aed;">
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                    <i data-lucide="user-plus" class="w-7 h-7"></i>
+                </div>
+                <span class="trend-badge">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i>
+                    +24%
+                </span>
+            </div>
+            <div class="stat-number">{{ stats.new_this_week|number_format }}</div>
+            <div class="text-white/90 font-medium text-sm">New This Week</div>
+            <div class="text-white/70 text-xs mt-1">Strong growth trend</div>
+        </div>
+    </div>
+
+    {# Banned Users - Coral Red #}
+    <div class="stat-card-creative" style="--color-start: #ef4444; --color-end: #dc2626;">
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                    <i data-lucide="shield-ban" class="w-7 h-7"></i>
+                </div>
+                <span class="trend-badge">
+                    <i data-lucide="trending-down" class="w-3 h-3"></i>
+                    -2.1%
+                </span>
+            </div>
+            <div class="stat-number">{{ stats.banned|number_format }}</div>
+            <div class="text-white/90 font-medium text-sm">Banned Users</div>
+            <div class="text-white/70 text-xs mt-1">{{ ((stats.banned / stats.total) * 100)|number_format(1) }}% of total</div>
+        </div>
+    </div>
+</div>
+
+{# Main Dashboard Grid #}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    {# User Growth Chart - 2 columns #}
+    <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-navy-900 border border-navy-200 dark:border-navy-800 rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-harbor-500"></i>
+                            User Growth Analytics
+                        </h2>
+                        <p class="text-sm text-navy-500 mt-1">Last 30 days performance</p>
+                    </div>
+                    <select class="px-4 py-2 bg-navy-50 dark:bg-navy-800 border border-navy-200 dark:border-navy-700 rounded-xl text-sm font-medium text-navy-700 dark:text-navy-300">
+                        <option>Last 30 days</option>
+                        <option>Last 7 days</option>
+                        <option>Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {# Quick Stats & Actions #}
+    <div class="space-y-6">
+        {# User Distribution Pie Chart #}
+        <div class="bg-white dark:bg-navy-900 border border-navy-200 dark:border-navy-800 rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-bold text-navy-900 dark:text-white mb-4 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-violet-500"></i>
+                User Distribution
+            </h3>
+            <div style="height: 200px;">
+                <canvas id="userDistributionChart"></canvas>
+            </div>
+        </div>
+
+        {# Quick Actions #}
+        <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+                Quick Actions
+            </h3>
+            <div class="space-y-3">
+                <button class="w-full px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-white font-medium transition-all flex items-center gap-2 group">
+                    <i data-lucide="user-plus" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                    Add New User
+                </button>
+                <button class="w-full px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-white font-medium transition-all flex items-center gap-2 group">
+                    <i data-lucide="download" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                    Export Data
+                </button>
+                <button class="w-full px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-white font-medium transition-all flex items-center gap-2 group">
+                    <i data-lucide="settings" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                    System Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Recent Activity & Users Grid #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {# Recent Activity #}
+    <div class="bg-white dark:bg-navy-900 border border-navy-200 dark:border-navy-800 rounded-2xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h2 class="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2">
+                <i data-lucide="activity" class="w-5 h-5 text-emerald-500"></i>
+                Recent Activity
+            </h2>
+            <p class="text-sm text-navy-500 mt-1">Latest platform events</p>
+        </div>
+        <div class="p-6">
+            <div class="space-y-2">
+                <div class="activity-item">
+                    <div class="activity-icon bg-harbor-100 dark:bg-harbor-900/30 text-harbor-600 dark:text-harbor-400">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-navy-900 dark:text-white text-sm">New user registered</p>
+                        <p class="text-navy-500 text-xs">John Doe joined the platform</p>
+                        <p class="text-navy-400 text-xs mt-1">2 minutes ago</p>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-navy-900 dark:text-white text-sm">Profile updated</p>
+                        <p class="text-navy-500 text-xs">Sarah Chen updated their profile</p>
+                        <p class="text-navy-400 text-xs mt-1">15 minutes ago</p>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-navy-900 dark:text-white text-sm">Account verified</p>
+                        <p class="text-navy-500 text-xs">Mike Johnson verified their email</p>
+                        <p class="text-navy-400 text-xs mt-1">1 hour ago</p>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-navy-900 dark:text-white text-sm">Security alert</p>
+                        <p class="text-navy-500 text-xs">Failed login attempt detected</p>
+                        <p class="text-navy-400 text-xs mt-1">3 hours ago</p>
+                    </div>
+                </div>
+            </div>
+            <button class="w-full mt-6 py-2 text-center text-harbor-600 dark:text-harbor-400 font-medium text-sm hover:bg-harbor-50 dark:hover:bg-harbor-900/20 rounded-xl transition-colors">
+                View All Activity →
+            </button>
+        </div>
+    </div>
+
+    {# Recent Users Table #}
+    <div class="bg-white dark:bg-navy-900 border border-navy-200 dark:border-navy-800 rounded-2xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-harbor-500"></i>
+                        Recent Registrations
+                    </h2>
+                    <p class="text-sm text-navy-500 mt-1">Latest users who joined</p>
+                </div>
+                <a href="{{ path('admin_users') }}" class="px-4 py-2 bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 rounded-xl text-sm font-medium hover:bg-harbor-200 dark:hover:bg-harbor-900/50 transition-colors">
+                    View All
+                </a>
+            </div>
+        </div>
+        <div class="divide-y divide-navy-100 dark:divide-navy-800">
+            {% for user in recent_users|slice(0, 5) %}
+            <div class="p-4 hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm">
+                        {{ user.fullName|slice(0, 1)|upper }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-navy-900 dark:text-white text-sm truncate">{{ user.fullName }}</p>
+                        <p class="text-navy-500 text-xs truncate">{{ user.email }}</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                        {% if user.isBanned %}
+                            <span class="px-2 py-1 bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400 rounded-lg text-xs font-semibold">Banned</span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 rounded-lg text-xs font-semibold">Active</span>
+                        {% endif %}
+                        <span class="text-navy-400 text-xs">{{ user.createdAt|date('M d') }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <div class="w-16 h-16 bg-navy-100 dark:bg-navy-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="users" class="w-8 h-8 text-navy-400"></i>
+                </div>
+                <p class="text-navy-500">No users found</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // User Growth Line Chart
+    const ctx1 = document.getElementById('userGrowthChart');
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30'],
+            datasets: [{
+                label: 'New Users',
+                data: [12, 19, 15, 25, 22, 30, 28],
+                borderColor: '#268bff',
+                backgroundColor: 'rgba(38, 139, 255, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#268bff',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    titleColor: isDark ? '#ffffff' : '#000000',
+                    bodyColor: isDark ? '#cbd5e1' : '#475569',
+                    borderColor: isDark ? '#334155' : '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        padding: 10
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+
+    // User Distribution Doughnut Chart
+    const ctx2 = document.getElementById('userDistributionChart');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Students', 'Professors', 'Admins'],
+            datasets: [{
+                data: [{{ stats.active }}, 45, 3],
+                backgroundColor: [
+                    '#268bff',
+                    '#8b5cf6',
+                    '#10b981'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: textColor,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    titleColor: isDark ? '#ffffff' : '#000000',
+                    bodyColor: isDark ? '#cbd5e1' : '#475569',
+                    borderColor: isDark ? '#334155' : '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Re-create icons after page load
+    lucide.createIcons();
+</script>
+{% endblock %}

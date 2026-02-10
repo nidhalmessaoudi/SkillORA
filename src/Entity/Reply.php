@@ -13,7 +13,6 @@ class Reply
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    // The post this reply belongs to
     #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: 'replies')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Post $post;
@@ -21,15 +20,15 @@ class Reply
     #[ORM\Column(type: 'text')]
     private string $content;
 
-    // we'll store author as a simple string (static testing user)
-    #[ORM\Column(type: 'string', length: 180, nullable: true)]
-    private ?string $authorName = null;
-
-    #[ORM\Column(type: 'integer')]
-    private int $upvotes = 0;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
+    private User $author;
 
     #[ORM\Column(type: 'datetime')]
     private \DateTime $createdAt;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $updatedAt = null;
 
     public function __construct()
     {
@@ -46,27 +45,12 @@ class Reply
     public function getContent(): string { return $this->content; }
     public function setContent(string $content): self { $this->content = $content; return $this; }
 
-    public function getAuthorName(): ?string { return $this->authorName; }
-    public function setAuthorName(?string $name): self { $this->authorName = $name; return $this; }
-
-    public function getUpvotes(): int { return $this->upvotes; }
-    public function setUpvotes(int $v): self { $this->upvotes = $v; return $this; }
-    public function upvote(): self { $this->upvotes++; return $this; }
+    public function getAuthor(): User { return $this->author; }
+    public function setAuthor(User $author): self { $this->author = $author; return $this; }
 
     public function getCreatedAt(): \DateTime { return $this->createdAt; }
     public function setCreatedAt(\DateTime $dt): self { $this->createdAt = $dt; return $this; }
 
-    // inside class Reply
-    public function incrementUpvotes(): self
-    {
-        $this->upvotes = $this->upvotes + 1;
-        return $this;
-    }
-
-    public function decrementUpvotes(): self
-    {
-        $this->upvotes = max(0, $this->upvotes - 1);
-        return $this;
-    }
-
+    public function getUpdatedAt(): ?\DateTime { return $this->updatedAt; }
+    public function setUpdatedAt(?\DateTime $dt): self { $this->updatedAt = $dt; return $this; }
 }

@@ -136,7 +136,8 @@
   }
 
   .btn-icon {
-    @apply p-2.5 aspect-square;
+    @apply p-2.5;
+    aspect-ratio: 1 / 1;
   }
 
   /* Cards */

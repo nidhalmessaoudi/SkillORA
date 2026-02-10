@@ -1,0 +1,100 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Edit Post - Community | SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('community_post', {id: post.id}) }}" class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 inline-flex items-center gap-2 mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Post
+            </a>
+            <h1 class="text-3xl font-display font-bold text-slate-900 dark:text-white">Edit Post</h1>
+            <p class="text-slate-600 dark:text-slate-400 mt-2">Make changes to your post</p>
+        </div>
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Edit Form #}
+        <form method="post" action="{{ path('community_edit_post', {id: post.id}) }}" class="card p-8">
+            {# Title #}
+            <div class="mb-6">
+                <label for="title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Title <span class="text-red-500">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    value="{{ post.title }}"
+                    class="input" 
+                    placeholder="What's your question or topic?"
+                    required
+                >
+            </div>
+
+            {# Topic #}
+            <div class="mb-6">
+                <label for="topic" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Topic
+                </label>
+                <input 
+                    type="text" 
+                    id="topic" 
+                    name="topic" 
+                    value="{{ post.topic }}"
+                    class="input" 
+                    placeholder="e.g., JavaScript, Career, Design"
+                >
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Optional: helps others find your post</p>
+            </div>
+
+            {# Content #}
+            <div class="mb-6">
+                <label for="content" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Content <span class="text-red-500">*</span>
+                </label>
+                <textarea 
+                    id="content" 
+                    name="content" 
+                    rows="12" 
+                    class="input" 
+                    placeholder="Provide more details about your post..."
+                    required
+                >{{ post.content }}</textarea>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                    Markdown formatting is supported
+                </p>
+            </div>
+
+            {# Actions #}
+            <div class="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-navy-800">
+                <a href="{{ path('community_post', {id: post.id}) }}" class="btn-outline">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

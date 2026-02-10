@@ -1,7 +1,14 @@
 {% extends 'layouts/base.html.twig' %}
 
 {% block title %}Community - SkillHarbor{% endblock %}
-
+{% set emojiMap = {
+    'like': '👍',
+    'love': '❤️',
+    'haha': '😂',
+    'wow': '😮',
+    'sad': '😢',
+    'angry': '😡'
+} %}
 {% block body %}
 <div class="min-h-screen bg-slate-50 dark:bg-navy-950">
     {# Hero Section #}
@@ -42,7 +49,7 @@
         <div class="flex flex-col lg:flex-row gap-8">
             {# Main Feed #}
             <div class="flex-1">
-                {# Filters & Sort: tabs on the left, topic selector on the right (same row on wide screens) #}
+                {# Filters & Sort #}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
                         {% set baseParams = {'topic': current_topic|default(null)} %}
@@ -63,10 +70,9 @@
                         </a>
                     </div>
 
-                    {# Topic selector placed to the right on wide screens (like your original screenshot) #}
+                    {# Topic selector #}
                     <div class="mt-2 sm:mt-0">
                         <form method="get" action="{{ path('community_index') }}" class="inline-flex items-center gap-3">
-                            {# keep current tab when switching topic #}
                             <input type="hidden" name="tab" value="{{ current_tab|default('hot') }}">
 
                             <label class="relative inline-block">
@@ -91,40 +97,9 @@
                 {# Posts List #}
                 <div class="space-y-4">
                     {% for post in posts %}
-                        {# when controller doesn't send userPostVotes / postCounts, use defaults #}
-                        {% set userVote = userPostVotes[post.id]|default(0) %}
-                        {% set displayedUp = postCounts[post.id].up|default(post.upvotes) %}
-                        {% set displayedDown = postCounts[post.id].down|default(0) %}
+                        {% set postData = reactionData[post.id]|default({'userReaction': null, 'counts': {}, 'total': 0}) %}
                     <article class="card p-6 hover:shadow-lg transition-all duration-300">
                         <div class="flex gap-4">
-                            {# Vote Column: show up votes and down votes separately #}
-                            <div class="flex flex-col items-center gap-1">
-                                <button
-                                    class="vote-btn vote-post p-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors group"
-                                    data-url="{{ path('community_vote_post', {'id': post.id}) }}"
-                                    data-action="up"
-                                    data-id="{{ post.id }}"
-                                    aria-label="Upvote post">
-                                    <i data-lucide="chevron-up"
-                                       class="w-5 h-5 {{ userVote == 1 ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600' }}"></i>
-                                </button>
-
-                                <span class="font-semibold text-slate-900 dark:text-white post-upvotes" data-id="{{ post.id }}">{{ displayedUp }}</span>
-
-                                <button
-                                    class="vote-btn vote-post p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors group"
-                                    data-url="{{ path('community_vote_post', {'id': post.id}) }}"
-                                    data-action="down"
-                                    data-id="{{ post.id }}"
-                                    aria-label="Downvote post">
-                                    <i data-lucide="chevron-down"
-                                       class="w-5 h-5 {{ userVote == -1 ? 'text-red-600' : 'text-slate-400 group-hover:text-red-600' }}"></i>
-                                </button>
-
-                                {# optional: show down count (smaller) #}
-                                <span class="text-xs text-slate-400 mt-1 post-downvotes" data-id="{{ post.id }}">{{ displayedDown }}</span>
-                            </div>
-
                             {# Post Content #}
                             <div class="flex-1 min-w-0">
                                 {# Post Meta #}
@@ -164,9 +139,45 @@
                                         {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
                                     </a>
 
+                                    {# Reactions Summary #}
+                                    {# Reactions Summary #}
+<div class="ml-auto flex items-center gap-2">
+    <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
+        {# Current reaction or default like button #}
+        {% if postData.userReaction %}
+            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
+                <span class="reaction-emoji">{{ emojiMap[postData.userReaction] }}</span>
+                <span class="reaction-count">{{ postData.total }}</span>
+            </button>
+        {% else %}
+            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium">
+                <span class="reaction-emoji">👍</span>
+                {% if postData.total > 0 %}
+                    <span class="reaction-count">{{ postData.total }}</span>
+                {% endif %}
+            </button>
+        {% endif %}
+
+        {# Reaction Picker (hidden by default) #}
+        <div class="reaction-picker hidden absolute bottom-full right-0 mb-2 bg-white dark:bg-navy-800 rounded-full shadow-xl border border-slate-200 dark:border-navy-700 p-2 flex items-center gap-1 z-10">
+            {% for reactionType, emoji in emojiMap %}
+                <button 
+                    class="reaction-btn hover:scale-125 transition-transform p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-700"
+                    data-url="{{ path('community_react_post', {'id': post.id}) }}"
+                    data-type="{{ reactionType }}"
+                    data-post-id="{{ post.id }}"
+                    title="{{ reactionType|capitalize }}"
+                >
+                    <span class="text-2xl">{{ emoji }}</span>
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
                                     {# tags (if any) #}
                                     {% if post.tags|length %}
-                                        <div class="ml-auto flex items-center gap-2">
+                                        <div class="flex items-center gap-2">
                                             {% for tag in post.tags %}
                                                 <span class="badge">{{ tag.name }}</span>
                                             {% endfor %}
@@ -224,7 +235,7 @@
                         {% set contributors = [
                             {name: 'Emma Rodriguez', avatar: 'photo-1438761681033-6461ffad8d80', points: 2450, badge: 'gold'},
                             {name: 'Marcus Chen', avatar: 'photo-1507003211169-0a1dd7228f2d', points: 1820, badge: 'gold'},
-                            {name: 'Sophie Williams', avatar: 'photo-1494790108377-be9c29b29330', points: 1340, badge: 'silver'},
+                            {name: 'Sophie Williams', avatar: 'photo-1494790778202-cad84cf45f1d', points: 1340, badge: 'silver'},
                             {name: 'David Kim', avatar: 'photo-1506794778202-cad84cf45f1d', points: 980, badge: 'silver'},
                             {name: 'Olivia Brown', avatar: 'photo-1534528741775-53994a69daeb', points: 720, badge: 'bronze'}
                         ] %}
@@ -304,26 +315,62 @@
 <script>
     lucide.createIcons();
 
-    // Small tab UI behavior (just visual)
-    document.querySelectorAll('.tab-pill').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
+    // Reaction emoji mapping
+    const reactionEmojis = {
+        'like': '👍',
+        'love': '❤️',
+        'haha': '😂',
+        'wow': '😮',
+        'sad': '😢',
+        'angry': '😡'
+    };
+
+    // Show/hide reaction picker on hover/click
+    document.querySelectorAll('.reaction-trigger').forEach(trigger => {
+        const picker = trigger.querySelector('.reaction-picker');
+        const currentBtn = trigger.querySelector('.reaction-current-btn');
+        
+        let hideTimeout;
+
+        const showPicker = () => {
+            clearTimeout(hideTimeout);
+            picker.classList.remove('hidden');
+        };
+
+        const hidePicker = () => {
+            hideTimeout = setTimeout(() => {
+                picker.classList.add('hidden');
+            }, 200);
+        };
+
+        // Show picker on hover
+        trigger.addEventListener('mouseenter', showPicker);
+        trigger.addEventListener('mouseleave', hidePicker);
+        
+        // Also show on click for mobile
+        currentBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (picker.classList.contains('hidden')) {
+                showPicker();
+            } else {
+                hidePicker();
+            }
         });
     });
 
-    // Voting (post up/down) - delegate to document
+    // Handle reaction button clicks
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.vote-btn');
+        const btn = e.target.closest('.reaction-btn');
         if (!btn) return;
 
-        const url = btn.dataset.url;
-        const action = btn.dataset.action; // 'up' or 'down'
-        const id = btn.dataset.id;
-        const isPost = btn.classList.contains('vote-post');
-        const isReply = btn.classList.contains('vote-reply');
+        e.preventDefault();
+        e.stopPropagation();
 
-        // UI feedback (disable while request)
+        const url = btn.dataset.url;
+        const type = btn.dataset.type;
+        const postId = btn.dataset.postId;
+
+        // Disable button during request
         btn.disabled = true;
 
         fetch(url, {
@@ -332,68 +379,73 @@
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: new URLSearchParams({ action: action })
+            body: new URLSearchParams({ type: type })
         })
         .then(res => res.json())
         .then(data => {
             if (!data || !data.ok) {
-                console.error('Vote failed', data);
+                console.error('Reaction failed', data);
                 return;
             }
 
-            // Update counts + icon styles for posts
-            if (isPost) {
-                const upEl = document.querySelector('.post-upvotes[data-id="' + id + '"]');
-                const downEl = document.querySelector('.post-downvotes[data-id="' + id + '"]');
+            // Update UI
+            const trigger = document.querySelector(`.reaction-trigger[data-post-id="${postId}"]`);
+            if (!trigger) return;
 
-                if (upEl) upEl.textContent = data.upvotes;
-                if (downEl) downEl.textContent = data.downvotes;
+            const currentBtn = trigger.querySelector('.reaction-current-btn');
+            const emojiSpan = currentBtn.querySelector('.reaction-emoji');
+            const countSpan = currentBtn.querySelector('.reaction-count');
+            const picker = trigger.querySelector('.reaction-picker');
 
-                // update active icon styles for this post
-                const upBtn = document.querySelector('.vote-post[data-id="' + id + '"][data-action="up"]');
-                const downBtn = document.querySelector('.vote-post[data-id="' + id + '"][data-action="down"]');
+            // Update emoji and count
+            if (data.userReaction) {
+                emojiSpan.textContent = reactionEmojis[data.userReaction];
+                
+                if (!countSpan) {
+                    const newCount = document.createElement('span');
+                    newCount.className = 'reaction-count';
+                    newCount.textContent = data.total;
+                    currentBtn.appendChild(newCount);
+                } else {
+                    countSpan.textContent = data.total;
+                }
 
-                if (upBtn) {
-                    const upIcon = upBtn.querySelector('i[data-lucide="chevron-up"]');
-                    if (upIcon) {
-                        upIcon.classList.remove('text-emerald-600');
-                        upIcon.classList.add('text-slate-400');
-                        if (data.userVote === 1) {
-                            upIcon.classList.remove('text-slate-400');
-                            upIcon.classList.add('text-emerald-600');
-                        }
+                // Update button styling
+                currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium';
+            } else {
+                // User removed their reaction
+                emojiSpan.textContent = '👍';
+                
+                if (countSpan) {
+                    if (data.total > 0) {
+                        countSpan.textContent = data.total;
+                    } else {
+                        countSpan.remove();
                     }
                 }
 
-                if (downBtn) {
-                    const downIcon = downBtn.querySelector('i[data-lucide="chevron-down"]');
-                    if (downIcon) {
-                        downIcon.classList.remove('text-red-600');
-                        downIcon.classList.add('text-slate-400');
-                        if (data.userVote === -1) {
-                            downIcon.classList.remove('text-slate-400');
-                            downIcon.classList.add('text-red-600');
-                        }
-                    }
-                }
+                // Reset button styling
+                currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium';
             }
 
-            // Update counts for replies (if used on this page)
-            if (isReply) {
-                const upEl = document.querySelector('.reply-upvotes[data-id="' + id + '"]');
-                const downEl = document.querySelector('.reply-downvotes[data-id="' + id + '"]');
-                if (upEl) upEl.textContent = data.upvotes;
-                if (downEl) downEl.textContent = data.downvotes;
-
-                // (You can add icon toggles for replies similarly)
-            }
+            // Hide picker
+            picker.classList.add('hidden');
         })
         .catch(err => {
-            console.error('Vote request error', err);
+            console.error('Reaction request error', err);
         })
         .finally(() => {
             btn.disabled = false;
         });
+    });
+
+    // Close picker when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.reaction-trigger')) {
+            document.querySelectorAll('.reaction-picker').forEach(picker => {
+                picker.classList.add('hidden');
+            });
+        }
     });
 </script>
 {% endblock %}

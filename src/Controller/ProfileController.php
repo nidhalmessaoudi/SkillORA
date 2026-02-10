@@ -9,65 +9,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProfileController extends AbstractController
 {
-    #[Route('/profile', name: 'profile_index')]
-    public function index(): Response
-    {
-        $user = SampleData::getCurrentUser();
-        $courses = SampleData::getCourses();
-        $instructors = SampleData::getInstructors();
-        $badges = SampleData::getBadges();
-        $levels = SampleData::getLevels();
-
-        // Get user's enrolled courses with details
-        $enrolledCourses = array_filter($courses, fn($c) => in_array($c['id'], $user['enrolled_courses']));
-        $enrolledCourses = array_map(function($course) use ($instructors, $user) {
-            $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-            $isCompleted = in_array($course['id'], $user['completed_courses']);
-            return array_merge($course, [
-                'instructor' => $instructor,
-                'progress' => $isCompleted ? 100 : rand(30, 85),
-                'is_completed' => $isCompleted,
-            ]);
-        }, $enrolledCourses);
-
-        // Get user's badges
-        $userBadges = array_filter($badges, fn($b) => in_array($b['id'], $user['badges']));
-        $userBadges = array_map(function($badge) {
-            $colors = [
-                'harbor' => 'from-harbor-500 to-harbor-600',
-                'warning' => 'from-amber-500 to-amber-600',
-                'coral' => 'from-coral-400 to-coral-500',
-                'success' => 'from-emerald-500 to-emerald-600',
-                'danger' => 'from-red-500 to-red-600',
-            ];
-            return array_merge($badge, [
-                'color' => $colors[$badge['color']] ?? 'from-harbor-500 to-harbor-600',
-                'earned_at' => rand(1, 30) . ' days ago',
-            ]);
-        }, $userBadges);
-
-        // Get current level info
-        $currentLevel = array_values(array_filter($levels, fn($l) => $l['level'] === $user['level']))[0] ?? $levels[0];
-        $nextLevel = array_values(array_filter($levels, fn($l) => $l['level'] === $user['level'] + 1))[0] ?? null;
-
-        // User stats
-        $stats = [
-            'courses_completed' => count($user['completed_courses']),
-            'courses_in_progress' => count($user['enrolled_courses']) - count($user['completed_courses']),
-            'total_learning_hours' => 127,
-            'certificates' => count($user['completed_courses']),
-        ];
-
-        return $this->render('pages/profile/index.html.twig', [
-            'user' => $user,
-            'enrolledCourses' => array_values($enrolledCourses),
-            'badges' => array_values($userBadges),
-            'currentLevel' => $currentLevel,
-            'nextLevel' => $nextLevel,
-            'levels' => $levels,
-            'stats' => $stats,
-        ]);
-    }
+    // Disabled - using UserProfileController instead
+    // #[Route('/profile', name: 'profile_index')]
+    // public function index(): Response
+    // {
+    //     // Redirect to user profile if logged in
+    //     if ($this->getUser()) {
+    //         return $this->redirectToRoute('user_profile');
+    //     }
+    //     
+    //     return $this->render('pages/profile/public.html.twig');
+    // }
 
     #[Route('/profile/achievements', name: 'profile_achievements')]
     public function achievements(): Response
