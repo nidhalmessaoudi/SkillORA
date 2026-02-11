@@ -1,6 +1,7 @@
 {% extends 'layouts/base.html.twig' %}
 
 {% block title %}Community - SkillHarbor{% endblock %}
+
 {% set emojiMap = {
     'like': '👍',
     'love': '❤️',
@@ -9,6 +10,7 @@
     'sad': '😢',
     'angry': '😡'
 } %}
+
 {% block body %}
 <div class="min-h-screen bg-slate-50 dark:bg-navy-950">
     {# Hero Section #}
@@ -31,15 +33,47 @@
                     Ask questions, share knowledge, and grow with fellow learners. Your learning journey is better together!
                 </p>
 
+                {# Search Bar #}
+                <div class="max-w-2xl mx-auto mb-6">
+                    <form method="get" action="{{ path('community_index') }}" class="relative">
+                        {# Preserve filters when searching #}
+                        <input type="hidden" name="tab" value="{{ current_tab|default('hot') }}">
+                        {% if current_topic %}
+                            <input type="hidden" name="topic" value="{{ current_topic }}">
+                        {% endif %}
+                        
+                        <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 z-10"></i>
+                        <input 
+                            type="text" 
+                            name="q" 
+                            value="{{ searchQuery|default('') }}" 
+                            placeholder="Search posts, tags, or users..."
+                            class="w-full pl-12 pr-24 py-4 rounded-full bg-white dark:bg-navy-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg"
+                        >
+                        {% if searchQuery %}
+                            <a href="{{ path('community_index', {'tab': current_tab, 'topic': current_topic}) }}" 
+                               class="absolute right-16 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </a>
+                        {% endif %}
+                        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-medium transition-colors">
+                            Search
+                        </button>
+                    </form>
+                </div>
+
                 <div class="flex flex-wrap justify-center gap-4">
-                    <a href="{{ path('community_create') }}" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold">
-                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
-                        New Post
-                    </a>
-                    <button class="btn bg-white/10 text-white hover:bg-white/20 border border-white/20 px-6 py-3">
-                        <i data-lucide="search" class="w-5 h-5 mr-2"></i>
-                        Search Topics
-                    </button>
+                    {% if app.user %}
+                        <a href="{{ path('community_create') }}" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold">
+                            <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                            New Post
+                        </a>
+                    {% else %}
+                        <a href="{{ path('auth_login') }}" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold">
+                            <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
+                            Login to Post
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -49,10 +83,39 @@
         <div class="flex flex-col lg:flex-row gap-8">
             {# Main Feed #}
             <div class="flex-1">
+                {# Search Results Info #}
+                {% if searchQuery %}
+                    <div class="mb-6 p-4 bg-white dark:bg-navy-900 rounded-xl border border-slate-200 dark:border-navy-800">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="search" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900 dark:text-white">
+                                        {% if resultCount > 0 %}
+                                            Found {{ resultCount }} {{ resultCount == 1 ? 'result' : 'results' }}
+                                        {% else %}
+                                            No results found
+                                        {% endif %}
+                                        for "<span class="text-emerald-600 dark:text-emerald-400">{{ searchQuery }}</span>"
+                                    </p>
+                                    {% if resultCount == 0 %}
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Try different keywords or browse all posts</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <a href="{{ path('community_index', {'tab': current_tab, 'topic': current_topic}) }}" 
+                               class="text-sm text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                                Clear search
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
                 {# Filters & Sort #}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-                        {% set baseParams = {'topic': current_topic|default(null)} %}
+                        {% set baseParams = {'topic': current_topic|default(null), 'q': searchQuery|default(null)} %}
                         <a href="{{ path('community_index', baseParams|merge({'tab':'hot'}) ) }}" class="tab-pill {{ current_tab == 'hot' ? 'active' : '' }}">
                             <i data-lucide="sparkles" class="w-4 h-4 mr-1"></i> Hot
                         </a>
@@ -74,6 +137,9 @@
                     <div class="mt-2 sm:mt-0">
                         <form method="get" action="{{ path('community_index') }}" class="inline-flex items-center gap-3">
                             <input type="hidden" name="tab" value="{{ current_tab|default('hot') }}">
+                            {% if searchQuery %}
+                                <input type="hidden" name="q" value="{{ searchQuery }}">
+                            {% endif %}
 
                             <label class="relative inline-block">
                                 <select name="topic" onchange="this.form.submit()" class="input rounded-full px-4 py-2 text-sm">
@@ -88,7 +154,7 @@
                             </label>
 
                             {% if current_topic %}
-                                <a href="{{ path('community_index', {'tab': current_tab|default('hot')}) }}" class="text-sm text-slate-500 hover:text-emerald-600">Clear</a>
+                                <a href="{{ path('community_index', {'tab': current_tab|default('hot'), 'q': searchQuery}) }}" class="text-sm text-slate-500 hover:text-emerald-600">Clear</a>
                             {% endif %}
                         </form>
                     </div>
@@ -126,10 +192,14 @@
                                 {# Post Footer #}
                                 <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
-                                            {{ user.displayName|default('U')|slice(0,1)|upper }}
-                                        </div>
-                                        <span>{{ user.displayName|default('Test User') }}</span>
+                                        {% if post.author.avatar %}
+                                            <img src="{{ post.author.avatar }}" alt="{{ post.author.fullName }}" class="w-6 h-6 rounded-full object-cover">
+                                        {% else %}
+                                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                {{ post.author.fullName|slice(0,1)|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <span>{{ post.author.fullName }}</span>
                                     </div>
                                     <span class="text-slate-300 dark:text-slate-600">•</span>
                                     <span>{{ post.createdAt ? post.createdAt|date('M j, Y') : '' }}</span>
@@ -139,41 +209,42 @@
                                         {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
                                     </a>
 
-                                    {# Reactions Summary #}
-                                    {# Reactions Summary #}
-<div class="ml-auto flex items-center gap-2">
-    <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
-        {# Current reaction or default like button #}
-        {% if postData.userReaction %}
-            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
-                <span class="reaction-emoji">{{ emojiMap[postData.userReaction] }}</span>
-                <span class="reaction-count">{{ postData.total }}</span>
-            </button>
-        {% else %}
-            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium">
-                <span class="reaction-emoji">👍</span>
-                {% if postData.total > 0 %}
-                    <span class="reaction-count">{{ postData.total }}</span>
-                {% endif %}
-            </button>
-        {% endif %}
+                                    {# Reactions Summary - Only for logged-in users #}
+                                    {% if app.user %}
+                                        <div class="ml-auto flex items-center gap-2">
+                                            <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
+                                                {# Current reaction or default like button #}
+                                                {% if postData.userReaction %}
+                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
+                                                        <span class="reaction-emoji">{{ emojiMap[postData.userReaction] }}</span>
+                                                        <span class="reaction-count">{{ postData.total }}</span>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium">
+                                                        <span class="reaction-emoji">👍</span>
+                                                        {% if postData.total > 0 %}
+                                                            <span class="reaction-count">{{ postData.total }}</span>
+                                                        {% endif %}
+                                                    </button>
+                                                {% endif %}
 
-        {# Reaction Picker (hidden by default) #}
-        <div class="reaction-picker hidden absolute bottom-full right-0 mb-2 bg-white dark:bg-navy-800 rounded-full shadow-xl border border-slate-200 dark:border-navy-700 p-2 flex items-center gap-1 z-10">
-            {% for reactionType, emoji in emojiMap %}
-                <button 
-                    class="reaction-btn hover:scale-125 transition-transform p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-700"
-                    data-url="{{ path('community_react_post', {'id': post.id}) }}"
-                    data-type="{{ reactionType }}"
-                    data-post-id="{{ post.id }}"
-                    title="{{ reactionType|capitalize }}"
-                >
-                    <span class="text-2xl">{{ emoji }}</span>
-                </button>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+                                                {# Reaction Picker (hidden by default) #}
+                                                <div class="reaction-picker hidden absolute bottom-full right-0 mb-2 bg-white dark:bg-navy-800 rounded-full shadow-xl border border-slate-200 dark:border-navy-700 p-2 flex items-center gap-1 z-10">
+                                                    {% for reactionType, emoji in emojiMap %}
+                                                        <button 
+                                                            class="reaction-btn hover:scale-125 transition-transform p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-700"
+                                                            data-url="{{ path('community_react_post', {'id': post.id}) }}"
+                                                            data-type="{{ reactionType }}"
+                                                            data-post-id="{{ post.id }}"
+                                                            title="{{ reactionType|capitalize }}"
+                                                        >
+                                                            <span class="text-2xl">{{ emoji }}</span>
+                                                        </button>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
 
                                     {# tags (if any) #}
                                     {% if post.tags|length %}
@@ -189,7 +260,13 @@
                     </article>
                     {% else %}
                     <div class="card p-6 text-center text-slate-500 dark:text-slate-400">
-                        No posts yet. Be the first to create one.
+                        {% if searchQuery %}
+                            <i data-lucide="search-x" class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3"></i>
+                            <p class="font-medium mb-2">No posts found matching "{{ searchQuery }}"</p>
+                            <a href="{{ path('community_index') }}" class="text-emerald-600 hover:text-emerald-700 text-sm">View all posts</a>
+                        {% else %}
+                            No posts yet. Be the first to create one.
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -209,10 +286,17 @@
                 <div class="card p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50">
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-2">Have a question?</h3>
                     <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Join the conversation and get help from the community.</p>
-                    <a href="{{ path('community_create') }}" class="btn-primary w-full justify-center">
-                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                        Create Post
-                    </a>
+                    {% if app.user %}
+                        <a href="{{ path('community_create') }}" class="btn-primary w-full justify-center">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            Create Post
+                        </a>
+                    {% else %}
+                        <a href="{{ path('auth_login') }}" class="btn-primary w-full justify-center">
+                            <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
+                            Login to Post
+                        </a>
+                    {% endif %}
                 </div>
 
                 {# Popular Topics #}
@@ -330,6 +414,8 @@
         const picker = trigger.querySelector('.reaction-picker');
         const currentBtn = trigger.querySelector('.reaction-current-btn');
         
+        if (!picker || !currentBtn) return;
+        
         let hideTimeout;
 
         const showPicker = () => {
@@ -394,7 +480,7 @@
 
             const currentBtn = trigger.querySelector('.reaction-current-btn');
             const emojiSpan = currentBtn.querySelector('.reaction-emoji');
-            const countSpan = currentBtn.querySelector('.reaction-count');
+            let countSpan = currentBtn.querySelector('.reaction-count');
             const picker = trigger.querySelector('.reaction-picker');
 
             // Update emoji and count
@@ -402,13 +488,11 @@
                 emojiSpan.textContent = reactionEmojis[data.userReaction];
                 
                 if (!countSpan) {
-                    const newCount = document.createElement('span');
-                    newCount.className = 'reaction-count';
-                    newCount.textContent = data.total;
-                    currentBtn.appendChild(newCount);
-                } else {
-                    countSpan.textContent = data.total;
+                    countSpan = document.createElement('span');
+                    countSpan.className = 'reaction-count';
+                    currentBtn.appendChild(countSpan);
                 }
+                countSpan.textContent = data.total;
 
                 // Update button styling
                 currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium';
