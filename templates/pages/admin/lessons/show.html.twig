@@ -128,9 +128,12 @@
           Edit lesson
         </a>
 
-        <form method="post" action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" onsubmit="return confirm('Delete this lesson?');">
+        <form method="post"
+              action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}"
+              onsubmit="return confirm('Delete this lesson?');">
           <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
-          <button class="btn-danger btn-sm w-full justify-center">
+          <button type="submit"
+                  class="btn-secondary btn-sm w-full justify-center hover:!bg-danger-50 hover:!text-danger-600 dark:hover:!bg-danger-900/20 dark:hover:!text-danger-400">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
             Delete
           </button>
@@ -163,7 +166,6 @@
           window.lucide.createIcons();
         }
       } catch (e) {
-        // fallback: open in new tab if fullscreen isn't allowed
         if (frame.src) window.open(frame.src, '_blank', 'noopener');
       }
     });

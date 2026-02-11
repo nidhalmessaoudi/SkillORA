@@ -36,7 +36,21 @@
   </div>
 
   <div class="p-6">
-    {{ form_start(form) }}
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+
+      {% if not form.vars.valid %}
+        <div class="mb-6 rounded-2xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 p-4">
+          <div class="flex items-center gap-3">
+            <div class="mt-0.5 w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 dark:text-red-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="font-medium text-red-700 dark:text-red-300">Please fix the errors below.</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
           {{ form_row(form.title) }}

@@ -66,14 +66,21 @@
             {# Search & Actions #}
             <div class="flex items-center gap-3">
                 {# Desktop Search #}
-                <div class="hidden md:block relative">
+                <form
+                    class="hidden md:block relative"
+                    method="get"
+                    action="{{ path('courses_search') }}"
+                    role="search"
+                >
                     <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400"></i>
                     <input
                         type="search"
+                        name="q"
+                        value="{{ app.request.query.get('q') }}"
                         placeholder="Search courses..."
                         class="search-input w-64 lg:w-80"
                     >
-                </div>
+                </form>
 
                 {# Mobile Search Button #}
                 <button class="md:hidden p-2 rounded-xl text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800 transition-colors">

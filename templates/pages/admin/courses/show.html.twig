@@ -39,7 +39,6 @@
             <p class="text-body-sm text-navy-500 mt-1">Click a section to manage its lessons.</p>
           </div>
 
-          {# You will create this route in AdminSectionController #}
           <a href="{{ path('admin_sections_new', {courseId: course.id}) }}" class="btn-primary btn-sm">
             <i data-lucide="plus" class="w-4 h-4"></i>
             Add section
@@ -101,16 +100,21 @@
                       Lessons
                       <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
+
                     <a href="{{ path('admin_sections_edit', {courseId: course.id, sectionId: s.id}) }}" class="btn-secondary btn-sm">
                       <i data-lucide="pencil" class="w-4 h-4"></i>
                     </a>
 
-                    <form method="post" action="{{ path('admin_sections_delete', {courseId: course.id, sectionId: s.id}) }}" onsubmit="return confirm('Delete this section?');">
+                    <form method="post"
+                          action="{{ path('admin_sections_delete', {courseId: course.id, sectionId: s.id}) }}"
+                          onsubmit="return confirm('Delete this section?');">
                       <input type="hidden" name="_token" value="{{ csrf_token('delete_section_' ~ s.id) }}">
-                      <button class="btn-danger btn-sm">
+                      <button type="submit"
+                              class="btn-secondary btn-sm hover:!bg-danger-50 hover:!text-danger-600 dark:hover:!bg-danger-900/20 dark:hover:!text-danger-400">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                       </button>
                     </form>
+
                   </div>
                 </td>
               </tr>

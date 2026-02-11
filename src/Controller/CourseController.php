@@ -24,16 +24,55 @@ class CourseController extends AbstractController
         $selectedCategory = (string) $request->query->get("category", "");
         $sortBy = (string) $request->query->get("sort", "newest");
 
+        // Get all published courses once (we already need them for categories counts)
+        $allPublishedCourses = $em
+            ->getRepository(Course::class)
+            ->findBy(["status" => "published"]);
+
+        // Build category counts
+        $counts = [];
+        foreach ($allPublishedCourses as $c) {
+            $name = trim((string) ($c->getCategory() ?? ""));
+            if ($name === "") {
+                continue;
+            }
+            $counts[$name] = ($counts[$name] ?? 0) + 1;
+        }
+
+        ksort($counts);
+
+        // Build categories array + resolve selected category slug -> real DB category name
+        $categories = [];
+        $selectedCategoryName = null;
+
+        foreach ($counts as $name => $count) {
+            $slug = strtolower((string) $slugger->slug($name));
+
+            $categories[] = [
+                "name" => $name,
+                "slug" => $slug,
+                "count" => $count,
+            ];
+
+            if (
+                $selectedCategory !== "" &&
+                $slug === strtolower($selectedCategory)
+            ) {
+                $selectedCategoryName = $name; // exact DB category name (e.g. "IT & Software")
+            }
+        }
+
+        // Now query courses (published only) + optional category filter (using exact name)
         $qb = $em
             ->getRepository(Course::class)
             ->createQueryBuilder("c")
             ->andWhere("c.status = :status")
             ->setParameter("status", "published");
 
-        if ($selectedCategory !== "") {
-            $qb->andWhere("LOWER(c.category) = :cat")->setParameter(
+        if ($selectedCategoryName !== null) {
+            $qb->andWhere("c.category = :cat")->setParameter(
                 "cat",
-                strtolower(str_replace("-", " ", $selectedCategory)),
+                $selectedCategoryName,
             );
         }
 
@@ -55,34 +94,10 @@ class CourseController extends AbstractController
 
         $courses = $qb->getQuery()->getResult();
 
-        $allPublishedCourses = $em
-            ->getRepository(Course::class)
-            ->findBy(["status" => "published"]);
-        $counts = [];
-
-        foreach ($allPublishedCourses as $c) {
-            $name = trim((string) ($c->getCategory() ?? ""));
-            if ($name === "") {
-                continue;
-            }
-            $counts[$name] = ($counts[$name] ?? 0) + 1;
-        }
-
-        ksort($counts);
-
-        $categories = [];
-        foreach ($counts as $name => $count) {
-            $categories[] = [
-                "name" => $name,
-                "slug" => strtolower((string) $slugger->slug($name)),
-                "count" => $count,
-            ];
-        }
-
         return $this->render("pages/courses/index.html.twig", [
             "courses" => $courses,
             "categories" => $categories,
-            "selected_category" => $selectedCategory ?: null,
+            "selected_category" => $selectedCategory ?: null, // keep as slug for UI
             "sort_by" => $sortBy,
             "total_count" => count($courses),
         ]);
@@ -103,7 +118,6 @@ class CourseController extends AbstractController
             throw $this->createNotFoundException("Course not found");
         }
 
-        // sections + lessons sorted by position
         $sections = $course->getSections()->toArray();
         usort(
             $sections,
@@ -183,7 +197,6 @@ class CourseController extends AbstractController
             );
         }
 
-        // Build sidebar + ordered list for prev/next
         $sections = $course->getSections()->toArray();
         usort(
             $sections,
@@ -225,6 +238,7 @@ class CourseController extends AbstractController
             $currentIndex !== null && $currentIndex > 0
                 ? $orderedLessons[$currentIndex - 1]
                 : null;
+
         $nextLesson =
             $currentIndex !== null && $currentIndex < count($orderedLessons) - 1
                 ? $orderedLessons[$currentIndex + 1]

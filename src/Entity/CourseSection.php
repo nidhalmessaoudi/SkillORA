@@ -6,6 +6,7 @@ use App\Repository\CourseSectionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CourseSectionRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -17,9 +18,26 @@ class CourseSection
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Section title is required.")]
+    #[
+        Assert\Length(
+            min: 2,
+            max: 255,
+            minMessage: "Section title must be at least {{ limit }} characters.",
+            maxMessage: "Section title cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $title = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Position is required.")]
+    #[Assert\Type(type: "integer", message: "Position must be an integer.")]
+    #[
+        Assert\GreaterThanOrEqual(
+            value: 1,
+            message: "Position must be at least {{ compared_value }}.",
+        ),
+    ]
     private ?int $position = null;
 
     #[ORM\Column]
@@ -30,6 +48,7 @@ class CourseSection
 
     #[ORM\ManyToOne(inversedBy: "sections")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Course is required.")]
     private ?Course $course = null;
 
     /**
@@ -42,6 +61,7 @@ class CourseSection
             orphanRemoval: true,
         ),
     ]
+    #[Assert\Valid]
     private Collection $lessons;
 
     public function __construct()
@@ -62,7 +82,6 @@ class CourseSection
     public function setTitle(string $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -74,7 +93,6 @@ class CourseSection
     public function setPosition(int $position): static
     {
         $this->position = $position;
-
         return $this;
     }
 
@@ -86,7 +104,6 @@ class CourseSection
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -98,7 +115,6 @@ class CourseSection
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -110,7 +126,6 @@ class CourseSection
     public function setCourse(?Course $course): static
     {
         $this->course = $course;
-
         return $this;
     }
 
@@ -135,7 +150,6 @@ class CourseSection
     public function removeLesson(Lesson $lesson): static
     {
         if ($this->lessons->removeElement($lesson)) {
-            // set the owning side to null (unless already changed)
             if ($lesson->getSection() === $this) {
                 $lesson->setSection(null);
             }

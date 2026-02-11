@@ -18,7 +18,6 @@ class CourseSectionType extends AbstractType
         $builder
             ->add("title", TextType::class)
             ->add("position", IntegerType::class);
-        // course + createdAt + updatedAt are set in backend (controller + lifecycle callbacks)
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -7,29 +7,79 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Course
 {
+    public const STATUSES = ["draft", "published", "archived"];
+
+    public const CATEGORIES = [
+        "Development",
+        "Business",
+        "Data Science",
+        "Design",
+        "Marketing",
+        "Personal Development",
+        "IT & Software",
+        "Photography",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Title is required.")]
+    #[
+        Assert\Length(
+            min: 3,
+            max: 255,
+            minMessage: "Title must be at least {{ limit }} characters.",
+            maxMessage: "Title cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $title = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: "Category is required.")]
+    #[
+        Assert\Choice(
+            choices: self::CATEGORIES,
+            message: "Choose a valid category.",
+        ),
+    ]
     private ?string $category = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[
+        Assert\Length(
+            max: 10000,
+            maxMessage: "Description cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $description = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[
+        Assert\Length(
+            max: 255,
+            maxMessage: "Thumbnail cannot be longer than {{ limit }} characters.",
+        ),
+    ]
+    #[
+        Assert\Regex(
+            pattern: '#^(https?://.+|/[^\\s]+)$#i',
+            message: 'Thumbnail must be a valid URL (http/https) or a relative path starting with "/".',
+        ),
+    ]
     private ?string $thumbnail = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotBlank(message: "Status is required.")]
+    #[Assert\Choice(choices: self::STATUSES, message: "Choose a valid status.")]
     private ?string $status = null;
 
     #[ORM\Column]
@@ -48,6 +98,7 @@ class Course
             orphanRemoval: true,
         ),
     ]
+    #[Assert\Valid]
     private Collection $sections;
 
     public function __construct()
@@ -68,7 +119,6 @@ class Course
     public function setTitle(string $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -80,7 +130,6 @@ class Course
     public function setCategory(string $category): static
     {
         $this->category = $category;
-
         return $this;
     }
 
@@ -92,7 +141,6 @@ class Course
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -104,7 +152,6 @@ class Course
     public function setThumbnail(?string $thumbnail): static
     {
         $this->thumbnail = $thumbnail;
-
         return $this;
     }
 
@@ -116,7 +163,6 @@ class Course
     public function setStatus(string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
@@ -128,7 +174,6 @@ class Course
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -140,7 +185,6 @@ class Course
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -165,7 +209,6 @@ class Course
     public function removeSection(CourseSection $section): static
     {
         if ($this->sections->removeElement($section)) {
-            // set the owning side to null (unless already changed)
             if ($section->getCourse() === $this) {
                 $section->setCourse(null);
             }

@@ -49,6 +49,7 @@ class AdminLessonController extends AbstractController
                 "Lesson not found for this section",
             );
         }
+
         return $lesson;
     }
 
@@ -64,6 +65,7 @@ class AdminLessonController extends AbstractController
 
         $fullPath =
             $this->getParameter("kernel.project_dir") . "/public" . $publicPath;
+
         if (is_file($fullPath)) {
             @unlink($fullPath);
         }
@@ -113,7 +115,6 @@ class AdminLessonController extends AbstractController
         ?string $previousFilePath = null,
     ): void {
         $type = $lesson->getType();
-
         if (!in_array($type, ["text", "pdf", "video"], true)) {
             return;
         }
@@ -174,6 +175,7 @@ class AdminLessonController extends AbstractController
             rtrim((string) $this->getParameter("lesson_upload_base"), "/") .
             "/" .
             $subDir;
+
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
@@ -188,8 +190,8 @@ class AdminLessonController extends AbstractController
             (string) $this->getParameter("lesson_upload_public_base"),
             "/",
         );
-        $lesson->setFilePath($publicBase . "/" . $subDir . "/" . $newFilename);
 
+        $lesson->setFilePath($publicBase . "/" . $subDir . "/" . $newFilename);
         $lesson->setContent(null);
     }
 
@@ -280,6 +282,7 @@ class AdminLessonController extends AbstractController
             $sectionId,
             $em,
         );
+
         $lesson = $this->getLessonOr404($section->getId(), $lessonId, $em);
 
         return $this->render("pages/admin/lessons/show.html.twig", [
@@ -309,8 +312,8 @@ class AdminLessonController extends AbstractController
             $sectionId,
             $em,
         );
-        $lesson = $this->getLessonOr404($section->getId(), $lessonId, $em);
 
+        $lesson = $this->getLessonOr404($section->getId(), $lessonId, $em);
         $previousFilePath = $lesson->getFilePath();
 
         $form = $this->createForm(LessonType::class, $lesson);
@@ -329,7 +332,15 @@ class AdminLessonController extends AbstractController
                     $previousFilePath,
                 );
             } catch (\RuntimeException $e) {
-                if ($e->getMessage() === "INVALID_PDF") {
+                if ($e->getMessage() === "FILE_REQUIRED") {
+                    $form
+                        ->get("upload")
+                        ->addError(
+                            new FormError(
+                                "File is required for PDF/Video lessons.",
+                            ),
+                        );
+                } elseif ($e->getMessage() === "INVALID_PDF") {
                     $form
                         ->get("upload")
                         ->addError(
@@ -384,6 +395,7 @@ class AdminLessonController extends AbstractController
             $sectionId,
             $em,
         );
+
         $lesson = $this->getLessonOr404($section->getId(), $lessonId, $em);
 
         if (
@@ -393,7 +405,6 @@ class AdminLessonController extends AbstractController
             )
         ) {
             $this->deleteLocalLessonFile($lesson->getFilePath());
-
             $em->remove($lesson);
             $em->flush();
         }
