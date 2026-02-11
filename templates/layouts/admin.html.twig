@@ -125,6 +125,14 @@
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span>Statistics</span>
                 </a>
+                <a href="{{ path('admin_slots_index') }}" class="sidebar-nav-item {% if currentRoute starts with 'admin_slots' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                    <span>Slots</span>
+                </a>
+                 <a href="{{ path('admin_rendezvous_index') }}" class="sidebar-nav-item {% if currentRoute starts with 'admin_rendezvous' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="handshake" class="w-5 h-5"></i>
+                    <span>Rendez-vous</span>
+                </a>
             </nav>
         </aside>
 
