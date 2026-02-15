@@ -1,0 +1,94 @@
+{# Site Footer #}
+<footer class="bg-navy-950 text-navy-300">
+    {# Main Footer #}
+    <div class="container-wide py-16">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
+            {# Brand Column #}
+            <div class="col-span-2 md:col-span-3 lg:col-span-2">
+                <a href="{{ path('app_home') }}" class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-display font-bold text-xl text-white">SkillHarbor</span>
+                </a>
+                <p class="text-body-sm text-navy-400 mb-6 max-w-sm">
+                    Learn deeply. Grow visibly. Premium online courses from industry experts to accelerate your career.
+                </p>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="w-10 h-10 bg-navy-900 hover:bg-navy-800 rounded-xl flex items-center justify-center transition-colors" aria-label="Twitter">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-navy-900 hover:bg-navy-800 rounded-xl flex items-center justify-center transition-colors" aria-label="LinkedIn">
+                        <i data-lucide="linkedin" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-navy-900 hover:bg-navy-800 rounded-xl flex items-center justify-center transition-colors" aria-label="YouTube">
+                        <i data-lucide="youtube" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-navy-900 hover:bg-navy-800 rounded-xl flex items-center justify-center transition-colors" aria-label="GitHub">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {# Explore #}
+            <div>
+                <h4 class="font-display font-semibold text-white mb-4">Explore</h4>
+                <ul class="space-y-3">
+                    <li><a href="{{ path('courses_index') }}" class="text-body-sm hover:text-white transition-colors">Browse Courses</a></li>
+                    <li><a href="{{ path('instructors_index') }}" class="text-body-sm hover:text-white transition-colors">Instructors</a></li>
+                    <li><a href="{{ path('community_index') }}" class="text-body-sm hover:text-white transition-colors">Community</a></li>
+                    <li><a href="{{ path('profile_leaderboard') }}" class="text-body-sm hover:text-white transition-colors">Levels & Rewards</a></li>
+                </ul>
+            </div>
+
+            {# Categories #}
+            <div>
+                <h4 class="font-display font-semibold text-white mb-4">Categories</h4>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Development</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Data Science</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Design</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Business</a></li>
+                </ul>
+            </div>
+
+            {# Teach #}
+            <div>
+                <h4 class="font-display font-semibold text-white mb-4">Teach</h4>
+                <ul class="space-y-3">
+                    <li><a href="{{ path('studio_index') }}" class="text-body-sm hover:text-white transition-colors">Instructor Studio</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Become an Instructor</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Instructor Guidelines</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Earnings</a></li>
+                </ul>
+            </div>
+
+            {# Support #}
+            <div>
+                <h4 class="font-display font-semibold text-white mb-4">Support</h4>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Help Center</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Contact Us</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="text-body-sm hover:text-white transition-colors">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# Bottom Bar #}
+    <div class="border-t border-navy-900">
+        <div class="container-wide py-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-body-sm text-navy-500">
+                    &copy; {{ "now"|date("Y") }} SkillHarbor. All rights reserved.
+                </p>
+                <div class="flex items-center gap-6">
+                    <a href="#" class="text-body-sm text-navy-500 hover:text-navy-300 transition-colors">Privacy</a>
+                    <a href="#" class="text-body-sm text-navy-500 hover:text-navy-300 transition-colors">Terms</a>
+                    <a href="#" class="text-body-sm text-navy-500 hover:text-navy-300 transition-colors">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

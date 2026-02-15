@@ -1,0 +1,281 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Leaderboard - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
+    {# Hero Section #}
+    <div class="bg-gradient-to-br from-navy-900 via-harbor-900 to-navy-950 relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-1/4 w-72 h-72 bg-harbor-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-2 bg-amber-500/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                    <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+                    <span class="text-sm font-medium text-amber-300">Global Rankings</span>
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-display font-bold text-white mb-4">
+                    Leaderboard
+                </h1>
+                <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                    Compete with learners worldwide and climb the ranks. The more you learn, the higher you rise!
+                </p>
+            </div>
+
+            {# Top 3 Podium #}
+            <div class="flex items-end justify-center gap-4 lg:gap-8 mb-8">
+                {# 2nd Place #}
+                <div class="text-center order-1">
+                    <div class="relative mb-4">
+                        <div class="w-20 h-20 lg:w-24 lg:h-24 rounded-full ring-4 ring-slate-400 mx-auto overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" alt="2nd Place" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white font-bold">
+                            2
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-white">Marcus Chen</h3>
+                    <p class="text-sm text-slate-400">45,200 XP</p>
+                    <div class="mt-2 w-16 lg:w-24 h-24 lg:h-32 bg-gradient-to-t from-slate-500/50 to-slate-400/30 rounded-t-xl mx-auto flex items-center justify-center">
+                        <i data-lucide="medal" class="w-8 h-8 text-slate-300"></i>
+                    </div>
+                </div>
+
+                {# 1st Place #}
+                <div class="text-center order-2">
+                    <div class="relative mb-4">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                            <i data-lucide="crown" class="w-8 h-8 text-amber-400"></i>
+                        </div>
+                        <div class="w-24 h-24 lg:w-32 lg:h-32 rounded-full ring-4 ring-amber-400 mx-auto overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200" alt="1st Place" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-500/50">
+                            1
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-white text-lg">Emma Rodriguez</h3>
+                    <p class="text-sm text-amber-400">52,800 XP</p>
+                    <div class="mt-2 w-20 lg:w-32 h-32 lg:h-44 bg-gradient-to-t from-amber-500/50 to-amber-400/30 rounded-t-xl mx-auto flex items-center justify-center">
+                        <i data-lucide="trophy" class="w-10 h-10 text-amber-400"></i>
+                    </div>
+                </div>
+
+                {# 3rd Place #}
+                <div class="text-center order-3">
+                    <div class="relative mb-4">
+                        <div class="w-20 h-20 lg:w-24 lg:h-24 rounded-full ring-4 ring-amber-700 mx-auto overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200" alt="3rd Place" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">
+                            3
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-white">Alex Johnson</h3>
+                    <p class="text-sm text-slate-400">41,500 XP</p>
+                    <div class="mt-2 w-16 lg:w-24 h-20 lg:h-24 bg-gradient-to-t from-amber-700/50 to-amber-600/30 rounded-t-xl mx-auto flex items-center justify-center">
+                        <i data-lucide="medal" class="w-8 h-8 text-amber-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {# Filter Tabs #}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+                <button class="tab-pill active">All Time</button>
+                <button class="tab-pill">This Month</button>
+                <button class="tab-pill">This Week</button>
+                <button class="tab-pill">Today</button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <select class="input py-2.5 w-auto text-sm">
+                    <option>Global</option>
+                    <option>Your Country</option>
+                    <option>Following</option>
+                </select>
+            </div>
+        </div>
+
+        {# Your Position Card #}
+        <div class="card bg-gradient-to-r from-harbor-50 to-violet-50 dark:from-harbor-900/20 dark:to-violet-900/20 border-harbor-200 dark:border-harbor-800/50 p-6 mb-8">
+            <div class="flex items-center gap-6">
+                <div class="text-center">
+                    <p class="text-4xl font-display font-bold text-harbor-600 dark:text-harbor-400">#{{ user.rank|default(42) }}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Your Rank</p>
+                </div>
+                <div class="w-px h-16 bg-harbor-200 dark:bg-harbor-800"></div>
+                <div class="flex items-center gap-4 flex-1">
+                    <img src="{{ user.avatar }}" alt="{{ user.name }}" class="w-14 h-14 rounded-full object-cover ring-2 ring-harbor-500">
+                    <div>
+                        <h3 class="font-semibold text-slate-900 dark:text-white">{{ user.name }}</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ user.xp|number_format }} XP</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    <span class="font-semibold">+5 this week</span>
+                </div>
+            </div>
+        </div>
+
+        {# Leaderboard Table #}
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 dark:bg-navy-800/50 border-b border-slate-200 dark:border-navy-800">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rank</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Learner</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Level</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">XP</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Courses</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Streak</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-navy-800">
+                        {% set leaderboardData = [
+                            {rank: 1, name: 'Emma Rodriguez', avatar: 'photo-1438761681033-6461ffad8d80', level: 12, xp: 52800, courses: 28, streak: 45, change: 0},
+                            {rank: 2, name: 'Marcus Chen', avatar: 'photo-1507003211169-0a1dd7228f2d', level: 11, xp: 45200, courses: 24, streak: 32, change: 1},
+                            {rank: 3, name: 'Alex Johnson', avatar: 'photo-1500648767791-00dcc994a43e', level: 10, xp: 41500, courses: 22, streak: 28, change: -1},
+                            {rank: 4, name: 'Sophie Williams', avatar: 'photo-1494790108377-be9c29b29330', level: 10, xp: 38900, courses: 20, streak: 21, change: 2},
+                            {rank: 5, name: 'David Kim', avatar: 'photo-1506794778202-cad84cf45f1d', level: 9, xp: 35600, courses: 19, streak: 15, change: 0},
+                            {rank: 6, name: 'Olivia Brown', avatar: 'photo-1534528741775-53994a69daeb', level: 9, xp: 34200, courses: 18, streak: 19, change: 3},
+                            {rank: 7, name: 'James Wilson', avatar: 'photo-1472099645785-5658abf4ff4e', level: 8, xp: 31800, courses: 17, streak: 12, change: -2},
+                            {rank: 8, name: 'Mia Davis', avatar: 'photo-1517841905240-472988babdf9', level: 8, xp: 29500, courses: 16, streak: 24, change: 1},
+                            {rank: 9, name: 'Ethan Taylor', avatar: 'photo-1519345182560-3f2917c472ef', level: 7, xp: 27200, courses: 15, streak: 8, change: 0},
+                            {rank: 10, name: 'Isabella Martinez', avatar: 'photo-1487412720507-e7ab37603c6f', level: 7, xp: 25800, courses: 14, streak: 16, change: -1}
+                        ] %}
+
+                        {% for learner in leaderboardData %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-navy-800/30 transition-colors {{ learner.rank <= 3 ? 'bg-amber-50/50 dark:bg-amber-900/10' : '' }}">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    {% if learner.rank == 1 %}
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-500/30">
+                                        {{ learner.rank }}
+                                    </div>
+                                    {% elseif learner.rank == 2 %}
+                                    <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white font-bold">
+                                        {{ learner.rank }}
+                                    </div>
+                                    {% elseif learner.rank == 3 %}
+                                    <div class="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">
+                                        {{ learner.rank }}
+                                    </div>
+                                    {% else %}
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-navy-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-semibold">
+                                        {{ learner.rank }}
+                                    </div>
+                                    {% endif %}
+
+                                    {# Rank Change Indicator #}
+                                    {% if learner.change > 0 %}
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+                                    {% elseif learner.change < 0 %}
+                                    <i data-lucide="trending-down" class="w-4 h-4 text-red-500"></i>
+                                    {% else %}
+                                    <i data-lucide="minus" class="w-4 h-4 text-slate-400"></i>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/{{ learner.avatar }}?w=100" alt="{{ learner.name }}" class="w-10 h-10 rounded-full object-cover">
+                                    <div>
+                                        <p class="font-medium text-slate-900 dark:text-white">{{ learner.name }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ levels[learner.level - 1].name|default('Expert') }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 font-medium text-sm">
+                                    <i data-lucide="award" class="w-3 h-3"></i>
+                                    {{ learner.level }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="font-semibold text-slate-900 dark:text-white">{{ learner.xp|number_format }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="text-slate-600 dark:text-slate-400">{{ learner.courses }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                                    <i data-lucide="flame" class="w-4 h-4"></i>
+                                    {{ learner.streak }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Load More #}
+            <div class="p-6 border-t border-slate-200 dark:border-navy-800 text-center">
+                <button class="btn-outline">
+                    Load More
+                    <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        {# Weekly Rewards #}
+        <div class="card p-6 mt-8 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border-amber-200 dark:border-amber-800/50">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                            <i data-lucide="gift" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-display font-bold text-slate-900 dark:text-white">Weekly Rewards</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Top performers earn bonus XP every week!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="trophy" class="w-5 h-5 text-amber-500"></i>
+                            <span class="text-slate-700 dark:text-slate-300">1st: <strong>2,000 XP</strong></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="medal" class="w-5 h-5 text-slate-400"></i>
+                            <span class="text-slate-700 dark:text-slate-300">2nd: <strong>1,000 XP</strong></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="medal" class="w-5 h-5 text-amber-700"></i>
+                            <span class="text-slate-700 dark:text-slate-300">3rd: <strong>500 XP</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center lg:text-right">
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Week ends in</p>
+                    <p class="text-2xl font-display font-bold text-slate-900 dark:text-white">3d 14h 22m</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Tab filtering
+    document.querySelectorAll('.tab-pill').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Mes Évaluations{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Mes Évaluations</h1>
+
+{% if evaluations is empty %}
+    <p>Aucune évaluation disponible pour le moment.</p>
+{% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for evaluation in evaluations %}
+            {% set userEvaluation = evaluation.userEvaluations|filter(ue => ue.user == app.user)|first %}
+            <div class="card p-4 shadow rounded-lg">
+                <h2 class="text-lg font-semibold">{{ evaluation.title }}</h2>
+                <p class="text-sm text-gray-600">{{ evaluation.description|default('Pas de description') }}</p>
+                <p class="text-sm mt-1">Durée: {{ evaluation.duration }} minutes</p>
+                <p class="text-sm mt-1">Type: {{ evaluation.type }}</p>
+                <div class="mt-4 flex gap-2">
+                    {% if userEvaluation is not empty and userEvaluation.submittedAt is not null %}
+                        <a href="{{ path('user_evaluation_result', {'id': userEvaluation.id}) }}" class="btn-secondary">
+                            Voir Résultat
+                        </a>
+                    {% else %}
+                        <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}" class="btn-primary">
+                            Passer l'Évaluation
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

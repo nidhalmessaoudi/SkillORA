@@ -1,0 +1,238 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Achievements - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
+    {# Hero Section #}
+    <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-10 right-20 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+            <div class="text-center">
+                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                    <i data-lucide="award" class="w-4 h-4 text-white"></i>
+                    <span class="text-sm font-medium text-white">Your Achievements</span>
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-display font-bold text-white mb-4">
+                    Badges & Achievements
+                </h1>
+                <p class="text-lg text-amber-100 mb-8 max-w-2xl mx-auto">
+                    Collect badges by completing courses, maintaining streaks, and reaching milestones. Show off your accomplishments!
+                </p>
+
+                {# Achievement Stats #}
+                <div class="inline-flex items-center gap-8 bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4">
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-white">{{ user.badges|length }}</p>
+                        <p class="text-amber-100 text-sm">Badges Earned</p>
+                    </div>
+                    <div class="w-px h-12 bg-white/20"></div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-white">{{ badges|length }}</p>
+                        <p class="text-amber-100 text-sm">Total Available</p>
+                    </div>
+                    <div class="w-px h-12 bg-white/20"></div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-white">{{ ((user.badges|length / badges|length) * 100)|round }}%</p>
+                        <p class="text-amber-100 text-sm">Completion</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {# Filter Tabs #}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+                <button class="tab-pill active">All Badges</button>
+                <button class="tab-pill">Earned</button>
+                <button class="tab-pill">In Progress</button>
+                <button class="tab-pill">Locked</button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <select class="input py-2.5 w-auto text-sm">
+                    <option>All Categories</option>
+                    <option>Learning</option>
+                    <option>Streaks</option>
+                    <option>Social</option>
+                    <option>Milestones</option>
+                </select>
+            </div>
+        </div>
+
+        {# Featured Badge #}
+        <div class="card bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-8 mb-10 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div class="relative flex flex-col lg:flex-row lg:items-center gap-8">
+                <div class="w-28 h-28 rounded-3xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/20">
+                    <i data-lucide="crown" class="w-14 h-14 text-amber-300"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="badge bg-white/20 text-white mb-3">Next Milestone</span>
+                    <h2 class="text-2xl font-display font-bold mb-2">Knowledge Champion</h2>
+                    <p class="text-purple-100 mb-4">Complete 25 courses to unlock this prestigious badge and prove your dedication to learning.</p>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1 max-w-xs">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-purple-200">Progress</span>
+                                <span class="text-sm font-medium text-white">20/25 courses</span>
+                            </div>
+                            <div class="w-full bg-white/20 rounded-full h-3">
+                                <div class="h-full bg-white rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center px-4">
+                            <p class="text-2xl font-bold">+1000</p>
+                            <p class="text-xs text-purple-200">XP Reward</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Badge Categories #}
+        {% set badgeCategories = [
+            {
+                name: 'Learning Milestones',
+                icon: 'graduation-cap',
+                color: 'harbor',
+                badges: [
+                    {name: 'First Steps', description: 'Complete your first course', icon: 'footprints', earned: true, xp: 100},
+                    {name: 'Quick Learner', description: 'Complete 5 courses', icon: 'zap', earned: true, xp: 250},
+                    {name: 'Dedicated Student', description: 'Complete 10 courses', icon: 'book-open', earned: true, xp: 500},
+                    {name: 'Knowledge Seeker', description: 'Complete 15 courses', icon: 'compass', earned: true, xp: 750},
+                    {name: 'Course Master', description: 'Complete 20 courses', icon: 'award', earned: false, progress: 80, xp: 1000},
+                    {name: 'Knowledge Champion', description: 'Complete 25 courses', icon: 'crown', earned: false, progress: 0, locked: true, xp: 1500}
+                ]
+            },
+            {
+                name: 'Streak Achievements',
+                icon: 'flame',
+                color: 'amber',
+                badges: [
+                    {name: 'Getting Started', description: '3-day learning streak', icon: 'flame', earned: true, xp: 50},
+                    {name: 'Week Warrior', description: '7-day learning streak', icon: 'flame', earned: true, xp: 100},
+                    {name: 'Fortnight Fighter', description: '14-day learning streak', icon: 'flame', earned: true, xp: 200},
+                    {name: 'Monthly Master', description: '30-day learning streak', icon: 'flame', earned: false, progress: 60, xp: 500},
+                    {name: 'Semester Star', description: '90-day learning streak', icon: 'star', earned: false, progress: 0, locked: true, xp: 1000},
+                    {name: 'Year Legend', description: '365-day learning streak', icon: 'trophy', earned: false, progress: 0, locked: true, xp: 5000}
+                ]
+            },
+            {
+                name: 'Quiz Mastery',
+                icon: 'brain',
+                color: 'violet',
+                badges: [
+                    {name: 'Quiz Beginner', description: 'Pass your first quiz', icon: 'check-circle', earned: true, xp: 50},
+                    {name: 'Quiz Pro', description: 'Pass 10 quizzes', icon: 'target', earned: true, xp: 200},
+                    {name: 'Perfect Score', description: 'Get 100% on any quiz', icon: 'star', earned: true, xp: 300},
+                    {name: 'Quiz Master', description: 'Pass 25 quizzes', icon: 'brain', earned: false, progress: 60, xp: 500},
+                    {name: 'Unstoppable', description: '10 perfect scores', icon: 'zap', earned: false, progress: 30, xp: 750},
+                    {name: 'Quiz Legend', description: 'Pass 100 quizzes', icon: 'crown', earned: false, progress: 0, locked: true, xp: 2000}
+                ]
+            },
+            {
+                name: 'Community',
+                icon: 'users',
+                color: 'emerald',
+                badges: [
+                    {name: 'First Post', description: 'Create your first community post', icon: 'message-square', earned: true, xp: 50},
+                    {name: 'Helpful', description: 'Get 10 upvotes on answers', icon: 'thumbs-up', earned: true, xp: 100},
+                    {name: 'Contributor', description: 'Create 25 posts', icon: 'edit-3', earned: false, progress: 40, xp: 250},
+                    {name: 'Community Star', description: 'Get 100 total upvotes', icon: 'star', earned: false, progress: 65, xp: 500},
+                    {name: 'Mentor', description: 'Help 50 students', icon: 'heart', earned: false, progress: 0, locked: true, xp: 1000},
+                    {name: 'Community Legend', description: 'Top contributor for a month', icon: 'crown', earned: false, progress: 0, locked: true, xp: 2500}
+                ]
+            }
+        ] %}
+
+        {% for category in badgeCategories %}
+        <section class="mb-12">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-{{ category.color }}-100 dark:bg-{{ category.color }}-900/30 flex items-center justify-center">
+                    <i data-lucide="{{ category.icon }}" class="w-5 h-5 text-{{ category.color }}-600 dark:text-{{ category.color }}-400"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">{{ category.name }}</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ category.badges|filter(b => b.earned)|length }} of {{ category.badges|length }} earned</p>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for badge in category.badges %}
+                <div class="card p-5 relative overflow-hidden {{ badge.earned ? '' : (badge.locked|default(false) ? 'opacity-60' : '') }} hover:shadow-lg transition-all group">
+                    {# Earned Indicator #}
+                    {% if badge.earned %}
+                    <div class="absolute top-3 right-3">
+                        <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# Locked Overlay #}
+                    {% if badge.locked|default(false) %}
+                    <div class="absolute top-3 right-3">
+                        <i data-lucide="lock" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-start gap-4">
+                        {# Badge Icon #}
+                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 {{ badge.earned ? 'bg-gradient-to-br from-' ~ category.color ~ '-400 to-' ~ category.color ~ '-600' : 'bg-slate-200 dark:bg-navy-800' }} {{ badge.earned ? 'group-hover:scale-110' : '' }} transition-transform">
+                            <i data-lucide="{{ badge.icon }}" class="w-7 h-7 {{ badge.earned ? 'text-white' : 'text-slate-400 dark:text-slate-500' }}"></i>
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-slate-900 dark:text-white mb-1">{{ badge.name }}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">{{ badge.description }}</p>
+
+                            {# Progress Bar (if not earned and not locked) #}
+                            {% if not badge.earned and not badge.locked|default(false) and badge.progress is defined %}
+                            <div class="mb-2">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs text-slate-500">Progress</span>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ badge.progress }}%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-navy-800 rounded-full h-1.5">
+                                    <div class="h-full bg-{{ category.color }}-500 rounded-full" style="width: {{ badge.progress }}%"></div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# XP Reward #}
+                            <div class="flex items-center gap-1 text-xs {{ badge.earned ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400' }}">
+                                <i data-lucide="zap" class="w-3 h-3"></i>
+                                <span>{{ badge.earned ? 'Earned' : '+' }}{{ badge.xp }} XP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Tab filtering
+    document.querySelectorAll('.tab-pill').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

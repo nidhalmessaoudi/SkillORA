@@ -1,0 +1,59 @@
+================================================================
+PERMANENT CACHE FIX - OneDrive Issue Resolved
+================================================================
+
+PROBLEM:
+--------
+OneDrive was continuously locking cache files, causing errors:
+"Unable to write in the cache directory"
+
+SOLUTION:
+---------
+Moved cache and log directories OUTSIDE of OneDrive using
+Windows symbolic links (junctions).
+
+NEW STRUCTURE:
+--------------
+Physical Location:
+  C:\temp\skillharbor_cache\    (outside OneDrive, no sync)
+  C:\temp\skillharbor_log\      (outside OneDrive, no sync)
+
+Project sees them at:
+  var/cache -> C:\temp\skillharbor_cache (symbolic link)
+  var/log   -> C:\temp\skillharbor_log   (symbolic link)
+
+BENEFITS:
+---------
+✓ No more OneDrive sync conflicts
+✓ Faster cache operations
+✓ No write permission errors
+✓ Symfony works seamlessly (doesn't know the difference)
+
+WHAT WAS CHANGED:
+-----------------
+1. Created C:\temp\skillharbor_cache and C:\temp\skillharbor_log
+2. Removed old var/cache and var/log from project
+3. Created Windows junctions (symbolic links) pointing to C:\temp\
+
+VERIFICATION:
+-------------
+✓ Symfony works: php bin/console --version
+✓ Cache clears: php bin/console cache:clear
+✓ Routes work: php bin/console debug:router
+✓ Files written to: C:\temp\skillharbor_cache\dev\
+
+IF YOU NEED TO REDO THIS:
+--------------------------
+Run these PowerShell commands:
+
+  # Remove old links
+  Remove-Item var\cache -Force
+  Remove-Item var\log -Force
+  
+  # Create new junctions
+  New-Item -ItemType Junction -Path var\cache -Target C:\temp\skillharbor_cache
+  New-Item -ItemType Junction -Path var\log -Target C:\temp\skillharbor_log
+
+================================================================
+STATUS: FULLY WORKING - NO MORE CACHE ERRORS!
+================================================================

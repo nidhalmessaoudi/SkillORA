@@ -1,0 +1,188 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Verify Email - SkillHarbor{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex bg-white dark:bg-navy-950">
+    {# Left Panel #}
+    <div class="w-full lg:w-1/2 flex flex-col">
+        {# Header #}
+        <div class="flex items-center justify-between p-6">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2.5 group">
+                <div class="w-9 h-9 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-xl flex items-center justify-center">
+                    <i data-lucide="anchor" class="w-4.5 h-4.5 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillHarbor</span>
+            </a>
+            <button onclick="toggleTheme()" class="btn-ghost btn-icon">
+                <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+            </button>
+        </div>
+
+        {# Content #}
+        <div class="flex-1 flex items-center justify-center px-6 lg:px-16">
+            <div class="w-full max-w-sm text-center">
+                {# Icon #}
+                <div class="w-16 h-16 rounded-full bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="mail" class="w-8 h-8 text-harbor-600 dark:text-harbor-400"></i>
+                </div>
+
+                {# Header #}
+                <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-2">
+                    Verify your email
+                </h1>
+                <p class="text-body-md text-navy-500 dark:text-navy-400 mb-2">
+                    We've sent a verification link to
+                </p>
+                <p class="text-body-md font-semibold text-navy-700 dark:text-navy-300 mb-8">
+                    a***@gmail.com
+                </p>
+
+                {# Info Card #}
+                <div class="card p-5 mb-6 text-left">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-harbor-600 dark:text-harbor-400"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-navy-700 dark:text-navy-300 text-body-sm mb-1">
+                                This helps keep your account secure
+                            </p>
+                            <p class="text-caption text-navy-500 dark:text-navy-400">
+                                We verify emails to protect your account and ensure you receive important updates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Actions #}
+                <button type="button" id="resend-btn" class="btn-primary w-full mb-3">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Resend email
+                </button>
+
+                <button type="button" class="btn-ghost w-full">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                    Change email address
+                </button>
+
+                {# Tips #}
+                <div class="mt-8 pt-6 border-t border-navy-200 dark:border-navy-800">
+                    <p class="text-caption text-navy-500 dark:text-navy-400 mb-2">Didn't receive the email?</p>
+                    <ul class="text-caption text-navy-400 space-y-1">
+                        <li>Check your spam folder</li>
+                        <li>Make sure you entered the correct email</li>
+                    </ul>
+                </div>
+
+                {# Help #}
+                <p class="mt-6 text-body-sm text-navy-500 dark:text-navy-400">
+                    Need help?
+                    <a href="#" class="font-medium text-harbor-600 dark:text-harbor-400 hover:underline ml-1">
+                        Contact support
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="p-6 text-center">
+            <p class="text-caption text-navy-400 flex items-center justify-center gap-2">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+                Secure verification process
+            </p>
+        </div>
+    </div>
+
+    {# Right Panel - Brand #}
+    <div class="hidden lg:block lg:w-1/2 bg-gradient-to-br from-harbor-600 to-harbor-500 relative">
+        <div class="absolute inset-0">
+            <div class="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 left-20 w-80 h-80 bg-harbor-400/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative h-full flex flex-col justify-center p-12 lg:p-16">
+            <div class="max-w-md">
+                <h2 class="font-display font-bold text-3xl lg:text-4xl text-white mb-4">
+                    Almost there!
+                </h2>
+                <p class="text-lg text-white/80 mb-10">
+                    Just one more step before you can start your learning journey.
+                </p>
+
+                {# Steps #}
+                <div class="space-y-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-white">Account created</p>
+                            <p class="text-body-sm text-white/60">Your account is ready</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                            <i data-lucide="mail" class="w-5 h-5 text-harbor-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-white">Verify your email</p>
+                            <p class="text-body-sm text-white/60">Click the link in your inbox</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 opacity-50">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i data-lucide="rocket" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-white">Start learning</p>
+                            <p class="text-body-sm text-white/60">Access 10,000+ courses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    const resendBtn = document.getElementById('resend-btn');
+    let cooldown = false;
+
+    resendBtn.addEventListener('click', function() {
+        if (cooldown) return;
+
+        cooldown = true;
+        this.disabled = true;
+        this.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending...';
+        lucide.createIcons();
+
+        setTimeout(() => {
+            this.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Email sent!';
+            lucide.createIcons();
+
+            let seconds = 60;
+            const interval = setInterval(() => {
+                seconds--;
+                resendBtn.innerHTML = 'Resend in ' + seconds + 's';
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    cooldown = false;
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Resend email';
+                    lucide.createIcons();
+                }
+            }, 1000);
+        }, 1500);
+    });
+</script>
+{% endblock %}
