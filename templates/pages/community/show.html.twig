@@ -79,12 +79,16 @@
 
                     {# Author Info #}
                     <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-navy-800">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl font-bold">
-                            {{ post.author.username|default('U')|slice(0,1)|upper }}
-                        </div>
+                        {% if post.author.avatar %}
+                            <img src="{{ post.author.avatar }}" alt="{{ post.author.fullName }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl font-bold">
+                                {{ post.author.fullName|slice(0,1)|upper }}
+                            </div>
+                        {% endif %}
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="font-semibold text-slate-900 dark:text-white">{{ post.author.username|default('Unknown User') }}</span>
+                                <span class="font-semibold text-slate-900 dark:text-white">{{ post.author.fullName }}</span>
                                 <span class="badge bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs">
                                     Level 5
                                 </span>
@@ -115,81 +119,96 @@
                     </div>
 
                     {# Actions & Reactions #}
-<div class="pt-4 border-t border-slate-200 dark:border-navy-800">
-    {# Reaction Button - Prominent and centered #}
-    <div class="flex items-center justify-between mb-4">
-        <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
-            {% set totalReactions = 0 %}
-            {% for count in postReactionCounts|default({}) %}
-                {% set totalReactions = totalReactions + count %}
-            {% endfor %}
-            
-            {% if userPostReaction %}
-                <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold">
-                    <span class="reaction-emoji text-2xl">{{ emojiMap[userPostReaction] }}</span>
-                    <span class="text-base">{{ userPostReaction|capitalize }}</span>
-                    {% if totalReactions > 1 %}
-                        <span class="reaction-count text-sm opacity-75">+{{ totalReactions - 1 }}</span>
-                    {% endif %}
-                </button>
-            {% else %}
-                <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold">
-                    <span class="reaction-emoji text-2xl">👍</span>
-                    <span class="text-base">React</span>
-                    {% if totalReactions > 0 %}
-                        <span class="reaction-count text-sm opacity-75">{{ totalReactions }}</span>
-                    {% endif %}
-                </button>
-            {% endif %}
+                    <div class="pt-4 border-t border-slate-200 dark:border-navy-800">
+                        {# Reaction Button - Prominent and centered #}
+                        <div class="flex items-center justify-between mb-4">
+                            {% if app.user %}
+                            <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
+                                {% set totalReactions = 0 %}
+                                {% for count in postReactionCounts|default({}) %}
+                                    {% set totalReactions = totalReactions + count %}
+                                {% endfor %}
+                                
+                                {% if userPostReaction %}
+                                    <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold">
+                                        <span class="reaction-emoji text-2xl">{{ emojiMap[userPostReaction] }}</span>
+                                        <span class="text-base">{{ userPostReaction|capitalize }}</span>
+                                        {% if totalReactions > 1 %}
+                                            <span class="reaction-count text-sm opacity-75">+{{ totalReactions - 1 }}</span>
+                                        {% endif %}
+                                    </button>
+                                {% else %}
+                                    <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold">
+                                        <span class="reaction-emoji text-2xl">👍</span>
+                                        <span class="text-base">React</span>
+                                        {% if totalReactions > 0 %}
+                                            <span class="reaction-count text-sm opacity-75">{{ totalReactions }}</span>
+                                        {% endif %}
+                                    </button>
+                                {% endif %}
 
-            {# Reaction Picker - Improved positioning #}
-            <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-3 flex items-center gap-2 z-20">
-                {% for reactionType, emoji in emojiMap %}
-                    <button 
-                        class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
-                        data-url="{{ path('community_react_post', {'id': post.id}) }}"
-                        data-type="{{ reactionType }}"
-                        data-target="post"
-                        data-id="{{ post.id }}"
-                        title="{{ reactionType|capitalize }}"
-                    >
-                        <span class="text-3xl">{{ emoji }}</span>
-                        {# Tooltip #}
-                        <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                            {{ reactionType|capitalize }}
-                        </span>
-                    </button>
-                {% endfor %}
-            </div>
-        </div>
+                                {# Reaction Picker - Improved positioning #}
+                                <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-3 flex items-center gap-2 z-20">
+                                    {% for reactionType, emoji in emojiMap %}
+                                        <button 
+                                            class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
+                                            data-url="{{ path('community_react_post', {'id': post.id}) }}"
+                                            data-type="{{ reactionType }}"
+                                            data-target="post"
+                                            data-id="{{ post.id }}"
+                                            title="{{ reactionType|capitalize }}"
+                                        >
+                                            <span class="text-3xl">{{ emoji }}</span>
+                                            {# Tooltip #}
+                                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                {{ reactionType|capitalize }}
+                                            </span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                                <a href="{{ path('auth_login') }}" class="flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold">
+                                    <span class="text-2xl">👍</span>
+                                    <span class="text-base">Sign in to React</span>
+                                </a>
+                            {% endif %}
 
-        {# Actions on the right #}
-        <div class="flex items-center gap-2">
-            <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="Save post">
-                <i data-lucide="bookmark" class="w-5 h-5"></i>
-            </button>
-            <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Report post">
-                <i data-lucide="flag" class="w-5 h-5"></i>
-            </button>
-            <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="More options">
-                <i data-lucide="more-horizontal" class="w-5 h-5"></i>
-            </button>
-        </div>
-    </div>
+                            {# Actions on the right #}
+                            <div class="flex items-center gap-1">
+                                <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="Save post">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                                
+                                {% if app.user %}
+                                <button onclick="openReportModal()" class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Report post">
+                                    <i data-lucide="flag" class="w-4 h-4"></i>
+                                </button>
+                                {% endif %}
+                                
+                                <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="More options">
+                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
 
-    {# Show reaction breakdown if there are reactions - Improved design #}
-    {% if postReactionCounts|default({})|length > 0 %}
-        <div class="flex items-center flex-wrap gap-2 pt-3 border-t border-slate-200 dark:border-navy-800">
-            <span class="text-sm font-medium text-slate-600 dark:text-slate-400 mr-1">{{ totalReactions }} {{ totalReactions == 1 ? 'reaction' : 'reactions' }}</span>
-            {% for type, count in postReactionCounts %}
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors cursor-default">
-                    <span class="text-lg">{{ emojiMap[type] }}</span>
-                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ count }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-</div>
+                        {# Show reaction breakdown if there are reactions - Improved design #}
+                        {% if postReactionCounts|default({})|length > 0 %}
+                            {% set totalReactions = 0 %}
+                            {% for count in postReactionCounts %}
+                                {% set totalReactions = totalReactions + count %}
+                            {% endfor %}
+                            <div class="flex items-center flex-wrap gap-2 pt-3 border-t border-slate-200 dark:border-navy-800">
+                                <span class="text-sm font-medium text-slate-600 dark:text-slate-400 mr-1">{{ totalReactions }} {{ totalReactions == 1 ? 'reaction' : 'reactions' }}</span>
+                                {% for type, count in postReactionCounts %}
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors cursor-default">
+                                        <span class="text-lg">{{ emojiMap[type] }}</span>
+                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ count }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </article>
@@ -220,12 +239,16 @@
                             {# Author Info with Edit/Delete buttons #}
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                                        {{ reply.author.username ? reply.author.username|slice(0,1)|upper : 'U' }}
-                                    </div>
+                                    {% if reply.author.avatar %}
+                                        <img src="{{ reply.author.avatar }}" alt="{{ reply.author.fullName }}" class="w-10 h-10 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
+                                            {{ reply.author.fullName|slice(0,1)|upper }}
+                                        </div>
+                                    {% endif %}
                                     <div>
                                         <div class="flex items-center gap-2">
-                                            <span class="font-medium text-slate-900 dark:text-white">{{ reply.author.username ?? 'Guest' }}</span>
+                                            <span class="font-medium text-slate-900 dark:text-white">{{ reply.author.fullName }}</span>
                                             <span class="text-xs text-slate-500 dark:text-slate-400">{{ reply.createdAt ? reply.createdAt|date('M j, Y, H:i') : '' }}</span>
                                             {% if reply.updatedAt %}
                                                 <span class="text-xs text-slate-400 dark:text-slate-500">(edited)</span>
@@ -268,57 +291,64 @@
                             </div>
 
                             {# Reply Actions & Reactions #}
-<div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-navy-800">
-    {# Reaction Button for Reply #}
-    <div class="reaction-trigger relative" data-reply-id="{{ reply.id }}">
-        {% if replyData.userReaction %}
-            <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
-                <span class="reaction-emoji text-lg">{{ emojiMap[replyData.userReaction] }}</span>
-                <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
-            </button>
-        {% else %}
-            <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm font-medium">
-                <span class="reaction-emoji text-lg">👍</span>
-                {% if totalReplyReactions > 0 %}
-                    <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
-                {% else %}
-                    <span>React</span>
-                {% endif %}
-            </button>
-        {% endif %}
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-navy-800">
+                                {# Reaction Button for Reply #}
+                                {% if app.user %}
+                                <div class="reaction-trigger relative" data-reply-id="{{ reply.id }}">
+                                    {% if replyData.userReaction %}
+                                        <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
+                                            <span class="reaction-emoji text-lg">{{ emojiMap[replyData.userReaction] }}</span>
+                                            <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
+                                        </button>
+                                    {% else %}
+                                        <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm font-medium">
+                                            <span class="reaction-emoji text-lg">👍</span>
+                                            {% if totalReplyReactions > 0 %}
+                                                <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
+                                            {% else %}
+                                                <span>React</span>
+                                            {% endif %}
+                                        </button>
+                                    {% endif %}
 
-        {# Reaction Picker for Reply #}
-        <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-2.5 flex items-center gap-1.5 z-20">
-            {% for reactionType, emoji in emojiMap %}
-                <button 
-                    class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
-                    data-url="{{ path('community_react_reply', {'id': reply.id}) }}"
-                    data-type="{{ reactionType }}"
-                    data-target="reply"
-                    data-id="{{ reply.id }}"
-                    title="{{ reactionType|capitalize }}"
-                >
-                    <span class="text-2xl">{{ emoji }}</span>
-                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        {{ reactionType|capitalize }}
-                    </span>
-                </button>
-            {% endfor %}
-        </div>
-    </div>
+                                    {# Reaction Picker for Reply #}
+                                    <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-2.5 flex items-center gap-1.5 z-20">
+                                        {% for reactionType, emoji in emojiMap %}
+                                            <button 
+                                                class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
+                                                data-url="{{ path('community_react_reply', {'id': reply.id}) }}"
+                                                data-type="{{ reactionType }}"
+                                                data-target="reply"
+                                                data-id="{{ reply.id }}"
+                                                title="{{ reactionType|capitalize }}"
+                                            >
+                                                <span class="text-2xl">{{ emoji }}</span>
+                                                <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                    {{ reactionType|capitalize }}
+                                                </span>
+                                            </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                    <a href="{{ path('auth_login') }}" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all text-sm font-medium">
+                                        <span class="text-lg">👍</span>
+                                        <span>Sign in to React</span>
+                                    </a>
+                                {% endif %}
 
-    {# Show reaction breakdown for replies #}
-    {% if replyData.counts|length > 0 %}
-        <div class="flex items-center gap-2">
-            {% for type, count in replyData.counts %}
-                <div class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 dark:bg-navy-800 text-xs">
-                    <span>{{ emojiMap[type] }}</span>
-                    <span class="font-semibold text-slate-600 dark:text-slate-400">{{ count }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-</div>
+                                {# Show reaction breakdown for replies #}
+                                {% if replyData.counts|length > 0 %}
+                                    <div class="flex items-center gap-2">
+                                        {% for type, count in replyData.counts %}
+                                            <div class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 dark:bg-navy-800 text-xs">
+                                                <span>{{ emojiMap[type] }}</span>
+                                                <span class="font-semibold text-slate-600 dark:text-slate-400">{{ count }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -357,7 +387,7 @@
             <p class="text-slate-600 dark:text-slate-400 mb-4">
                 Please sign in to post an answer
             </p>
-            <a href="{{ path('app_login') }}" class="btn-primary inline-flex items-center">
+            <a href="{{ path('auth_login') }}" class="btn-primary inline-flex items-center">
                 <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
                 Sign In
             </a>
@@ -384,6 +414,56 @@
         </div>
     </div>
 </div>
+
+{# Report Modal #}
+<div id="report-modal" class="hidden fixed inset-0 z-50 bg-navy-950/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeReportModal()">
+    <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-strong w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-display font-bold text-slate-900 dark:text-white">Report Post</h3>
+                <button onclick="closeReportModal()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
+                </button>
+            </div>
+
+            <form id="report-form" onsubmit="submitReport(event)">
+                <div class="space-y-4">
+                    {# Reason Selection #}
+                    <div>
+                        <label class="input-label">Why are you reporting this post?</label>
+                        <select name="reason" required class="input">
+                            <option value="">Select a reason...</option>
+                            <option value="spam">Spam or advertising</option>
+                            <option value="harassment">Harassment or bullying</option>
+                            <option value="inappropriate">Inappropriate content</option>
+                            <option value="misinformation">False or misleading information</option>
+                            <option value="off_topic">Off-topic or irrelevant</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    {# Additional Details #}
+                    <div>
+                        <label class="input-label">Additional details (optional)</label>
+                        <textarea name="description" rows="4" class="textarea" placeholder="Please provide more context about why you're reporting this post..."></textarea>
+                        <p class="input-hint">This information will help our moderation team review the report.</p>
+                    </div>
+
+                    {# Submit Buttons #}
+                    <div class="flex items-center gap-3 pt-4">
+                        <button type="button" onclick="closeReportModal()" class="btn-outline flex-1">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-danger flex-1">
+                            <i data-lucide="flag" class="w-4 h-4"></i>
+                            Submit Report
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
@@ -405,6 +485,8 @@
     document.querySelectorAll('.reaction-trigger').forEach(trigger => {
         const picker = trigger.querySelector('.reaction-picker');
         const currentBtn = trigger.querySelector('.reaction-current-btn');
+        
+        if (!picker || !currentBtn) return;
         
         let hideTimeout;
 
@@ -493,11 +575,10 @@
                 countSpan.textContent = data.total;
 
                 // Update button styling (active state)
-                currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors font-medium';
-                
-                // For replies, use smaller sizing
-                if (target === 'reply') {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium';
+                if (target === 'post') {
+                    currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold';
+                } else {
+                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium';
                 }
             } else {
                 // User removed their reaction
@@ -512,11 +593,10 @@
                 }
 
                 // Reset button styling (inactive state)
-                currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors font-medium';
-                
-                // For replies, use smaller sizing
-                if (target === 'reply') {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium';
+                if (target === 'post') {
+                    currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold';
+                } else {
+                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm font-medium';
                 }
             }
 
@@ -577,7 +657,6 @@
                 // Update the content display
                 document.querySelector(`.reply-content-${replyId} p`).textContent = data.content;
                 cancelReplyEdit(replyId);
-                // Optionally show success message
                 alert('Reply updated successfully!');
             } else {
                 alert('Error: ' + (data.error || 'Failed to update reply'));
@@ -603,7 +682,6 @@
         .then(res => res.json())
         .then(data => {
             if (data.ok) {
-                // Remove the reply from DOM
                 document.getElementById(`reply-${replyId}`).remove();
                 alert('Reply deleted successfully');
             } else {
@@ -615,5 +693,61 @@
             alert('Failed to delete reply');
         });
     }
+
+    // Report Modal Functions
+    function openReportModal() {
+        document.getElementById('report-modal').classList.remove('hidden');
+        document.getElementById('report-form').reset();
+        lucide.createIcons();
+    }
+
+    function closeReportModal() {
+        document.getElementById('report-modal').classList.add('hidden');
+    }
+
+    function submitReport(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Submitting...';
+        lucide.createIcons();
+        
+        fetch('{{ path("community_report_post", {"id": post.id}) }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                alert(data.message || 'Report submitted successfully. Our team will review it soon.');
+                closeReportModal();
+            } else {
+                alert(data.error || 'Failed to submit report. Please try again.');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to submit report. Please try again.');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-lucide="flag" class="w-4 h-4"></i> Submit Report';
+            lucide.createIcons();
+        });
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeReportModal();
+        }
+    });
 </script>
 {% endblock %}

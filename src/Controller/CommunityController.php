@@ -7,6 +7,7 @@ use App\Entity\Reply;
 use App\Entity\Tag;
 use App\Entity\Reaction;
 use App\Entity\User;
+use App\Entity\Report;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -512,4 +513,47 @@ class CommunityController extends AbstractController
             'total' => $total
         ]);
     }
+
+    #[Route('/community/{id}/report', name: 'community_report_post', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function reportPost(Request $request, Post $post): JsonResponse
+{
+    $user = $this->getUser();
+    if (!$user instanceof User) {
+        return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
+    }
+
+    $reason = $request->request->get('reason', '');
+    $description = trim((string) $request->request->get('description', ''));
+
+    // Validate reason
+    if (!array_key_exists($reason, Report::AVAILABLE_REASONS)) {
+        return $this->json(['ok' => false, 'error' => 'Invalid report reason'], 400);
+    }
+
+    // Check if user already reported this post
+    $existingReport = $this->em->getRepository(Report::class)->findOneBy([
+        'post' => $post,
+        'reporter' => $user
+    ]);
+
+    if ($existingReport) {
+        return $this->json(['ok' => false, 'error' => 'You have already reported this post'], 400);
+    }
+
+    // Create report
+    $report = new Report();
+    $report->setPost($post);
+    $report->setReporter($user);
+    $report->setReason($reason);
+    $report->setDescription($description);
+
+    $this->em->persist($report);
+    $this->em->flush();
+
+    return $this->json([
+        'ok' => true,
+        'message' => 'Report submitted successfully. Our team will review it soon.'
+    ]);
+}
 }
