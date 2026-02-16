@@ -1,0 +1,184 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Lesson - Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+        {{ lesson.title }}
+      </h1>
+      <p class="text-body-md text-navy-600 dark:text-navy-400">
+        Course: <span class="font-medium text-navy-900 dark:text-white">{{ course.title }}</span> ·
+        Section: <span class="font-medium text-navy-900 dark:text-white">{{ section.title }}</span>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{{ path('admin_lessons_edit', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" class="btn-secondary btn-sm">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
+        Edit
+      </a>
+      <a href="{{ path('admin_sections_show', {courseId: course.id, sectionId: section.id}) }}" class="btn-secondary btn-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <div class="card">
+      <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+          Preview
+        </h2>
+        <p class="text-body-sm text-navy-500 mt-1">Basic preview (local uploads).</p>
+      </div>
+
+      <div class="p-6">
+        {% set t = lesson.type|default('text') %}
+
+        {% if t == 'video' %}
+          <div class="rounded-2xl border border-navy-100 dark:border-navy-800 p-4">
+            {% if lesson.filePath %}
+              <div class="flex items-center justify-end gap-2 mb-3">
+                <a class="btn-secondary btn-sm" href="{{ lesson.filePath }}" target="_blank" rel="noopener">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                  Open
+                </a>
+              </div>
+
+              <video controls class="w-full rounded-xl border border-navy-100 dark:border-navy-800">
+                <source src="{{ lesson.filePath }}">
+                Your browser does not support the video tag.
+              </video>
+            {% else %}
+              <p class="text-body-sm text-navy-500">No video uploaded.</p>
+            {% endif %}
+          </div>
+
+        {% elseif t == 'pdf' %}
+          <div class="rounded-2xl border border-navy-100 dark:border-navy-800 p-4">
+            {% if lesson.filePath %}
+              <div class="flex items-center justify-end gap-2 mb-3">
+                <button type="button" id="pdf-fullscreen-btn" class="btn-secondary btn-sm">
+                  <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                  Fullscreen
+                </button>
+                <a class="btn-secondary btn-sm" href="{{ lesson.filePath }}" target="_blank" rel="noopener">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                  Open
+                </a>
+              </div>
+
+              <div id="pdf-frame-wrap" class="rounded-2xl overflow-hidden border border-navy-100 dark:border-navy-800 bg-white dark:bg-navy-950">
+                <iframe
+                  id="pdf-frame"
+                  src="{{ lesson.filePath }}"
+                  class="w-full"
+                  style="height: 75vh;"
+                  title="PDF preview"
+                ></iframe>
+              </div>
+
+              <p class="text-caption text-navy-500 mt-3">
+                If the preview doesn’t show, click “Open”.
+              </p>
+            {% else %}
+              <p class="text-body-sm text-navy-500">No PDF uploaded.</p>
+            {% endif %}
+          </div>
+
+        {% else %}
+          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap break-words">
+            {{ (lesson.content ?: 'No content yet')|nl2br }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="lg:col-span-1">
+    <div class="card p-6">
+      <h3 class="text-heading-md font-display font-semibold text-navy-900 dark:text-white">
+        Lesson Info
+      </h3>
+
+      <div class="mt-4 space-y-3 text-body-sm text-navy-600 dark:text-navy-300">
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Type</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ lesson.type }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Position</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ lesson.position }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Created</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ lesson.createdAt ? lesson.createdAt|date('M d, Y') : '-' }}</span>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-2">
+        <a href="{{ path('admin_lessons_edit', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}" class="btn-secondary btn-sm w-full justify-center">
+          <i data-lucide="pencil" class="w-4 h-4"></i>
+          Edit lesson
+        </a>
+
+        <form method="post"
+              action="{{ path('admin_lessons_delete', {courseId: course.id, sectionId: section.id, lessonId: lesson.id}) }}"
+              onsubmit="return confirm('Delete this lesson?');">
+          <input type="hidden" name="_token" value="{{ csrf_token('delete_lesson_' ~ lesson.id) }}">
+          <button type="submit"
+                  class="btn-secondary btn-sm w-full justify-center hover:!bg-danger-50 hover:!text-danger-600 dark:hover:!bg-danger-900/20 dark:hover:!text-danger-400">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const btn = document.getElementById('pdf-fullscreen-btn');
+    const frame = document.getElementById('pdf-frame');
+
+    if (!btn || !frame) return;
+
+    function isFullscreen() {
+      return !!document.fullscreenElement;
+    }
+
+    btn.addEventListener('click', async () => {
+      try {
+        if (!isFullscreen()) {
+          await frame.requestFullscreen();
+          btn.innerHTML = '<i data-lucide="minimize-2" class="w-4 h-4"></i> Exit';
+        } else {
+          await document.exitFullscreen();
+        }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      } catch (e) {
+        if (frame.src) window.open(frame.src, '_blank', 'noopener');
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!btn) return;
+      if (!isFullscreen()) {
+        btn.innerHTML = '<i data-lucide="maximize-2" class="w-4 h-4"></i> Fullscreen';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+    });
+  })();
+</script>
+{% endblock %}

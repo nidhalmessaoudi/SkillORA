@@ -30,13 +30,35 @@ class CommunityController extends AbstractController
     {
         $tab = $request->query->get('tab', 'hot');
         $topic = $request->query->get('topic', null);
+        $searchQuery = trim((string) $request->query->get('q', ''));
 
-        $qb = $this->em->getRepository(Post::class)->createQueryBuilder('p');
+        $qb = $this->em->getRepository(Post::class)->createQueryBuilder('p')
+            ->leftJoin('p.author', 'u')
+            ->addSelect('u');
 
+        // Search filter
+        if ($searchQuery !== '') {
+            $qb->leftJoin('p.tags', 't')
+                ->andWhere(
+                    $qb->expr()->orX(
+                        $qb->expr()->like('p.title', ':search'),
+                        $qb->expr()->like('p.content', ':search'),
+                        $qb->expr()->like('t.name', ':search'),
+                        $qb->expr()->like('u.username', ':search'),
+                        $qb->expr()->like('u.firstName', ':search'),
+                        $qb->expr()->like('u.lastName', ':search')
+                    )
+                )
+                ->setParameter('search', '%' . $searchQuery . '%')
+                ->groupBy('p.id');
+        }
+
+        // Topic filter
         if ($topic) {
             $qb->andWhere('p.topic = :topic')->setParameter('topic', $topic);
         }
 
+        // Sorting
         switch ($tab) {
             case 'new':
                 $qb->orderBy('p.createdAt', 'DESC');
@@ -44,23 +66,26 @@ class CommunityController extends AbstractController
 
             case 'top':
                 $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
+                   ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
                    ->groupBy('p.id')
-                   ->orderBy('COUNT(r.id)', 'DESC')
+                   ->orderBy('reactionCount', 'DESC')
                    ->addOrderBy('p.createdAt', 'DESC');
                 break;
 
             case 'unanswered':
                 $qb->leftJoin('p.replies', 'rep')
+                   ->addSelect('COUNT(rep.id) as HIDDEN replyCount')
                    ->groupBy('p.id')
-                   ->having('COUNT(rep.id) = 0')
+                   ->having('replyCount = 0')
                    ->orderBy('p.createdAt', 'DESC');
                 break;
 
             case 'hot':
             default:
                 $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
+                   ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
                    ->groupBy('p.id')
-                   ->orderBy('COUNT(r.id)', 'DESC')
+                   ->orderBy('reactionCount', 'DESC')
                    ->addOrderBy('p.createdAt', 'DESC');
                 break;
         }
@@ -71,6 +96,7 @@ class CommunityController extends AbstractController
         $currentUser = $this->getUser();
         $reactionData = ($currentUser instanceof User) ? $this->getPostsReactionData($posts, $currentUser) : [];
 
+        // Get topics for dropdown
         $topicsQ = $this->em->getRepository(Post::class)
             ->createQueryBuilder('p')
             ->select('DISTINCT p.topic as topic')
@@ -87,6 +113,8 @@ class CommunityController extends AbstractController
             'current_topic' => $topic,
             'topics' => $topics,
             'reactionData' => $reactionData,
+            'searchQuery' => $searchQuery,
+            'resultCount' => count($posts),
         ]);
     }
 

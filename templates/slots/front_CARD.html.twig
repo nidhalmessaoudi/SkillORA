@@ -1,0 +1,552 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Créneaux Horaires - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-gradient-to-br from-slate-50 via-white to-harbor-50/30 dark:from-navy-950 dark:via-navy-900 dark:to-harbor-950/30 min-h-screen">
+  <div class="w-full px-4 md:px-10 py-8 md:py-12">
+
+        {# Modern Hero Section #}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-harbor-600 via-harbor-500 to-cyan-500 shadow-xl mb-8 md:mb-12">
+            {# Decorative Elements #}
+            <div class="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(white,transparent_85%)]"></div>
+            <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+
+            <div class="relative px-6 py-10 md:px-12 md:py-16 text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white/90 text-sm font-medium mb-6">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span>Gestion des créneaux</span>
+                </div>
+
+                <h1 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4 drop-shadow-lg">
+                    Créneaux Horaires
+                </h1>
+
+                <p class="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8">
+                    Gérez tous les créneaux horaires disponibles pour les rendez-vous.
+                </p>
+
+                <button onclick="openAddSlotModal()"
+                    class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-harbor-600 font-semibold hover:bg-white/95 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Créer un créneau</span>
+                </button>
+            </div>
+        </div>
+
+        {# Flash Messages #}
+        <div id="flash-container" class="mb-6 space-y-3"></div>
+
+        {# Stats Cards #}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                        <i data-lucide="calendar" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Total</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ slots|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-success-600 dark:text-success-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Disponibles</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ slots|filter(s => not s.isBooked)|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
+                        <i data-lucide="user-check" class="w-6 h-6 text-danger-600 dark:text-danger-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Réservés</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ slots|filter(s => s.isBooked)|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ===== FILTER + SEARCH BAR ===== #}
+        <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                <div class="flex items-center gap-2 text-sm font-medium text-navy-900 dark:text-white">
+                    <i data-lucide="filter" class="w-5 h-5 text-slate-500"></i>
+                    <span>Filtrer:</span>
+                </div>
+
+                <div class="flex flex-wrap gap-2" id="slot-filters">
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="all">Tous</button>
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="available">Disponibles</button>
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="booked">Réservés</button>
+                </div>
+
+                <div class="flex-1"></div>
+
+                <div class="flex items-center gap-2 w-full">
+                    <div class="relative w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input id="slot-search"
+                               type="text"
+                               placeholder="Rechercher (date, heure...)"
+                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all">
+                    </div>
+
+                    <button id="slot-clear"
+                        type="button"
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors">
+                        Effacer
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>Recherche instantanée + filtres.</span>
+            </div>
+        </div>
+
+        {# Slots Cards - Modern Design (like rendez-vous) #}
+        <div id="slots-container" class="space-y-4">
+            {% for slot in slots %}
+            <div
+                class="slot-card bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 overflow-hidden hover:shadow-md transition-all duration-300 group"
+                data-booked="{{ slot.isBooked ? '1' : '0' }}"
+                data-search="{{ (slot.startAt|date('d/m/Y') ~ ' ' ~ slot.startAt|date('H:i') ~ ' ' ~ slot.endAt|date('d/m/Y') ~ ' ' ~ slot.endAt|date('H:i'))|lower }}">
+                <div class="flex flex-col lg:flex-row">
+                    {# Status Indicator Bar #}
+                    <div class="h-2 lg:h-auto lg:w-2
+                        {% if slot.isBooked %}bg-gradient-to-r lg:bg-gradient-to-b from-danger-500 to-danger-600
+                        {% else %}bg-gradient-to-r lg:bg-gradient-to-b from-success-500 to-success-600{% endif %}">
+                    </div>
+
+                    <div class="flex-1 p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/80 dark:from-emerald-950/15 dark:to-emerald-900/25">
+                        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+                            {# Left Section: Slot Info #}
+                            <div class="flex items-start gap-4">
+                                {# Icon #}
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm
+                                    {% if slot.isBooked %}bg-gradient-to-br from-danger-100 to-danger-50 dark:from-danger-900/30 dark:to-danger-900/10
+                                    {% else %}bg-gradient-to-br from-success-100 to-success-50 dark:from-success-900/30 dark:to-success-900/10{% endif %}">
+                                    <i data-lucide="{% if slot.isBooked %}lock{% else %}calendar-check{% endif %}"
+                                       class="w-7 h-7
+                                       {% if slot.isBooked %}text-danger-600 dark:text-danger-400
+                                       {% else %}text-success-600 dark:text-success-400{% endif %}">
+                                    </i>
+                                </div>
+
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white">
+                                            Slot {{ slot.id }}
+                                        </h3>
+                                    </div>
+
+                                    <div class="space-y-2 text-sm text-navy-600 dark:text-navy-400">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <i data-lucide="calendar" class="w-4 h-4 text-harbor-500"></i>
+                                            {{ slot.startAt|date('d/m/Y') }}
+                                        </span>
+                                        <span class="block inline-flex items-center gap-1.5">
+                                            <i data-lucide="clock" class="w-4 h-4 text-harbor-500"></i>
+                                            {{ slot.startAt|date('H:i') }} → {{ slot.endAt|date('H:i') }}
+                                        </span>
+                                    </div>
+
+                                    <p class="text-xs text-navy-500 dark:text-navy-400 mt-2">
+                                        {% set duration = (slot.endAt.timestamp - slot.startAt.timestamp) / 60 %}
+                                        Duration: {{ duration|round }} min
+                                    </p>
+                                </div>
+                            </div>
+
+                            {# Right Section: Status + Actions #}
+                            <div class="flex items-center justify-between xl:justify-end xl:items-center gap-4 xl:gap-6">
+                                {# Status Badge #}
+                                {% if slot.isBooked %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 text-sm font-semibold">
+                                        <span class="w-2 h-2 rounded-full bg-danger-500 animate-pulse"></span>
+                                        Réservé
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 text-sm font-semibold">
+                                        <span class="w-2 h-2 rounded-full bg-success-500"></span>
+                                        Disponible
+                                    </span>
+                                {% endif %}
+
+                                {# Action Buttons #}
+                                <div class="flex items-center gap-2">
+                                    <button type="button"
+                                        onclick="openEditSlotModal({{ slot.id }}, '{{ slot.startAt|date('Y-m-d') }}', '{{ slot.startAt|date('H:i') }}', '{{ slot.endAt|date('Y-m-d') }}', '{{ slot.endAt|date('H:i') }}')"
+                                        class="inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-harbor-100 dark:hover:bg-harbor-900/30 text-harbor-600 dark:text-harbor-400 transition-all hover:scale-110"
+                                        title="Modifier">
+                                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                                    </button>
+
+                                    <form method="post" action="{{ path('slots_front_delete', {'id': slot.id}) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ slot.id) }}">
+                                        <button type="submit"
+                                            class="inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-danger-100 dark:hover:bg-danger-900/30 text-danger-600 dark:text-danger-400 transition-all hover:scale-110"
+                                            title="Supprimer">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div id="empty-row" class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-12 text-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-navy-800 flex items-center justify-center">
+                        <i data-lucide="calendar-x" class="w-10 h-10 text-slate-400 dark:text-slate-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-1">Aucun créneau</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Créez votre premier créneau pour commencer</p>
+                    </div>
+                    <button onclick="openAddSlotModal()" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all mt-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Créer un créneau
+                    </button>
+                </div>
+            </div>
+
+            {# Empty state for filtering/search result (JS) #}
+            <div id="slots-empty" class="hidden bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-12 text-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-navy-800 flex items-center justify-center">
+                        <i data-lucide="search-x" class="w-10 h-10 text-slate-400 dark:text-slate-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-1">Aucun résultat</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Essayez un autre mot-clé ou changez le filtre.</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# ===== MODAL: Add Slot ===== #}
+<div id="add-slot-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity" onclick="closeAddSlotModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+            <div class="relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        </div>
+                        Ajouter un créneau
+                    </h2>
+                    <button onclick="closeAddSlotModal()" class="w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form method="post" action="{{ path('slots_front_new') }}" class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_start_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de début
+                        </label>
+                        <input type="date" id="add_start_date" name="start_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_start_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de début
+                        </label>
+                        <input type="time" id="add_start_time" name="start_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_end_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de fin
+                        </label>
+                        <input type="date" id="add_end_date" name="end_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_end_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de fin
+                        </label>
+                        <input type="time" id="add_end_time" name="end_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-navy-800">
+                    <button type="button" onclick="closeAddSlotModal()"
+                        class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all">
+                        <i data-lucide="check" class="w-4 h-4 inline mr-1"></i>
+                        Créer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# ===== MODAL: Edit Slot ===== #}
+<div id="edit-slot-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity" onclick="closeEditSlotModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+            <div class="relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="edit-3" class="w-5 h-5"></i>
+                        </div>
+                        Modifier le créneau
+                    </h2>
+                    <button onclick="closeEditSlotModal()" class="w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="edit-slot-form" method="post" class="p-6 space-y-5">
+                <input type="hidden" id="edit_slot_id" name="slot_id">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_start_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de début
+                        </label>
+                        <input type="date" id="edit_start_date" name="start_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_start_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de début
+                        </label>
+                        <input type="time" id="edit_start_time" name="start_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_end_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de fin
+                        </label>
+                        <input type="date" id="edit_end_date" name="end_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_end_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de fin
+                        </label>
+                        <input type="time" id="edit_end_time" name="end_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-navy-800">
+                    <button type="button" onclick="closeEditSlotModal()"
+                        class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all">
+                        <i data-lucide="save" class="w-4 h-4 inline mr-1"></i>
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+    // ===== FILTER BUTTON STYLES =====
+    function setFilterActive(buttons, activeBtn) {
+        buttons.forEach(b => {
+            b.className = 'slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700';
+        });
+        activeBtn.className = 'slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-300 hover:bg-harbor-200 dark:hover:bg-harbor-900/50';
+    }
+
+    // ===== CLIENT SIDE FILTER/SEARCH (fallback) =====
+    let currentFilter = 'all';
+    let currentQuery = '';
+
+    function applyClientFilter() {
+        const cards = Array.from(document.querySelectorAll('.slot-card'));
+        const container = document.getElementById('slots-container');
+        const emptyBox = document.getElementById('slots-empty');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const booked = card.dataset.booked === '1';
+            const hay = (card.dataset.search || '').toLowerCase();
+
+            const passFilter =
+                currentFilter === 'all' ||
+                (currentFilter === 'available' && !booked) ||
+                (currentFilter === 'booked' && booked);
+
+            const passSearch = !currentQuery || hay.includes(currentQuery);
+
+            const show = passFilter && passSearch;
+            card.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+
+        if (emptyBox) emptyBox.classList.toggle('hidden', visible !== 0);
+    }
+
+    // ===== AJAX SEARCH (optional) =====
+    const ajaxEndpoint = null;
+
+    let debounceTimer = null;
+    function doSearchAjaxOrClient() {
+        if (!ajaxEndpoint) {
+            applyClientFilter();
+            return;
+        }
+
+        const url = new URL(ajaxEndpoint, window.location.origin);
+        url.searchParams.set('q', currentQuery);
+        url.searchParams.set('status', currentFilter);
+
+        fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.text())
+            .then(html => {
+                applyClientFilter();
+            })
+            .catch(() => {
+                applyClientFilter();
+            });
+    }
+
+    // ===== INIT FILTERS =====
+    const filtersWrap = document.getElementById('slot-filters');
+    if (filtersWrap) {
+        const buttons = Array.from(filtersWrap.querySelectorAll('.slot-filter-btn'));
+        const defaultBtn = buttons.find(b => b.dataset.filter === 'all') || buttons[0];
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentFilter = btn.dataset.filter;
+                setFilterActive(buttons, btn);
+                doSearchAjaxOrClient();
+            });
+        });
+
+        if (defaultBtn) {
+            currentFilter = defaultBtn.dataset.filter;
+            setFilterActive(buttons, defaultBtn);
+        }
+    }
+
+    // ===== INIT SEARCH =====
+    const searchInput = document.getElementById('slot-search');
+    const clearBtn = document.getElementById('slot-clear');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentQuery = (searchInput.value || '').trim().toLowerCase();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(doSearchAjaxOrClient, 220);
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            currentQuery = '';
+            if (searchInput) searchInput.value = '';
+            doSearchAjaxOrClient();
+        });
+    }
+
+    // first render
+    applyClientFilter();
+
+    // ===== MODALS =====
+    window.openAddSlotModal = function() {
+        document.getElementById('add-slot-modal').classList.remove('hidden');
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('add_start_date').value = today;
+        document.getElementById('add_end_date').value = today;
+    };
+
+    window.closeAddSlotModal = function() {
+        document.getElementById('add-slot-modal').classList.add('hidden');
+    };
+
+    window.openEditSlotModal = function(id, startDate, startTime, endDate, endTime) {
+        document.getElementById('edit_slot_id').value = id;
+        document.getElementById('edit_start_date').value = startDate;
+        document.getElementById('edit_start_time').value = startTime;
+        document.getElementById('edit_end_date').value = endDate;
+        document.getElementById('edit_end_time').value = endTime;
+        document.getElementById('edit-slot-form').action = '/slots/front/' + id + '/edit';
+        document.getElementById('edit-slot-modal').classList.remove('hidden');
+    };
+
+    window.closeEditSlotModal = function() {
+        document.getElementById('edit-slot-modal').classList.add('hidden');
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddSlotModal();
+            closeEditSlotModal();
+        }
+    });
+})();
+</script>
+{% endblock %}

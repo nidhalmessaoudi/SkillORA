@@ -2,42 +2,108 @@
 
 namespace App\Entity;
 
+use App\Repository\CourseRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'course')]
+#[ORM\Entity(repositoryClass: CourseRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Course
 {
+    public const STATUSES = ["draft", "published", "archived"];
+
+    public const CATEGORIES = [
+        "Development",
+        "Business",
+        "Data Science",
+        "Design",
+        "Marketing",
+        "Personal Development",
+        "IT & Software",
+        "Photography",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Title is required.")]
+    #[
+        Assert\Length(
+            min: 3,
+            max: 255,
+            minMessage: "Title must be at least {{ limit }} characters.",
+            maxMessage: "Title cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $title = null;
 
-    #[ORM\Column(type: 'string', length: 100)]
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: "Category is required.")]
+    #[
+        Assert\Choice(
+            choices: self::CATEGORIES,
+            message: "Choose a valid category.",
+        ),
+    ]
     private ?string $category = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[
+        Assert\Length(
+            max: 10000,
+            maxMessage: "Description cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[
+        Assert\Length(
+            max: 255,
+            maxMessage: "Thumbnail cannot be longer than {{ limit }} characters.",
+        ),
+    ]
+    #[
+        Assert\Regex(
+            pattern: '#^(https?://.+|/[^\\s]+)$#i',
+            message: 'Thumbnail must be a valid URL (http/https) or a relative path starting with "/".',
+        ),
+    ]
     private ?string $thumbnail = null;
 
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(length: 20)]
+    #[Assert\NotBlank(message: "Status is required.")]
+    #[Assert\Choice(choices: self::STATUSES, message: "Choose a valid status.")]
     private ?string $status = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, CourseSection>
+     */
+    #[
+        ORM\OneToMany(
+            targetEntity: CourseSection::class,
+            mappedBy: "course",
+            orphanRemoval: true,
+        ),
+    ]
+    #[Assert\Valid]
+    private Collection $sections;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
+        $this->sections = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -100,25 +166,68 @@ class Course
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
         return $this;
+    }
+
+    /**
+     * @return Collection<int, CourseSection>
+     */
+    public function getSections(): Collection
+    {
+        return $this->sections;
+    }
+
+    public function addSection(CourseSection $section): static
+    {
+        if (!$this->sections->contains($section)) {
+            $this->sections->add($section);
+            $section->setCourse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSection(CourseSection $section): static
+    {
+        if ($this->sections->removeElement($section)) {
+            if ($section->getCourse() === $this) {
+                $section->setCourse(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

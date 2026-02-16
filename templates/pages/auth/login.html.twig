@@ -74,21 +74,28 @@
                 {% endif %}
 
                 {# Form #}
-                <form method="post" action="{{ path('auth_login') }}" id="login-form">
+                <form method="post" action="{{ path('auth_login') }}" id="login-form" novalidate>
                     <div class="space-y-4">
                         {# Email #}
                         <div>
                             <label for="email" class="input-label">Email</label>
                             <input
-                                type="email"
+                                type="text"
                                 id="email"
                                 name="_username"
                                 value="{{ last_username }}"
                                 placeholder="you@example.com"
                                 autocomplete="email"
-                                class="input"
-                                required
+                                class="input {{ field_errors.email is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}"
+                                {% if rate_limited is defined and rate_limited %}disabled{% endif %}
                             >
+                            {% if field_errors.email is defined %}
+                                <div class="mt-1.5">
+                                    {% for error in field_errors.email %}
+                                        <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         {# Password #}
@@ -106,8 +113,8 @@
                                     name="_password"
                                     placeholder="Enter your password"
                                     autocomplete="current-password"
-                                    class="input pr-12"
-                                    required
+                                    class="input pr-12 {{ field_errors.password is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}"
+                                    {% if rate_limited is defined and rate_limited %}disabled{% endif %}
                                 >
                                 <button
                                     type="button"
@@ -117,6 +124,13 @@
                                     <i data-lucide="eye" class="w-5 h-5" id="pwd-icon"></i>
                                 </button>
                             </div>
+                            {% if field_errors.password is defined %}
+                                <div class="mt-1.5">
+                                    {% for error in field_errors.password %}
+                                        <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">

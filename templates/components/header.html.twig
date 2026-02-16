@@ -38,6 +38,12 @@
                 <a href="{{ path('events_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Events
                 </a>
+                <a href="{{ path('user_evaluation_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                    Evaluations
+                </a>
+                <a href="{{ path('public_rendezvous_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                    Rendez-vous
+                </a>
 
                 {# Instructor Dropdown #}
                 <div class="relative" data-dropdown>
@@ -57,6 +63,10 @@
                             <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                             <span>Instructor Studio</span>
                         </a>
+                        <a href="{{ path('slots_front') }}" class="dropdown-item">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                                <span>All Slots</span>
+                            </a>
                         <div class="my-2 border-t border-navy-100 dark:border-navy-800"></div>
                         <a href="#" class="dropdown-item">
                             <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -69,14 +79,21 @@
             {# Search & Actions #}
             <div class="flex items-center gap-3">
                 {# Desktop Search #}
-                <div class="hidden md:block relative">
+                <form
+                    class="hidden md:block relative"
+                    method="get"
+                    action="{{ path('courses_search') }}"
+                    role="search"
+                >
                     <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400"></i>
                     <input
                         type="search"
+                        name="q"
+                        value="{{ app.request.query.get('q') }}"
                         placeholder="Search courses..."
                         class="search-input w-64 lg:w-80"
                     >
-                </div>
+                </form>
 
                 {# Mobile Search Button #}
                 <button class="md:hidden p-2 rounded-xl text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800 transition-colors">
@@ -90,12 +107,10 @@
                     <span class="text-body-sm font-medium">Admin</span>
                 </a>
                 {% endif %}
-                
-                {# Professor Quick Access #}
                 {% if app.user and is_granted('ROLE_PROFESSOR') and not is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('professor_dashboard') }}" class="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900/50 transition-colors" title="Professor Dashboard">
+                <a href="{{ path('professor_dashboard') }}" class="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 hover:bg-harbor-200 dark:hover:bg-harbor-900/50 transition-colors" title="Professor Dashboard">
                     <i data-lucide="presentation" class="w-4 h-4"></i>
-                    <span class="text-body-sm font-medium">Teaching</span>
+                    <span class="text-body-sm font-medium">Teach</span>
                 </a>
                 {% endif %}
 
@@ -221,6 +236,10 @@
                                 <i data-lucide="award" class="w-4 h-4"></i>
                                 <span>Achievements</span>
                             </a>
+                            <a href="{{ path('profile_statistics') }}" class="dropdown-item">
+                                <i data-lucide="activity" class="w-4 h-4"></i>
+                                <span>Profile Statistics</span>
+                            </a>
                             <a href="{{ path('user_profile') }}" class="dropdown-item">
                                 <i data-lucide="file-badge" class="w-4 h-4"></i>
                                 <span>Certificates</span>
@@ -233,10 +252,10 @@
                                 <span>Admin Dashboard</span>
                             </a>
                             {% endif %}
-                            {% if is_granted('ROLE_PROFESSOR') %}
-                            <a href="{{ path('professor_dashboard') }}" class="dropdown-item text-violet-600 dark:text-violet-400">
-                                <i data-lucide="presentation" class="w-4 h-4"></i>
-                                <span>Professor Dashboard</span>
+                            {% if is_granted('ROLE_PROFESSOR') and not is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('professor_dashboard') }}" class="dropdown-item text-harbor-600 dark:text-harbor-400">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                <span>Back to Backend</span>
                             </a>
                             {% endif %}
                             <a href="{{ path('user_profile_settings') }}" class="dropdown-item">
@@ -299,6 +318,14 @@
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span>Community</span>
             </a>
+            <a href="{{ path('events_index') }}" class="sidebar-nav-item">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Events</span>
+            </a>
+            <a href="{{ path('user_evaluation_index') }}" class="sidebar-nav-item">
+                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                <span>Evaluations</span>
+            </a>
             <a href="{{ path('quiz_index') }}" class="sidebar-nav-item">
                 <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                 <span>Quizzes</span>
@@ -312,8 +339,7 @@
                 <span>Admin Dashboard</span>
             </a>
             {% endif %}
-            
-            {% if app.user and is_granted('ROLE_PROFESSOR') %}
+            {% if app.user and is_granted('ROLE_PROFESSOR') and not is_granted('ROLE_ADMIN') %}
             <a href="{{ path('professor_dashboard') }}" class="sidebar-nav-item bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400">
                 <i data-lucide="presentation" class="w-5 h-5"></i>
                 <span>Professor Dashboard</span>

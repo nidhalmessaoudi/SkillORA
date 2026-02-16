@@ -2,36 +2,71 @@
 
 namespace App\Entity;
 
+use App\Repository\CourseSectionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'course_section')]
+#[ORM\Entity(repositoryClass: CourseSectionRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class CourseSection
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Section title is required.")]
+    #[
+        Assert\Length(
+            min: 2,
+            max: 255,
+            minMessage: "Section title must be at least {{ limit }} characters.",
+            maxMessage: "Section title cannot be longer than {{ limit }} characters.",
+        ),
+    ]
     private ?string $title = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
+    #[Assert\NotNull(message: "Position is required.")]
+    #[Assert\Type(type: "integer", message: "Position must be an integer.")]
+    #[
+        Assert\GreaterThanOrEqual(
+            value: 1,
+            message: "Position must be at least {{ compared_value }}.",
+        ),
+    ]
     private ?int $position = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(name: 'course_id', type: 'integer')]
-    private ?int $courseId = null;
+    #[ORM\ManyToOne(inversedBy: "sections")]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Course is required.")]
+    private ?Course $course = null;
+
+    /**
+     * @var Collection<int, Lesson>
+     */
+    #[
+        ORM\OneToMany(
+            targetEntity: Lesson::class,
+            mappedBy: "section",
+            orphanRemoval: true,
+        ),
+    ]
+    #[Assert\Valid]
+    private Collection $lessons;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
+        $this->lessons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -61,36 +96,79 @@ class CourseSection
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
         return $this;
     }
 
-    public function getCourseId(): ?int
+    public function getCourse(): ?Course
     {
-        return $this->courseId;
+        return $this->course;
     }
 
-    public function setCourseId(int $courseId): static
+    public function setCourse(?Course $course): static
     {
-        $this->courseId = $courseId;
+        $this->course = $course;
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Lesson>
+     */
+    public function getLessons(): Collection
+    {
+        return $this->lessons;
+    }
+
+    public function addLesson(Lesson $lesson): static
+    {
+        if (!$this->lessons->contains($lesson)) {
+            $this->lessons->add($lesson);
+            $lesson->setSection($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesson(Lesson $lesson): static
+    {
+        if ($this->lessons->removeElement($lesson)) {
+            if ($lesson->getSection() === $this) {
+                $lesson->setSection(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

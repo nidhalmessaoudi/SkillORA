@@ -3,44 +3,81 @@
 namespace App\Controller;
 
 use App\DataFixtures\SampleData;
+use App\Entity\Course;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    #[Route('/', name: 'app_home')]
-    public function index(): Response
+    #[Route("/", name: "app_home")]
+    public function index(EntityManagerInterface $em): Response
     {
-        $courses = SampleData::getCourses();
         $categories = SampleData::getCategories();
         $instructors = SampleData::getInstructors();
         $testimonials = SampleData::getTestimonials();
 
-        // Get featured courses
-        $featuredCourses = array_filter($courses, fn($c) => $c['is_featured'] ?? false);
+        $publishedCourses = $em
+            ->getRepository(Course::class)
+            ->createQueryBuilder("c")
+            ->andWhere("c.status = :status")
+            ->setParameter("status", "published")
+            ->orderBy("c.updatedAt", "DESC")
+            ->addOrderBy("c.id", "DESC")
+            ->getQuery()
+            ->getResult();
 
-        // Get bestsellers
-        $bestsellers = array_filter($courses, fn($c) => $c['is_bestseller'] ?? false);
+        $featuredCourses = array_slice($publishedCourses, 0, 4);
+        $bestsellers = array_slice($publishedCourses, 4, 4);
 
-        // Map instructor data to courses
-        $coursesWithInstructors = array_map(function($course) use ($instructors) {
-            $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-            return array_merge($course, ['instructor' => $instructor]);
-        }, $courses);
+        return $this->render("pages/home/index.html.twig", [
+            "featured_courses" => $featuredCourses,
+            "bestsellers" => $bestsellers,
+            "categories" => $categories,
+            "instructors" => array_slice($instructors, 0, 4),
+            "testimonials" => $testimonials,
+        ]);
+    }
 
-        return $this->render('pages/home/index.html.twig', [
-            'featured_courses' => array_slice(array_values(array_map(function($course) use ($instructors) {
-                $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-                return array_merge($course, ['instructor' => $instructor]);
-            }, $featuredCourses)), 0, 4),
-            'bestsellers' => array_slice(array_values(array_map(function($course) use ($instructors) {
-                $instructor = array_values(array_filter($instructors, fn($i) => $i['id'] === $course['instructor_id']))[0] ?? null;
-                return array_merge($course, ['instructor' => $instructor]);
-            }, $bestsellers)), 0, 4),
-            'categories' => $categories,
-            'instructors' => array_slice($instructors, 0, 4),
-            'testimonials' => $testimonials,
+    #[Route("/search", name: "courses_search", methods: ["GET"])]
+    public function search(
+        Request $request,
+        EntityManagerInterface $em,
+    ): Response {
+        $q = trim((string) $request->query->get("q", ""));
+
+        $results = [];
+        $total = 0;
+
+        if ($q !== "") {
+            $needle = mb_strtolower($q);
+
+            $qb = $em->getRepository(Course::class)->createQueryBuilder("c");
+
+            $qb->andWhere("c.status = :status")
+                ->setParameter("status", "published")
+                ->andWhere(
+                    $qb
+                        ->expr()
+                        ->orX(
+                            "LOWER(c.title) LIKE :q",
+                            "LOWER(c.description) LIKE :q",
+                        ),
+                )
+                ->setParameter("q", "%" . $needle . "%")
+                ->orderBy("c.updatedAt", "DESC")
+                ->addOrderBy("c.id", "DESC");
+
+            $results = $qb->getQuery()->getResult();
+            $total = count($results);
+        }
+
+        return $this->render("pages/courses/search.html.twig", [
+            "q" => $q,
+            "results" => $results,
+            "total" => $total,
         ]);
     }
 }

@@ -41,14 +41,14 @@
                     <label class="input-label">I want to</label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
-                            <input type="radio" name="role_selector" value="student" class="peer hidden" checked onchange="document.getElementById('role-input').value = 'student'">
+                            <input type="radio" name="role_selector" value="student" class="peer hidden" {% if (form_data.role ?? 'student') == 'student' %}checked{% endif %} onchange="document.getElementById('role-input').value = 'student'">
                             <div class="p-4 rounded-2xl border-2 border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/30 transition-all text-center">
                                 <i data-lucide="graduation-cap" class="w-6 h-6 mx-auto mb-2 text-harbor-600 dark:text-harbor-400"></i>
                                 <div class="font-semibold text-navy-900 dark:text-white text-body-sm">Learn</div>
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" name="role_selector" value="professor" class="peer hidden" onchange="document.getElementById('role-input').value = 'professor'">
+                            <input type="radio" name="role_selector" value="professor" class="peer hidden" {% if (form_data.role ?? 'student') == 'professor' %}checked{% endif %} onchange="document.getElementById('role-input').value = 'professor'">
                             <div class="p-4 rounded-2xl border-2 border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/30 transition-all text-center">
                                 <i data-lucide="presentation" class="w-6 h-6 mx-auto mb-2 text-coral-500 dark:text-coral-400"></i>
                                 <div class="font-semibold text-navy-900 dark:text-white text-body-sm">Teach</div>
@@ -75,74 +75,125 @@
                     <div class="flex-1 h-px bg-navy-200 dark:bg-navy-800"></div>
                 </div>
 
-                {# Error Message #}
-                {% if error %}
-                    <div class="mb-6 p-4 rounded-2xl bg-danger-100 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="alert-circle" class="w-5 h-5 text-danger-600 dark:text-danger-400"></i>
-                            <p class="text-body-sm text-danger-700 dark:text-danger-400">{{ error }}</p>
+                {# Error Messages #}
+                {% if errors is defined and errors is not empty %}
+                    <div class="mb-6 p-4 rounded-2xl bg-danger-100 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800 animate-shake">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-danger-600 dark:text-danger-400 flex-shrink-0 mt-0.5"></i>
+                            <div class="flex-1">
+                                <p class="text-body-sm font-semibold text-danger-700 dark:text-danger-300 mb-2">Please fix the following errors:</p>
+                                <ul class="space-y-1">
+                                    {% for error in errors %}
+                                        <li class="text-body-sm text-danger-600 dark:text-danger-400 flex items-start gap-2">
+                                            <span class="text-danger-500 mt-1 flex-shrink-0">•</span>
+                                            <span>{{ error|raw }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 {% endif %}
 
                 {# Form #}
-                <form method="post" action="{{ path('auth_register') }}" id="register-form">
+                <form method="post" action="{{ path('auth_register') }}" id="register-form" novalidate>
+                    {# Honeypot field for bot protection (hidden from users) #}
+                    <div style="position: absolute; left: -9999px;" aria-hidden="true">
+                        <input type="text" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <div class="space-y-4">
                         {# Name Fields #}
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label for="firstname" class="input-label">First name</label>
-                                <input type="text" id="firstname" name="firstname" placeholder="John" autocomplete="given-name" class="input" required>
+                                <input type="text" id="firstname" name="firstname" value="{{ form_data.firstname ?? '' }}" placeholder="John" autocomplete="given-name" class="input {{ field_errors.firstname is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}">
+                                {% if field_errors.firstname is defined %}
+                                    <div class="mt-1.5">
+                                        {% for error in field_errors.firstname %}
+                                            <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div>
                                 <label for="lastname" class="input-label">Last name</label>
-                                <input type="text" id="lastname" name="lastname" placeholder="Doe" autocomplete="family-name" class="input" required>
+                                <input type="text" id="lastname" name="lastname" value="{{ form_data.lastname ?? '' }}" placeholder="Doe" autocomplete="family-name" class="input {{ field_errors.lastname is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}">
+                                {% if field_errors.lastname is defined %}
+                                    <div class="mt-1.5">
+                                        {% for error in field_errors.lastname %}
+                                            <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
                         {# Email #}
                         <div>
                             <label for="email" class="input-label">Email</label>
-                            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" class="input" required>
+                            <input type="text" id="email" name="email" value="{{ form_data.email ?? '' }}" placeholder="you@example.com" autocomplete="email" class="input {{ field_errors.email is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}">
+                            {% if field_errors.email is defined %}
+                                <div class="mt-1.5">
+                                    {% for error in field_errors.email %}
+                                        <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         {# Hidden Role Field #}
-                        <input type="hidden" name="role" id="role-input" value="student">
+                        <input type="hidden" name="role" id="role-input" value="{{ form_data.role ?? 'student' }}">
 
                         {# Password #}
                         <div>
                             <label for="password" class="input-label">Password</label>
                             <div class="relative">
-                                <input type="password" id="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" class="input pr-12" required>
+                                <input type="password" id="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" class="input pr-12 {{ field_errors.password is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}">
                                 <button type="button" onclick="togglePassword('password', 'pwd-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 dark:hover:text-navy-300">
                                     <i data-lucide="eye" class="w-5 h-5" id="pwd-icon"></i>
                                 </button>
                             </div>
-                            {# Strength Indicator #}
-                            <div class="flex items-center gap-3 mt-2">
-                                <div class="flex gap-1 flex-1">
-                                    <div id="str-1" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
-                                    <div id="str-2" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
-                                    <div id="str-3" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
+                            {% if field_errors.password is defined %}
+                                <div class="mt-1.5">
+                                    {% for error in field_errors.password %}
+                                        <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                    {% endfor %}
                                 </div>
-                                <span id="str-text" class="text-caption font-medium text-navy-400"></span>
-                            </div>
+                            {% else %}
+                                {# Strength Indicator #}
+                                <div class="flex items-center gap-3 mt-2">
+                                    <div class="flex gap-1 flex-1">
+                                        <div id="str-1" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
+                                        <div id="str-2" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
+                                        <div id="str-3" class="h-1 flex-1 rounded-full bg-navy-200 dark:bg-navy-700"></div>
+                                    </div>
+                                    <span id="str-text" class="text-caption font-medium text-navy-400"></span>
+                                </div>
+                            {% endif %}
                         </div>
 
                         {# Confirm Password #}
                         <div>
-                            <label for="confirm-password" class="input-label">Confirm password</label>
+                            <label for="password_confirm" class="input-label">Confirm password</label>
                             <div class="relative">
-                                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" autocomplete="new-password" class="input pr-12" required>
-                                <button type="button" onclick="togglePassword('confirm-password', 'confirm-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 dark:hover:text-navy-300">
+                                <input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm your password" autocomplete="new-password" class="input pr-12 {{ field_errors.password_confirm is defined ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}">
+                                <button type="button" onclick="togglePassword('password_confirm', 'confirm-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 dark:hover:text-navy-300">
                                     <i data-lucide="eye" class="w-5 h-5" id="confirm-icon"></i>
                                 </button>
                             </div>
+                            {% if field_errors.password_confirm is defined %}
+                                <div class="mt-1.5">
+                                    {% for error in field_errors.password_confirm %}
+                                        <p class="text-sm text-red-600 dark:text-red-400">{{ error|raw }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         {# Terms #}
                         <div class="flex items-start gap-3">
-                            <input type="checkbox" id="terms" name="terms" class="checkbox mt-0.5" required>
+                            <input type="checkbox" id="terms" name="terms" class="checkbox mt-0.5">
                             <label for="terms" class="text-body-sm text-navy-600 dark:text-navy-400 cursor-pointer">
                                 I agree to the <a href="#" class="text-harbor-600 dark:text-harbor-400 hover:underline">Terms</a> and <a href="#" class="text-harbor-600 dark:text-harbor-400 hover:underline">Privacy Policy</a>
                             </label>
