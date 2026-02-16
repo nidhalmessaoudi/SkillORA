@@ -1,0 +1,44 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Résultat — {{ userEvaluation.evaluation.title }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Résultat : {{ userEvaluation.evaluation.title }}</h1>
+
+<p class="mb-6">
+  <b>Score obtenu :</b> {{ userEvaluation.score }} / {{ userEvaluation.evaluation.totalScore }}
+</p>
+
+{% for question in questions %}
+  <div class="mb-6 p-4 border rounded">
+    <p class="font-medium">{{ loop.index }}. {{ question.content }}</p>
+
+    {% set myAnswer = submittedMap[question.id] ?? null %}
+
+    <p class="mt-3">
+      <b>Votre réponse :</b>
+      {% if myAnswer %}
+        <span class="text-gray-800">{{ myAnswer.content }}</span>
+      {% else %}
+        <span class="text-red-500">Non répondu</span>
+      {% endif %}
+    </p>
+
+    {# ✅ montrer la bonne réponse seulement pour QUIZ #}
+    {% if userEvaluation.evaluation.type == 'QUIZ' %}
+      {% set correct = null %}
+      {% for a in question.getAnswers() %}
+        {% if a.role == 'CHOICE' and a.isCorrect %}
+          {% set correct = a.content %}
+        {% endif %}
+      {% endfor %}
+
+      <p class="mt-2">
+        <b>Réponse correcte :</b> {{ correct ?? '—' }}
+      </p>
+    {% endif %}
+  </div>
+{% endfor %}
+
+<a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour aux évaluations</a>
+{% endblock %}

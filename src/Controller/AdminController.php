@@ -12,8 +12,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+
 #[Route('/admin')]
-#[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
     public function __construct(
@@ -24,6 +25,11 @@ class AdminController extends AbstractController
     #[Route('/', name: 'admin_dashboard')]
     public function dashboard(): Response
     {
+        // Allow both ADMIN and PROFESSOR
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
+            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
+        }
+        
         // Get user statistics
         $stats = $this->userRepository->getUserStats();
         
@@ -43,6 +49,11 @@ class AdminController extends AbstractController
     #[Route('/users', name: 'admin_users')]
     public function users(): Response
     {
+        // Allow both ADMIN and PROFESSOR
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
+            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
+        }
+        
         $users = $this->userRepository->findAllWithStats();
         
         return $this->render('pages/admin/users.html.twig', [
@@ -68,6 +79,11 @@ class AdminController extends AbstractController
     #[Route('/user/{id}/unban', name: 'admin_user_unban', methods: ['POST'])]
     public function unbanUser(User $user): Response
     {
+        // Allow both ADMIN and PROFESSOR
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
+            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
+        }
+        
         $user->setIsBanned(false);
         $this->entityManager->flush();
 
@@ -78,6 +94,11 @@ class AdminController extends AbstractController
     #[Route('/user/{id}/delete', name: 'admin_user_delete', methods: ['POST'])]
     public function deleteUser(User $user, Request $request): Response
     {
+        // Allow ADMIN only for delete
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            throw new AccessDeniedException('Access denied. Admin access required for user deletion.');
+        }
+        
         if ($user->isAdmin()) {
             $this->addFlash('error', 'Cannot delete an administrator.');
             return $this->redirectToRoute('admin_users');
@@ -93,6 +114,11 @@ class AdminController extends AbstractController
     #[Route('/user/{id}/promote/{role}', name: 'admin_user_promote', methods: ['POST'])]
     public function promoteUser(User $user, string $role): Response
     {
+        // Allow both ADMIN and PROFESSOR
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
+            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
+        }
+        
         // Validate role
         $validRoles = ['admin', 'professor', 'student'];
         if (!in_array($role, $validRoles)) {
@@ -131,6 +157,11 @@ class AdminController extends AbstractController
     #[Route('/stats', name: 'admin_stats')]
     public function stats(): Response
     {
+        // Allow both ADMIN and PROFESSOR
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
+            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
+        }
+        
         $stats = $this->userRepository->getUserStats();
         
         // Get user growth data (last 30 days)

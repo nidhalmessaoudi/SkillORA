@@ -31,6 +31,9 @@ class Salle
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $location = null;
 
+    #[ORM\Column(name: 'event_id', type: 'integer', nullable: true)]
+    private ?int $eventId = null;
+
     // Getters and Setters
     public function getId(): ?int
     {
@@ -100,6 +103,17 @@ class Salle
     public function setLocation(string $location): static
     {
         $this->location = $location;
+        return $this;
+    }
+
+    public function getEventId(): ?int
+    {
+        return $this->eventId;
+    }
+
+    public function setEventId(?int $eventId): static
+    {
+        $this->eventId = $eventId;
         return $this;
     }
 }

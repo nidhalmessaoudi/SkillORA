@@ -116,14 +116,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        // For now, we'll check the role property loaded from database
         $roles = ['ROLE_USER'];
         
         if ($this->role === 'admin') {
             $roles[] = 'ROLE_ADMIN';
-        } elseif ($this->role === 'instructor' || $this->role === 'professor') {
+        } elseif ($this->role === 'professor' || $this->role === 'instructor') {
             $roles[] = 'ROLE_PROFESSOR';
         }
+        // 'student' or 'user' gets only ROLE_USER
 
         return array_unique($roles);
     }

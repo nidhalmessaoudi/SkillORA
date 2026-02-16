@@ -1,0 +1,117 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Créneau #{{ slot.id }} - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ path('admin_slots_index') }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">Créneau #{{ slot.id }}</h1>
+            </div>
+            <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Détails du créneau de disponibilité</p>
+        </div>
+        <div class="flex items-center gap-2 ml-9 md:ml-0">
+            <a href="{{ path('admin_slots_edit', {id: slot.id}) }}" class="btn-secondary btn-sm">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Modifier
+            </a>
+            <form method="post" action="{{ path('admin_slots_delete', {id: slot.id}) }}" class="inline" onsubmit="return confirmDelete('Supprimer ce créneau ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ slot.id) }}">
+                <button type="submit" class="btn-danger btn-sm">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {# Informations #}
+    <div class="card p-6 space-y-6">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="info" class="w-5 h-5 text-harbor-500"></i>
+            Informations
+        </h2>
+
+        <div class="space-y-4">
+            <div class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <i data-lucide="calendar" class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold text-blue-900 dark:text-blue-300 uppercase tracking-wide">Début</p>
+                    <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">{{ slot.startAt|date('d/m/Y à H:i') }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <i data-lucide="calendar-check" class="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold text-purple-900 dark:text-purple-300 uppercase tracking-wide">Fin</p>
+                    <p class="text-sm text-purple-800 dark:text-purple-200 font-medium">{{ slot.endAt|date('d/m/Y à H:i') }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 {% if slot.isBooked %}bg-warning-50 dark:bg-warning-900/20{% else %}bg-success-50 dark:bg-success-900/20{% endif %} rounded-lg">
+                <i data-lucide="{% if slot.isBooked %}lock{% else %}unlock{% endif %}" class="w-5 h-5 {% if slot.isBooked %}text-warning-600 dark:text-warning-400{% else %}text-success-600 dark:text-success-400{% endif %} mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold {% if slot.isBooked %}text-warning-900 dark:text-warning-300{% else %}text-success-900 dark:text-success-300{% endif %} uppercase tracking-wide">Statut</p>
+                    <p class="text-sm {% if slot.isBooked %}text-warning-800 dark:text-warning-200{% else %}text-success-800 dark:text-success-200{% endif %} font-medium">
+                        {{ slot.isBooked ? 'Réservé' : 'Disponible' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 bg-navy-50 dark:bg-navy-800/50 rounded-lg">
+                <i data-lucide="clock" class="w-5 h-5 text-navy-500 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wide">Créé le</p>
+                    <p class="text-sm text-navy-700 dark:text-navy-300 font-medium">{{ slot.createdAt|date('d/m/Y à H:i') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Rendez-vous associé #}
+    <div class="card p-6 space-y-6">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="handshake" class="w-5 h-5 text-harbor-500"></i>
+            Rendez-vous associé
+        </h2>
+
+        {% if slot.rendezVous %}
+            <div class="space-y-4">
+                <div class="flex items-start gap-3 p-3 bg-harbor-50 dark:bg-harbor-900/20 rounded-lg">
+                    <i data-lucide="hash" class="w-5 h-5 text-harbor-600 dark:text-harbor-400 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-semibold text-harbor-900 dark:text-harbor-300 uppercase tracking-wide">ID Rendez-vous</p>
+                        <p class="text-sm text-harbor-800 dark:text-harbor-200 font-medium">#{{ slot.rendezVous.id }}</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <i data-lucide="activity" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-semibold text-green-900 dark:text-green-300 uppercase tracking-wide">Statut</p>
+                        <p class="text-sm text-green-800 dark:text-green-200 font-medium">{{ slot.rendezVous.statut }}</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-navy-50 dark:bg-navy-800/50 rounded-lg">
+                    <i data-lucide="clock" class="w-5 h-5 text-navy-500 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wide">Créé le</p>
+                        <p class="text-sm text-navy-700 dark:text-navy-300 font-medium">{{ slot.rendezVous.createdAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="flex flex-col items-center gap-3 py-8">
+                <i data-lucide="calendar-x" class="w-12 h-12 text-navy-300 dark:text-navy-600"></i>
+                <p class="text-body-md text-navy-500">Aucun rendez-vous associé à ce créneau.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'reaction')]
+class Reaction
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', length: 191)]
+    private ?string $userIdentifier = null;
+
+    #[ORM\Column(type: 'string', length: 20)]
+    private ?string $type = null;
+
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: 'reactions')]
+    #[ORM\JoinColumn(name: 'post_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    private ?Post $post = null;
+
+    #[ORM\ManyToOne(targetEntity: Reply::class, inversedBy: 'reactions')]
+    #[ORM\JoinColumn(name: 'reply_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    private ?Reply $reply = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUserIdentifier(): ?string
+    {
+        return $this->userIdentifier;
+    }
+
+    public function setUserIdentifier(string $userIdentifier): self
+    {
+        $this->userIdentifier = $userIdentifier;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getPost(): ?Post
+    {
+        return $this->post;
+    }
+
+    public function setPost(?Post $post): self
+    {
+        $this->post = $post;
+        return $this;
+    }
+
+    public function getReply(): ?Reply
+    {
+        return $this->reply;
+    }
+
+    public function setReply(?Reply $reply): self
+    {
+        $this->reply = $reply;
+        return $this;
+    }
+
+    public function isLike(): bool
+    {
+        return $this->type === 'like';
+    }
+
+    public function isLove(): bool
+    {
+        return $this->type === 'love';
+    }
+}
