@@ -36,6 +36,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'is_verified', type: 'boolean', nullable: true, options: ['default' => 0])]
     private bool $isVerified = false;
 
+    #[ORM\Column(name: 'verification_token', type: 'string', length: 255, nullable: true)]
+    private ?string $verificationToken = null;
+
+    #[ORM\Column(name: 'verification_token_expires_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $verificationTokenExpiresAt = null;
+
     #[ORM\Column(name: 'last_login_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
@@ -358,5 +364,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return null;
         }
         return $this->dateOfBirth->diff(new \DateTime())->y;
+    }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(?string $verificationToken): static
+    {
+        $this->verificationToken = $verificationToken;
+        return $this;
+    }
+
+    public function getVerificationTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->verificationTokenExpiresAt;
+    }
+
+    public function setVerificationTokenExpiresAt(?\DateTimeInterface $verificationTokenExpiresAt): static
+    {
+        $this->verificationTokenExpiresAt = $verificationTokenExpiresAt;
+        return $this;
+    }
+
+    public function isVerificationTokenValid(): bool
+    {
+        if (!$this->verificationToken || !$this->verificationTokenExpiresAt) {
+            return false;
+        }
+        return new \DateTime() < $this->verificationTokenExpiresAt;
     }
 }

@@ -10,6 +10,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class AuthController extends AbstractController
 {
@@ -18,7 +22,8 @@ class AuthController extends AbstractController
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
+        private MailerInterface $mailer
     ) {}
 
     /**
@@ -179,6 +184,41 @@ class AuthController extends AbstractController
         }
         
         return $errors;
+    }
+
+    /**
+     * Send verification email to user
+     */
+    private function sendVerificationEmail(User $user): void
+    {
+        // Generate verification token
+        $token = bin2hex(random_bytes(32));
+        $user->setVerificationToken($token);
+        
+        // Set expiration to 24 hours from now
+        $expiresAt = new \DateTime('+24 hours');
+        $user->setVerificationTokenExpiresAt($expiresAt);
+        
+        $this->entityManager->flush();
+        
+        // Generate verification URL
+        $verificationUrl = $this->generateUrl('auth_verify_email', [
+            'token' => $token
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        // Create and send email
+        $email = (new TemplatedEmail())
+            ->from($_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com')
+            ->to($user->getEmail())
+            ->subject('Verify Your Email - SkillHarbor')
+            ->htmlTemplate('emails/verify-email.html.twig')
+            ->context([
+                'user' => $user,
+                'verificationUrl' => $verificationUrl,
+                'expirationDate' => $expiresAt,
+            ]);
+        
+        $this->mailer->send($email);
     }
 
     /**
@@ -444,8 +484,14 @@ class AuthController extends AbstractController
                         [$user->getId(), $role]
                     );
 
-                    // Add success message with user's first name
-                    $this->addFlash('success', "Welcome aboard, {$firstName}! Your account has been created successfully. Please sign in to start your learning journey.");
+                    // Send verification email
+                    try {
+                        $this->sendVerificationEmail($user);
+                        $this->addFlash('success', "Welcome aboard, {$firstName}! We've sent a verification email to {$email}. Please check your inbox to activate your account.");
+                    } catch (\Exception $e) {
+                        // If email fails, still allow user to continue but log the error
+                        $this->addFlash('warning', "Your account was created, but we couldn't send the verification email. Please contact support.");
+                    }
 
                     // Redirect to login page
                     return $this->redirectToRoute('auth_login');
@@ -475,10 +521,68 @@ class AuthController extends AbstractController
         return $this->render('pages/auth/forgot-password.html.twig');
     }
 
-    #[Route('/verify-email', name: 'auth_verify_email')]
-    public function verifyEmail(): Response
+    #[Route('/verify-email/{token}', name: 'auth_verify_email')]
+    public function verifyEmail(Request $request, string $token): Response
     {
-        return $this->render('pages/auth/verify-email.html.twig');
+        // Find user by verification token
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['verificationToken' => $token]);
+        
+        if (!$user) {
+            $this->addFlash('error', 'Invalid or expired verification link. Please request a new verification email.');
+            return $this->redirectToRoute('auth_login');
+        }
+        
+        // Check if token has expired
+        if (!$user->isVerificationTokenValid()) {
+            $this->addFlash('error', 'This verification link has expired. Please request a new verification email.');
+            return $this->redirectToRoute('auth_login');
+        }
+        
+        // Verify the user
+        $user->setIsVerified(true);
+        $user->setVerificationToken(null);
+        $user->setVerificationTokenExpiresAt(null);
+        $this->entityManager->flush();
+        
+        // Success message
+        $this->addFlash('success', 'Email verified successfully! You can now sign in to your account.');
+        
+        return $this->redirectToRoute('auth_login');
+    }
+    
+    #[Route('/resend-verification', name: 'auth_resend_verification', methods: ['POST'])]
+    public function resendVerification(Request $request): Response
+    {
+        $email = trim($request->request->get('email', ''));
+        
+        if (empty($email)) {
+            $this->addFlash('error', 'Please provide your email address.');
+            return $this->redirectToRoute('auth_login');
+        }
+        
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['email' => strtolower($email)]);
+        
+        if (!$user) {
+            // Don't reveal if email exists or not for security
+            $this->addFlash('success', 'If an account exists with this email, a verification link has been sent.');
+            return $this->redirectToRoute('auth_login');
+        }
+        
+        if ($user->isVerified()) {
+            $this->addFlash('info', 'This account is already verified. You can sign in now.');
+            return $this->redirectToRoute('auth_login');
+        }
+        
+        try {
+            $this->sendVerificationEmail($user);
+            $this->addFlash('success', 'Verification email sent! Please check your inbox.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to send verification email. Please try again later.');
+        }
+        
+        return $this->redirectToRoute('auth_login');
     }
 
     #[Route('/onboarding', name: 'auth_onboarding')]

@@ -28,6 +28,13 @@ class UserChecker implements UserCheckerInterface
                 'Your account is not active. Please contact support.'
             );
         }
+
+        // Check if email is verified
+        if (!$user->isVerified()) {
+            throw new CustomUserMessageAccountStatusException(
+                'Please verify your email address before signing in. Check your inbox for the verification link.'
+            );
+        }
     }
 
     public function checkPostAuth(UserInterface $user): void
