@@ -1,91 +1,5 @@
 {% extends 'layouts/user.html.twig' %}
 
-<<<<<<< Updated upstream
-{% block title %}Passer l'Évaluation — {{ evaluation.title }}{% endblock %}
-
-{% block content %}
-<h1 class="text-2xl font-bold mb-2">{{ evaluation.title }}</h1>
-<p class="text-sm text-gray-600 mb-2">Durée: {{ evaluation.duration }} minutes</p>
-
-<p class="text-sm text-gray-600 mb-6">
-  Nombre de questions: <b>{{ questions|length }}</b>
-</p>
-
-{% if questions is empty %}
-  <div class="p-4 border rounded bg-yellow-50 text-yellow-800">
-    Aucune question n’est associée à cette évaluation pour le moment.
-  </div>
-  <div class="mt-4">
-    <a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour</a>
-  </div>
-{% else %}
-
-<form method="post" action="{{ path('user_evaluation_take', {'id': evaluation.id}) }}">
-  <input type="hidden" name="_token" value="{{ csrf_token('take_evaluation_' ~ evaluation.id) }}">
-
-  {% set letters = ['A','B','C','D','E','F','G','H'] %}
-
-  {% for question in questions %}
-    <div class="mb-6 p-4 border rounded">
-      <p class="font-medium">{{ loop.index }}. {{ question.content }}</p>
-      <p class="text-sm text-gray-500 mb-2">Points: {{ question.score }}</p>
-
-      {# ✅ QUIZ => QCM #}
-      {% if evaluation.type == 'QUIZ' %}
-        <div class="flex flex-col gap-2 mt-3">
-          {% set choiceIndex = 0 %}
-          {% for ans in question.getAnswers() %}
-            {# ✅ IMPORTANT: role = 'CHOICE' (pas ans.isChoice()) #}
-            {% if ans.role == 'CHOICE' %}
-              <label class="flex items-start gap-3 p-2 border rounded hover:bg-gray-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="answers[{{ question.id }}]"
-                  value="{{ ans.id }}"
-                  required
-                  class="mt-1"
-                >
-                <div class="flex gap-2">
-                  <span class="font-bold">{{ letters[choiceIndex] }}.</span>
-                  <span>{{ ans.content }}</span>
-                </div>
-              </label>
-              {% set choiceIndex = choiceIndex + 1 %}
-            {% endif %}
-          {% endfor %}
-        </div>
-
-      {# ✅ EXAM => TEXTAREA #}
-      {% else %}
-        <textarea
-          name="answers[{{ question.id }}]"
-          rows="6"
-          class="w-full mt-2 p-2 border rounded"
-          placeholder="Écrivez votre réponse..."
-          required
-        ></textarea>
-      {% endif %}
-    </div>
-  {% endfor %}
-
-  <div class="flex gap-2">
-    <button type="submit" class="btn-primary">Soumettre l'évaluation</button>
-    <a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour</a>
-  </div>
-</form>
-
-<p id="timer" class="text-red-500 font-bold mt-4"></p>
-
-<script>
-let endTime = new Date("{{ endTime|date('Y-m-d H:i:s') }}").getTime();
-let timerInterval = setInterval(() => {
-  let now = new Date().getTime();
-  let distance = endTime - now;
-
-  if (distance <= 0) {
-    clearInterval(timerInterval);
-    document.getElementById("timer").innerText = "Temps écoulé. Rechargement...";
-=======
 {% block content %}
 
 <h1 class="text-2xl font-bold mb-4">{{ evaluation.title }}</h1>
@@ -142,25 +56,14 @@ const interval = setInterval(() => {
 
   if (distance <= 0) {
     clearInterval(interval);
->>>>>>> Stashed changes
     location.reload();
     return;
   }
 
-<<<<<<< Updated upstream
-  let minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
-  let seconds = Math.floor((distance % (1000*60)) / 1000);
-  document.getElementById("timer").innerText = minutes + "m " + seconds + "s";
-}, 1000);
-</script>
-
-{% endif %}
-=======
   const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
   const seconds = Math.floor((distance % (1000*60)) / 1000);
   timer.innerText = minutes + "m " + seconds + "s";
 }, 1000);
 </script>
 
->>>>>>> Stashed changes
 {% endblock %}

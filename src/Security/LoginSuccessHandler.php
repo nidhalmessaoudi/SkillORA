@@ -23,7 +23,12 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
             return new RedirectResponse($this->router->generate('admin_dashboard'));
         }
 
-        // Regular users go to home
+        // Redirect professors to professor dashboard
+        if (in_array('ROLE_PROFESSOR', $user->getRoles(), true)) {
+            return new RedirectResponse($this->router->generate('professor_dashboard'));
+        }
+
+        // Regular users (students) go to home
         return new RedirectResponse($this->router->generate('app_home'));
     }
 }

@@ -25,11 +25,7 @@ class Evaluation
     private string $type; // QUIZ | EXAM
 
     #[ORM\Column]
-<<<<<<< Updated upstream
-    private int $duration; // en minutes
-=======
     private int $duration; // minutes
->>>>>>> Stashed changes
 
     #[ORM\Column]
     private int $totalScore = 0;
@@ -37,22 +33,11 @@ class Evaluation
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
-<<<<<<< Updated upstream
-   
-
-    #[ORM\OneToMany(
-        mappedBy: 'evaluation',
-        targetEntity: Question::class,
-        cascade: ['persist', 'remove'],
-        orphanRemoval: true
-    )]
-=======
     // ✅ PDF PATH (only for EXAM)
     #[ORM\Column(name: 'pdf_path', length: 255, nullable: true)]
     private ?string $pdfPath = null;
 
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
->>>>>>> Stashed changes
     private Collection $questions;
 
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: UserEvaluation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -65,27 +50,6 @@ class Evaluation
         $this->createdAt = new \DateTimeImmutable();
     }
 
-<<<<<<< Updated upstream
-    /* ===================== */
-    /* GETTERS / SETTERS     */
-    /* ===================== */
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-        return $this;
-    }
-=======
     public function getId(): ?int { return $this->id; }
 
     public function getTitle(): string { return $this->title; }
@@ -93,40 +57,10 @@ class Evaluation
 
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): static { $this->description = $description; return $this; }
->>>>>>> Stashed changes
 
     public function getType(): string { return $this->type; }
     public function setType(string $type): static { $this->type = $type; return $this; }
 
-<<<<<<< Updated upstream
-    public function setDescription(?string $description): static
-    {
-        $this->description = $description;
-        return $this;
-    }
-
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    public function setType(string $type): static
-    {
-        $this->type = $type;
-        return $this;
-    }
-
-    public function getDuration(): int
-    {
-        return $this->duration;
-    }
-
-    public function setDuration(int $duration): static
-    {
-        $this->duration = $duration;
-        return $this;
-    }
-=======
     public function getDuration(): int { return $this->duration; }
     public function setDuration(int $duration): static { $this->duration = $duration; return $this; }
 
@@ -140,76 +74,13 @@ class Evaluation
 
     public function getQuestions(): Collection { return $this->questions; }
     public function getUserEvaluations(): Collection { return $this->userEvaluations; }
->>>>>>> Stashed changes
 
     public function calculateTotalScore(): void
     {
-<<<<<<< Updated upstream
-        return $this->totalScore;
-    }
-
-    public function setTotalScore(int $totalScore): static
-    {
-        $this->totalScore = $totalScore;
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function getQuestions(): Collection
-    {
-        return $this->questions;
-    }
-
-    public function getUserEvaluations(): Collection
-    {
-        return $this->userEvaluations;
-    }
-
-    public function addUserEvaluation(UserEvaluation $userEvaluation): static
-    {
-        if (!$this->userEvaluations->contains($userEvaluation)) {
-            $this->userEvaluations->add($userEvaluation);
-            $userEvaluation->setEvaluation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUserEvaluation(UserEvaluation $userEvaluation): static
-    {
-        if ($this->userEvaluations->removeElement($userEvaluation)) {
-            if ($userEvaluation->getEvaluation() === $this) {
-                $userEvaluation->setEvaluation(null);
-            }
-        }
-
-        return $this;
-=======
         $total = 0;
         foreach ($this->questions as $question) {
             $total += (int) $question->getScore();
         }
         $this->totalScore = $total;
->>>>>>> Stashed changes
-    }
-
-    /* ===================== */
-    /* LOGIQUE MÉTIER 🔥     */
-    /* ===================== */
-
-    public function calculateTotalScore(): void
-    {
-        $total = 0;
-
-        foreach ($this->questions as $question) {
-            $total += $question->getScore();
-        }
-
-        $this->totalScore = $total;
     }
 }
-

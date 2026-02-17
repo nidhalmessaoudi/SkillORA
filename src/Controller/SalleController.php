@@ -148,12 +148,13 @@ class SalleController extends AbstractController
     {
         $formData = $this->buildSalleFormData($request, null);
         $events = $this->entityManager->getRepository(Event::class)->findBy([], ['startDate' => 'DESC']);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
-            $missing = $this->validateSalleForm($formData);
+            $errors = $this->validateSalleForm($formData);
             $modelPath = $this->handleModelUpload($request);
 
-            if (empty($missing)) {
+            if (empty($errors)) {
                 $salle = new Salle();
                 $salle->setName($formData['name']);
                 $salle->setImage3d($formData['image_3d'] ?: null);
@@ -177,6 +178,7 @@ class SalleController extends AbstractController
         return $this->render('pages/admin/salles/new.html.twig', [
             'form_data' => $formData,
             'events' => $events,
+            'errors' => $errors,
         ]);
     }
 
@@ -215,12 +217,13 @@ class SalleController extends AbstractController
     {
         $formData = $this->buildSalleFormData($request, $salle);
         $events = $this->entityManager->getRepository(Event::class)->findBy([], ['startDate' => 'DESC']);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
-            $missing = $this->validateSalleForm($formData);
+            $errors = $this->validateSalleForm($formData);
             $modelPath = $this->handleModelUpload($request);
 
-            if (empty($missing)) {
+            if (empty($errors)) {
                 $salle->setName($formData['name']);
                 $salle->setImage3d($formData['image_3d'] ?: null);
                 $salle->setMaxParticipants((int) $formData['max_participants']);
@@ -245,12 +248,54 @@ class SalleController extends AbstractController
             'salle' => $salle,
             'form_data' => $formData,
             'events' => $events,
+            'errors' => $errors,
         ]);
     }
 
     #[Route('/{id}/delete', name: 'admin_salles_delete', methods: ['POST'])]
     public function delete(Salle $salle): Response
     {
+        $eventRepo = $this->entityManager->getRepository(Event::class);
+        $reservationRepo = $this->entityManager->getRepository(Reservation::class);
+
+        $eventIds = [];
+        $linkedEventId = $salle->getEventId();
+        if ($linkedEventId) {
+            $eventIds[] = $linkedEventId;
+        }
+
+        $eventsForSalle = $eventRepo->findBy(['salleId' => $salle->getId()]);
+        foreach ($eventsForSalle as $event) {
+            $eventIds[] = $event->getId();
+        }
+
+        $eventIds = array_values(array_unique(array_filter($eventIds)));
+
+        if (!empty($eventIds)) {
+            $reservationsByEvent = $reservationRepo->findBy(['eventId' => $eventIds]);
+            foreach ($reservationsByEvent as $reservation) {
+                $this->entityManager->remove($reservation);
+            }
+        }
+
+        $reservationsBySalle = $reservationRepo->findBy(['salleId' => $salle->getId()]);
+        foreach ($reservationsBySalle as $reservation) {
+            $this->entityManager->remove($reservation);
+        }
+
+        if (!empty($eventsForSalle)) {
+            foreach ($eventsForSalle as $event) {
+                $this->entityManager->remove($event);
+            }
+        }
+
+        if ($linkedEventId) {
+            $linkedEvent = $eventRepo->find($linkedEventId);
+            if ($linkedEvent) {
+                $this->entityManager->remove($linkedEvent);
+            }
+        }
+
         $this->entityManager->remove($salle);
         $this->entityManager->flush();
 
@@ -312,20 +357,20 @@ class SalleController extends AbstractController
     private function validateSalleForm(array $data): array
     {
         $required = [
-            'name',
-            'max_participants',
-            'duration',
-            'location',
+            'name' => 'Champ obligatoire.',
+            'location' => 'Champ obligatoire.',
+            'max_participants' => 'Champ obligatoire.',
+            'duration' => 'Champ obligatoire.',
         ];
 
-        $missing = [];
-        foreach ($required as $field) {
+        $errors = [];
+        foreach ($required as $field => $message) {
             if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
-                $missing[] = $field;
+                $errors[$field] = $message;
             }
         }
 
-        return $missing;
+        return $errors;
     }
 
     private function handleModelUpload(Request $request): ?string

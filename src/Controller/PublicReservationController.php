@@ -22,6 +22,7 @@ class PublicReservationController extends AbstractController
         $salles = $this->entityManager->getRepository(Salle::class)->findBy([], ['name' => 'ASC']);
 
         $formData = $this->buildReservationFormData($request);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
             $missing = $this->validateReservationForm($formData);
@@ -39,20 +40,39 @@ class PublicReservationController extends AbstractController
 
             if (empty($seats)) {
                 $missing[] = 'nombre_places';
+                $errors['nombre_places'] = 'Champ obligatoire.';
                 $this->addFlash('error', 'Please select at least one seat.');
             }
 
             foreach ($seats as $seat) {
                 if ($maxParticipants !== null && ($seat < 1 || $seat > $maxParticipants)) {
                     $missing[] = 'nombre_places';
+                    $errors['nombre_places'] = 'Champ obligatoire.';
                     $this->addFlash('error', 'Selected seat is out of range.');
                     break;
                 }
 
                 if ($salleId > 0 && $this->isSeatReserved($salleId, $seat)) {
                     $missing[] = 'nombre_places';
+                    $errors['nombre_places'] = 'Champ obligatoire.';
                     $this->addFlash('error', 'One or more seats are already reserved.');
                     break;
+                }
+            }
+
+            if (!empty($missing)) {
+                $messages = [
+                    'event_id' => 'Champ obligatoire.',
+                    'salle_id' => 'Champ obligatoire.',
+                    'prenom' => 'Champ obligatoire.',
+                    'nom' => 'Champ obligatoire.',
+                    'telephone' => 'Champ obligatoire.',
+                    'nombre_places' => 'Champ obligatoire.',
+                ];
+                foreach ($missing as $field) {
+                    if (isset($messages[$field])) {
+                        $errors[$field] = $messages[$field];
+                    }
                 }
             }
 
@@ -86,6 +106,7 @@ class PublicReservationController extends AbstractController
             'form_data' => $formData,
             'events' => $events,
             'salles' => $salles,
+            'errors' => $errors,
         ]);
     }
 

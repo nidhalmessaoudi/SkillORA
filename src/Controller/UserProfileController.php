@@ -95,6 +95,118 @@ class UserProfileController extends AbstractController
         ]);
     }
 
+    #[Route('/settings', name: 'user_profile_settings', methods: ['GET', 'POST'])]
+    public function settings(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $error = null;
+        $success = false;
+
+        if ($request->isMethod('POST')) {
+            $phone = $request->request->get('phone');
+            $countryCode = $request->request->get('country_code');
+            $gender = $request->request->get('gender');
+            $dateOfBirth = $request->request->get('date_of_birth');
+            $bio = $request->request->get('bio');
+            $fieldOfStudy = $request->request->get('field_of_study');
+            $university = $request->request->get('university');
+            $country = $request->request->get('country');
+
+            // Handle avatar upload
+            $avatarFile = $request->files->get('avatar');
+            if ($avatarFile) {
+                // Validate file size
+                $maxSize = 2 * 1024 * 1024; // 2MB
+
+                if ($avatarFile->getSize() > $maxSize) {
+                    $error = 'File size must be less than 2MB.';
+                } else {
+                    // Get original extension from client filename
+                    $originalName = $avatarFile->getClientOriginalName();
+                    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+                    
+                    // Validate file extension
+                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                    if (!in_array($extension, $allowedExtensions)) {
+                        $error = 'Invalid file type. Please upload JPG, PNG, or GIF.';
+                    } else {
+                        // Create uploads directory if it doesn't exist
+                        $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+                        if (!file_exists($uploadsDir)) {
+                            mkdir($uploadsDir, 0777, true);
+                        }
+
+                        // Generate unique filename with original extension
+                        $fileName = uniqid() . '_' . time() . '.' . $extension;
+                        
+                        try {
+                            // Move uploaded file
+                            $avatarFile->move($uploadsDir, $fileName);
+                            
+                            // Delete old avatar if exists
+                            if ($user->getAvatar()) {
+                                $oldFile = $uploadsDir . '/' . $user->getAvatar();
+                                if (file_exists($oldFile)) {
+                                    @unlink($oldFile);
+                                }
+                            }
+                            
+                            // Update user avatar
+                            $user->setAvatar($fileName);
+                        } catch (\Exception $e) {
+                            $error = 'Failed to upload avatar. Please try again: ' . $e->getMessage();
+                        }
+                    }
+                }
+            }
+
+            // Combine country code with phone number
+            $fullPhone = $phone ? $countryCode . ' ' . $phone : null;
+
+            // Update additional profile fields
+            $user->setPhone($fullPhone);
+            $user->setGender($gender);
+            $user->setBio($bio);
+            $user->setFieldOfStudy($fieldOfStudy);
+            $user->setUniversity($university);
+            $user->setCountry($country);
+
+            // Parse date of birth
+            if ($dateOfBirth) {
+                try {
+                    $dob = new \DateTime($dateOfBirth);
+                    $user->setDateOfBirth($dob);
+                } catch (\Exception $e) {
+                    $error = 'Invalid date format';
+                }
+            }
+
+            // Mark profile as completed if enough fields are filled
+            $filledFields = 0;
+            if ($phone) $filledFields++;
+            if ($gender) $filledFields++;
+            if ($dateOfBirth) $filledFields++;
+            if ($fieldOfStudy) $filledFields++;
+            
+            if ($filledFields >= 3) {
+                $user->setProfileCompleted(true);
+            }
+
+            if (!$error) {
+                $this->entityManager->flush();
+                $success = true;
+                $this->addFlash('success', 'Settings updated successfully!');
+            }
+        }
+
+        return $this->render('pages/profile/settings.html.twig', [
+            'user' => $user,
+            'error' => $error,
+            'success' => $success,
+        ]);
+    }
+
     #[Route('/delete', name: 'user_profile_delete', methods: ['POST'])]
     public function delete(Request $request): Response
     {

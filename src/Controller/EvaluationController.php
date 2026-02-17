@@ -3,10 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Evaluation;
-<<<<<<< Updated upstream
-=======
 use App\Entity\Question;
->>>>>>> Stashed changes
 use App\Form\EvaluationType;
 use App\Repository\EvaluationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,20 +11,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-<<<<<<< Updated upstream
-
-#[Route('/evaluation')]
-class EvaluationController extends AbstractController
-{
-    #[Route('/', name: 'evaluation_index', methods: ['GET'])]
-    public function index(EvaluationRepository $evaluationRepository): Response
-    {
-        $evaluations = $evaluationRepository->findAll();
-
-        return $this->render('evaluation/index.html.twig', [
-            'evaluations' => $evaluations,
-            'controller_name' => 'EvaluationController',
-=======
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
@@ -77,7 +60,6 @@ class EvaluationController extends AbstractController
             'selectedType' => $type,
             'selectedEvaluation' => $selectedEvaluation,
             'questions' => $questions,
->>>>>>> Stashed changes
         ]);
     }
 
@@ -92,10 +74,7 @@ class EvaluationController extends AbstractController
             $em->persist($evaluation);
             $em->flush();
 
-<<<<<<< Updated upstream
-=======
             $this->addFlash('success', 'Evaluation created successfully ✅');
->>>>>>> Stashed changes
             return $this->redirectToRoute('evaluation_index');
         }
 
@@ -122,10 +101,7 @@ class EvaluationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
-<<<<<<< Updated upstream
-=======
             $this->addFlash('success', 'Evaluation updated successfully ✅');
->>>>>>> Stashed changes
             return $this->redirectToRoute('evaluation_index');
         }
 
@@ -141,20 +117,13 @@ class EvaluationController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$evaluation->getId(), $request->request->get('_token'))) {
             $em->remove($evaluation);
             $em->flush();
-<<<<<<< Updated upstream
-=======
             $this->addFlash('success', 'Evaluation deleted successfully 🗑️');
         } else {
             $this->addFlash('danger', 'Invalid CSRF token.');
->>>>>>> Stashed changes
         }
 
         return $this->redirectToRoute('evaluation_index');
     }
-<<<<<<< Updated upstream
-}
-
-=======
 
 
     #[Route('/exam/{id}/import-pdf', name: 'admin_exam_import_pdf', methods: ['POST'])]
@@ -205,4 +174,3 @@ public function importExamPdf(
 }
 
 }
->>>>>>> Stashed changes

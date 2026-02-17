@@ -8,19 +8,149 @@
         <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Reservations</h1>
         <p class="text-body-md text-navy-600 dark:text-navy-400">Manage event reservations.</p>
     </div>
-    
+    <div class="flex items-center gap-2">
+        <a href="{{ path('admin_reservations_export') }}" class="btn-secondary btn-sm">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Export TXT
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="card">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Total Places</h2>
+            <p class="text-body-sm text-navy-500 mt-1">Global seats reserved across all events.</p>
+        </div>
+        <div class="p-6">
+            <div class="text-4xl font-display font-bold text-navy-900 dark:text-white">{{ total_places }}</div>
+            <div class="text-caption text-navy-500 mt-2">From {{ reservation_total }} reservations</div>
+        </div>
+    </div>
+
+    <div class="card lg:col-span-2">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Places by Event</h2>
+            <p class="text-body-sm text-navy-500 mt-1">Top events by reserved places.</p>
+        </div>
+        <div class="p-6">
+            {% if event_place_stats is not empty %}
+                <div class="flex items-end gap-3 h-56">
+                    {% for stat in event_place_stats %}
+                        {% set barHeight = max_places_by_event > 0 ? (stat.places / max_places_by_event * 100) : 0 %}
+                        <div class="flex-1 flex flex-col items-center gap-2 group min-w-[48px]">
+                            <div class="relative w-full rounded-t-xl bg-gradient-to-t from-blue-500 via-cyan-400 to-cyan-300" style="height: {{ barHeight|number_format(0) }}%; min-height: 8px;">
+                                <div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-caption px-2 py-1 rounded shadow-medium whitespace-nowrap">
+                                        {{ stat.places }} places
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-caption text-navy-500 dark:text-navy-400 text-center line-clamp-2">
+                                {{ stat.title }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-body-sm text-navy-500">No reservation data yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card">
+    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white text-center">Share by Event</h2>
+        <p class="text-body-sm text-navy-500 mt-1 text-center">Visual split of reserved places.</p>
+    </div>
+    <div class="p-6">
+        {% if pie_slices is not empty %}
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                {# Pie chart avec animation #}
+                <div class="relative animate-fade-in">
+                    <div class="w-48 h-48 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-110 transition-all duration-500 animate-spin-slow" 
+                         style="background: {{ pie_gradient }};">
+                    </div>
+                </div>
+                
+                {# Légende avec animation #}
+                <div class="space-y-3 animate-slide-in">
+                    {% for slice in pie_slices %}
+                        <div class="flex items-center gap-3 transform hover:translate-x-2 transition-transform duration-300 animate-fade-in-up" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                            <span class="w-4 h-4 rounded-full shadow-md animate-pulse-slow" style="background: {{ slice.color }};"></span>
+                            <div class="text-body-sm text-navy-700 dark:text-navy-300">
+                                <span class="font-semibold">{{ slice.title }}</span>
+                                <span class="text-navy-500">({{ slice.places }} places, {{ slice.percent|number_format(1) }}%)</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p class="text-body-sm text-navy-500 text-center animate-fade-in">No reservation data yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+
+    <div class="card">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Totals</h2>
+            <p class="text-body-sm text-navy-500 mt-1">Quick view of overall volume.</p>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Reservations</span>
+                <span class="text-heading-md font-semibold text-navy-900 dark:text-white">{{ reservation_total }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-body-sm font-medium text-navy-700 dark:text-navy-300">Total Places</span>
+                <span class="text-heading-md font-semibold text-navy-900 dark:text-white">{{ total_places }}</span>
+            </div>
+            <div class="text-caption text-navy-500">Updated live from reservations list.</div>
+        </div>
+    </div>
 </div>
 
 <div class="card">
     <div class="p-6 border-b border-navy-100 dark:border-navy-800">
-        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">All Reservations ({{ reservation_total }})</h2>
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">All Reservations ({{ reservation_total }})</h2>
+                <p class="text-body-sm text-navy-500">Search by name and sort by places.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="min-w-[220px]">
+                    <label class="block text-caption text-navy-500 mb-1" for="reservation-search">Search</label>
+                    <input
+                        id="reservation-search"
+                        type="search"
+                        placeholder="Search by first or last name"
+                        autocomplete="off"
+                        class="w-full px-3 py-2 rounded-lg border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-navy-900 dark:text-white text-body-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="min-w-[180px]">
+                    <label class="block text-caption text-navy-500 mb-1" for="reservation-sort">Sort by</label>
+                    <select
+                        id="reservation-sort"
+                        class="w-full px-3 py-2 rounded-lg border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-navy-900 dark:text-white text-body-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="places-desc" selected>Places (High to Low)</option>
+                        <option value="places-asc">Places (Low to High)</option>
+                        <option value="date-desc">Date (Newest)</option>
+                        <option value="date-asc">Date (Oldest)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-navy-50 dark:bg-navy-900/50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">ID</th>
                     <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Event</th>
                     <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Salle</th>
                     <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Name</th>
@@ -29,10 +159,9 @@
                     <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+            <tbody class="divide-y divide-navy-100 dark:divide-navy-800" data-reservation-rows>
                 {% for reservation in reservations %}
-                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-600 dark:text-navy-300">#{{ reservation.id }}</td>
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors" data-reservation-row data-name="{{ (reservation.prenom ~ ' ' ~ reservation.nom)|lower }}" data-places="{{ reservation.nombrePlaces }}" data-date="{{ reservation.dateReservation|date('Y-m-d H:i') }}">
                     <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-900 dark:text-white">
                         {% set event = event_map[reservation.eventId]|default(null) %}
                         {{ event ? event.title : 'Unknown' }}
@@ -58,7 +187,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
+                    <td colspan="6" class="px-6 py-12 text-center">
                         <div class="empty-state">
                             <div class="empty-state-icon">
                                 <i data-lucide="ticket" class="w-full h-full"></i>
@@ -71,5 +200,71 @@
             </tbody>
         </table>
     </div>
+    <div id="reservation-empty" class="hidden px-6 py-10 text-center text-navy-500">No matching reservations.</div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function() {
+            const searchInput = document.getElementById('reservation-search');
+            const sortSelect = document.getElementById('reservation-sort');
+            const tbody = document.querySelector('[data-reservation-rows]');
+            const emptyState = document.getElementById('reservation-empty');
+
+            if (!searchInput || !sortSelect || !tbody) {
+                return;
+            }
+
+            const rows = Array.from(tbody.querySelectorAll('[data-reservation-row]'));
+
+            const normalize = (value) => (value || '').toLowerCase().trim();
+
+            const parsePlaces = (value) => {
+                const raw = (value || '').trim();
+                if (raw === '') {
+                    return 0;
+                }
+                if (/^\d+$/.test(raw)) {
+                    return parseInt(raw, 10);
+                }
+                const parts = raw.split(',').map((item) => item.trim()).filter((item) => /^\d+$/.test(item));
+                return parts.length;
+            };
+
+            const applyFilterSort = () => {
+                const query = normalize(searchInput.value);
+
+                rows.forEach((row) => {
+                    const name = normalize(row.getAttribute('data-name'));
+                    const matches = !query || name.includes(query);
+                    row.classList.toggle('hidden', !matches);
+                });
+
+                const visibleRows = rows.filter((row) => !row.classList.contains('hidden'));
+                const sortMode = sortSelect.value;
+
+                visibleRows.sort((a, b) => {
+                    if (sortMode.startsWith('places')) {
+                        const aVal = parsePlaces(a.getAttribute('data-places'));
+                        const bVal = parsePlaces(b.getAttribute('data-places'));
+                        return sortMode === 'places-asc' ? aVal - bVal : bVal - aVal;
+                    }
+                    const aDate = new Date(a.getAttribute('data-date'));
+                    const bDate = new Date(b.getAttribute('data-date'));
+                    return sortMode === 'date-asc' ? aDate - bDate : bDate - aDate;
+                });
+
+                visibleRows.forEach((row) => tbody.appendChild(row));
+                if (emptyState) {
+                    emptyState.classList.toggle('hidden', visibleRows.length > 0);
+                }
+            };
+
+            searchInput.addEventListener('input', applyFilterSort);
+            sortSelect.addEventListener('change', applyFilterSort);
+            applyFilterSort();
+        })();
+    </script>
 {% endblock %}

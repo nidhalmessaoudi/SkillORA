@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -115,8 +116,6 @@ class AdminController extends AbstractController
         return $this->redirectToRoute('admin_users');
     }
 
-<<<<<<< Updated upstream
-=======
     #[Route('/user/{id}/promote/{role}', name: 'admin_user_promote', methods: ['POST'])]
     public function promoteUser(User $user, string $role): Response
     {
@@ -160,7 +159,6 @@ class AdminController extends AbstractController
         return $this->redirectToRoute('admin_users');
     }
 
->>>>>>> Stashed changes
     #[Route('/stats', name: 'admin_stats')]
     public function stats(): Response
     {
@@ -200,8 +198,6 @@ class AdminController extends AbstractController
             'user_growth' => $userGrowth,
         ]);
     }
-<<<<<<< Updated upstream
-=======
 
     #[Route('/stats/export', name: 'admin_stats_export')]
     public function exportStats(Request $request): Response
@@ -344,5 +340,4 @@ public function correctExam(UserEvaluation $userEvaluation, Request $request, En
     ]);
 }
 
->>>>>>> Stashed changes
 }

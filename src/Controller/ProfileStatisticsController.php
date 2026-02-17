@@ -5,10 +5,7 @@ namespace App\Controller;
 use App\Entity\Evaluation;
 use App\Repository\AnswerRepository;
 use App\Repository\EvaluationRepository;
-<<<<<<< Updated upstream
-=======
 use Doctrine\DBAL\Connection;
->>>>>>> Stashed changes
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,12 +14,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ProfileStatisticsController extends AbstractController
 {
-<<<<<<< Updated upstream
-=======
     public function __construct(
         private Connection $connection
     ) {}
->>>>>>> Stashed changes
     #[Route('/profile/statistics', name: 'profile_statistics', methods: ['GET'])]
     public function statisticsList(EvaluationRepository $evaluationRepository): Response
     {
@@ -31,13 +25,6 @@ class ProfileStatisticsController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-<<<<<<< Updated upstream
-        // Simple: show all evaluations (you can filter later)
-        $evaluations = $evaluationRepository->findBy([], ['id' => 'DESC']);
-
-        return $this->render('profile/statistics_list.html.twig', [
-            'evaluations' => $evaluations,
-=======
         // Get all evaluations
         $evaluations = $evaluationRepository->findBy([], ['id' => 'DESC']);
         
@@ -54,7 +41,6 @@ class ProfileStatisticsController extends AbstractController
         return $this->render('profile/statistics_list.html.twig', [
             'evaluations' => $evaluations,
             'userEvaluations' => $userEvaluations,
->>>>>>> Stashed changes
         ]);
     }
 

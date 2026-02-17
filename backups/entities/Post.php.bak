@@ -1,0 +1,200 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'post')]
+class Post
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private ?string $type = null;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $title = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $topic = null;
+
+    #[ORM\Column(type: 'text')]
+    private ?string $content = null;
+
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
+
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'posts')]
+    #[ORM\JoinTable(name: 'post_tag')]
+    private Collection $tags;
+
+    #[ORM\OneToMany(targetEntity: Reply::class, mappedBy: 'post', cascade: ['remove'])]
+    private Collection $replies;
+
+    #[ORM\OneToMany(targetEntity: Reaction::class, mappedBy: 'post', cascade: ['remove'])]
+    private Collection $reactions;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+        $this->replies = new ArrayCollection();
+        $this->reactions = new ArrayCollection();
+        $this->createdAt = new \DateTime();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getTopic(): ?string
+    {
+        return $this->topic;
+    }
+
+    public function setTopic(?string $topic): self
+    {
+        $this->topic = $topic;
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(string $content): self
+    {
+        $this->content = $content;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+        }
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        $this->tags->removeElement($tag);
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reply>
+     */
+    public function getReplies(): Collection
+    {
+        return $this->replies;
+    }
+
+    public function addReply(Reply $reply): self
+    {
+        if (!$this->replies->contains($reply)) {
+            $this->replies->add($reply);
+            $reply->setPost($this);
+        }
+        return $this;
+    }
+
+    public function removeReply(Reply $reply): self
+    {
+        if ($this->replies->removeElement($reply)) {
+            if ($reply->getPost() === $this) {
+                $reply->setPost(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reaction>
+     */
+    public function getReactions(): Collection
+    {
+        return $this->reactions;
+    }
+
+    public function addReaction(Reaction $reaction): self
+    {
+        if (!$this->reactions->contains($reaction)) {
+            $this->reactions->add($reaction);
+            $reaction->setPost($this);
+        }
+        return $this;
+    }
+
+    public function removeReaction(Reaction $reaction): self
+    {
+        if ($this->reactions->removeElement($reaction)) {
+            if ($reaction->getPost() === $this) {
+                $reaction->setPost(null);
+            }
+        }
+        return $this;
+    }
+}

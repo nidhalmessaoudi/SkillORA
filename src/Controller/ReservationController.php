@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -35,12 +36,126 @@ class ReservationController extends AbstractController
             $salleMap[$salle->getId()] = $salle;
         }
 
+        $placesByEventId = [];
+        $totalPlaces = 0;
+        foreach ($reservations as $reservation) {
+            $count = $this->parsePlaceCount((string) $reservation->getNombrePlaces());
+            $totalPlaces += $count;
+
+            $eventId = $reservation->getEventId();
+            if ($eventId) {
+                $placesByEventId[$eventId] = ($placesByEventId[$eventId] ?? 0) + $count;
+            }
+        }
+
+        arsort($placesByEventId);
+        $eventPlaceStats = [];
+        $maxPlacesByEvent = 0;
+        foreach ($placesByEventId as $eventId => $count) {
+            $eventTitle = $eventMap[$eventId]->getTitle() ?? 'Unknown';
+            $eventPlaceStats[] = [
+                'event_id' => $eventId,
+                'title' => $eventTitle,
+                'places' => $count,
+            ];
+            if ($count > $maxPlacesByEvent) {
+                $maxPlacesByEvent = $count;
+            }
+        }
+
+        $palette = [
+            '#2563eb',
+            '#0ea5e9',
+            '#14b8a6',
+            '#22c55e',
+            '#eab308',
+            '#f97316',
+            '#f43f5e',
+            '#a855f7',
+        ];
+
+        $pieSlices = [];
+        $pieOffset = 0.0;
+        foreach ($eventPlaceStats as $index => $stat) {
+            $percent = $totalPlaces > 0 ? ($stat['places'] / $totalPlaces) * 100 : 0;
+            $color = $palette[$index % count($palette)];
+            $pieSlices[] = [
+                'title' => $stat['title'],
+                'places' => $stat['places'],
+                'percent' => $percent,
+                'color' => $color,
+                'start' => $pieOffset,
+                'end' => $pieOffset + $percent,
+            ];
+            $pieOffset += $percent;
+        }
+
+        $pieGradientParts = [];
+        foreach ($pieSlices as $slice) {
+            $pieGradientParts[] = sprintf(
+                '%s %.2f%% %.2f%%',
+                $slice['color'],
+                $slice['start'],
+                $slice['end']
+            );
+        }
+        $pieGradient = !empty($pieGradientParts)
+            ? 'conic-gradient(' . implode(', ', $pieGradientParts) . ')'
+            : 'conic-gradient(#e2e8f0 0 100%)';
+
         return $this->render('pages/admin/reservations/index.html.twig', [
             'reservations' => $reservations,
             'reservation_total' => count($reservations),
             'event_map' => $eventMap,
             'salle_map' => $salleMap,
+            'total_places' => $totalPlaces,
+            'event_place_stats' => $eventPlaceStats,
+            'max_places_by_event' => $maxPlacesByEvent,
+            'pie_slices' => $pieSlices,
+            'pie_gradient' => $pieGradient,
         ]);
+    }
+
+    #[Route('/export', name: 'admin_reservations_export')]
+    public function export(): Response
+    {
+        $reservations = $this->entityManager->getRepository(Reservation::class)->findBy([], ['dateReservation' => 'DESC']);
+        $events = $this->entityManager->getRepository(Event::class)->findAll();
+        $salles = $this->entityManager->getRepository(Salle::class)->findAll();
+
+        $eventMap = [];
+        foreach ($events as $event) {
+            $eventMap[$event->getId()] = $event->getTitle() ?? 'Unknown';
+        }
+
+        $salleMap = [];
+        foreach ($salles as $salle) {
+            $salleMap[$salle->getId()] = $salle->getName() ?? 'Unknown';
+        }
+
+        $lines = [];
+        $lines[] = implode("\t", ['Event', 'Salle', 'Name', 'Places', 'Date']);
+
+        foreach ($reservations as $reservation) {
+            $eventTitle = $reservation->getEventId() ? ($eventMap[$reservation->getEventId()] ?? 'Unknown') : 'Unknown';
+            $salleName = $reservation->getSalleId() ? ($salleMap[$reservation->getSalleId()] ?? 'Unknown') : 'Unknown';
+            $name = trim(($reservation->getPrenom() ?? '') . ' ' . ($reservation->getNom() ?? ''));
+            $places = (string) ($reservation->getNombrePlaces() ?? '');
+            $date = $reservation->getDateReservation()?->format('Y-m-d H:i') ?? '';
+
+            $lines[] = implode("\t", [$eventTitle, $salleName, $name, $places, $date]);
+        }
+
+        $content = implode("\r\n", $lines) . "\r\n";
+        $response = new Response($content);
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'reservations_export.txt'
+        );
+        $response->headers->set('Content-Type', 'text/plain; charset=UTF-8');
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
     }
 
     #[Route('/new', name: 'admin_reservations_new')]
@@ -81,7 +196,11 @@ class ReservationController extends AbstractController
             $this->addFlash('error', 'Please fill in all required fields.');
         }
 
-       
+        return $this->render('pages/admin/reservations/new.html.twig', [
+            'events' => $events,
+            'salles' => $salles,
+            'formData' => $formData,
+        ]);
     }
 
     #[Route('/{id}', name: 'admin_reservations_show')]
@@ -111,6 +230,7 @@ class ReservationController extends AbstractController
         $salles = $this->entityManager->getRepository(Salle::class)->findBy([], ['name' => 'ASC']);
 
         $formData = $this->buildReservationFormData($request, $reservation);
+        $errors = [];
 
         if ($request->isMethod('POST')) {
             $missing = $this->validateReservationForm($formData);
@@ -118,6 +238,23 @@ class ReservationController extends AbstractController
 
             if (!$dateReservation) {
                 $missing[] = 'date_reservation';
+            }
+
+            if (!empty($missing)) {
+                $messages = [
+                    'event_id' => 'Champ obligatoire.',
+                    'salle_id' => 'Champ obligatoire.',
+                    'prenom' => 'Champ obligatoire.',
+                    'nom' => 'Champ obligatoire.',
+                    'telephone' => 'Champ obligatoire.',
+                    'nombre_places' => 'Champ obligatoire.',
+                    'date_reservation' => 'Champ obligatoire.',
+                ];
+                foreach ($missing as $field) {
+                    if (isset($messages[$field])) {
+                        $errors[$field] = $messages[$field];
+                    }
+                }
             }
 
             if (empty($missing)) {
@@ -145,21 +282,15 @@ class ReservationController extends AbstractController
             'form_data' => $formData,
             'events' => $events,
             'salles' => $salles,
+            'errors' => $errors,
         ]);
     }
 
     #[Route('/{id}/delete', name: 'admin_reservations_delete', methods: ['POST'])]
     public function delete(Reservation $reservation): Response
     {
-        $salle = null;
-        if ($reservation->getSalleId()) {
-            $salle = $this->entityManager->getRepository(Salle::class)->find($reservation->getSalleId());
-        }
-
+        // Remove only the reservation, NOT the salle
         $this->entityManager->remove($reservation);
-        if ($salle) {
-            $this->entityManager->remove($salle);
-        }
         $this->entityManager->flush();
 
         $this->addFlash('success', 'Reservation deleted successfully.');
@@ -227,5 +358,27 @@ class ReservationController extends AbstractController
         } catch (\Exception) {
             return null;
         }
+    }
+
+    private function parsePlaceCount(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        if (ctype_digit($value)) {
+            return (int) $value;
+        }
+
+        $values = array_filter(array_map('trim', explode(',', $value)), static fn ($item) => $item !== '');
+        $count = 0;
+        foreach ($values as $item) {
+            if (ctype_digit($item)) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }

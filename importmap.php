@@ -22,7 +22,4 @@ return [
     '@symfony/stimulus-bundle' => [
         'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
     ],
-    'three' => [
-        'version' => '0.182.0',
-    ],
 ];

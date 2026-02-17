@@ -18,19 +18,13 @@ class EvaluationType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Title',
-<<<<<<< Updated upstream
-=======
                 'trim' => true,
                 'empty_data' => '',
->>>>>>> Stashed changes
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
-<<<<<<< Updated upstream
-=======
                 'trim' => true,
->>>>>>> Stashed changes
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Type',
@@ -38,12 +32,6 @@ class EvaluationType extends AbstractType
                     'Quiz' => 'QUIZ',
                     'Exam' => 'EXAM',
                 ],
-<<<<<<< Updated upstream
-            ])
-            ->add('duration', IntegerType::class, [
-                'label' => 'Duration (minutes)',
-            ])
-=======
                 'placeholder' => 'Choose a type',
             ])
             ->add('duration', IntegerType::class, [
@@ -58,7 +46,6 @@ class EvaluationType extends AbstractType
     'attr' => ['min' => 1],
 ])
 
->>>>>>> Stashed changes
         ;
     }
 

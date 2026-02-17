@@ -1,287 +1,376 @@
 {% extends 'layouts/base.html.twig' %}
 
-{% block title %}{{ user.name }} - Profile | SkillHarbor{% endblock %}
+{% block title %}{{ user.fullName }} - Profile | SkillHarbor{% endblock %}
 
 {% block body %}
-<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
-    {# Profile Header #}
-    <div class="bg-gradient-to-br from-navy-900 via-navy-800 to-harbor-900 relative overflow-hidden">
-        <div class="absolute inset-0">
-            <div class="absolute top-0 right-0 w-96 h-96 bg-harbor-500/10 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 left-1/4 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl"></div>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-32 relative">
-            <div class="flex flex-col lg:flex-row lg:items-end gap-8">
-                {# Avatar & Basic Info #}
-                <div class="flex items-end gap-6">
-                    <div class="relative">
-                        <img src="{{ user.avatar }}" alt="{{ user.name }}" class="w-32 h-32 rounded-3xl object-cover ring-4 ring-white/20">
-                        <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center ring-4 ring-navy-900">
-                            <span class="text-white font-bold text-sm">{{ user.level }}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-display font-bold text-white mb-1">{{ user.name }}</h1>
-                        <p class="text-slate-400 mb-3">{{ user.title|default('Aspiring Developer') }}</p>
-                        <div class="flex items-center gap-4">
-                            <span class="badge bg-harbor-500/20 text-harbor-300 border border-harbor-500/30">
-                                <i data-lucide="award" class="w-3 h-3 mr-1"></i>
-                                {{ levels[user.level - 1].name|default('Beginner') }}
-                            </span>
-                            <span class="text-slate-400 text-sm">Joined {{ user.joinDate|default('January 2024') }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {# Stats Row #}
-                <div class="flex-1 flex flex-wrap justify-end gap-6">
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">{{ user.xp|number_format }}</p>
-                        <p class="text-slate-400 text-sm">Total XP</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">{{ user.streak }}</p>
-                        <p class="text-slate-400 text-sm">Day Streak</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">{{ user.completedCourses|default(5) }}</p>
-                        <p class="text-slate-400 text-sm">Courses</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">{{ user.badges|length }}</p>
-                        <p class="text-slate-400 text-sm">Badges</p>
-                    </div>
-                </div>
+<div class="min-h-screen bg-gray-50 dark:bg-navy-950">
+    {# Cover Photo & Profile Header #}
+    <div class="relative">
+        {# Cover Image #}
+        <div class="h-64 md:h-80 bg-gradient-to-br from-harbor-600 via-harbor-500 to-violet-600 relative overflow-hidden">
+            <div class="absolute inset-0">
+                <div class="absolute top-10 right-10 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+                <div class="absolute bottom-10 left-20 w-80 h-80 bg-violet-400/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
             </div>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10 pb-12">
-        {# Level Progress Card #}
-        <div class="card p-6 mb-8">
-            <div class="flex flex-col lg:flex-row lg:items-center gap-6">
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg font-semibold text-slate-900 dark:text-white">Level {{ user.level }}</span>
-                            <span class="text-slate-500 dark:text-slate-400">{{ levels[user.level - 1].name|default('Beginner') }}</span>
-                        </div>
-                        <span class="text-sm text-slate-500 dark:text-slate-400">
-                            {{ user.xp|number_format }} / {{ levels[user.level].minXp|default(10000)|number_format }} XP
-                        </span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-navy-800 rounded-full h-4 overflow-hidden">
-                        {% set levelProgress = ((user.xp - levels[user.level - 1].minXp|default(0)) / (levels[user.level].minXp|default(10000) - levels[user.level - 1].minXp|default(0)) * 100)|round %}
-                        <div class="h-full bg-gradient-to-r from-harbor-500 via-harbor-400 to-emerald-400 rounded-full transition-all duration-500 relative" style="width: {{ levelProgress }}%">
-                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
-                        </div>
-                    </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        {{ (levels[user.level].minXp|default(10000) - user.xp)|number_format }} XP until Level {{ user.level + 1 }}
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <div class="text-center p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20">
-                        <i data-lucide="flame" class="w-8 h-8 text-amber-500 mx-auto mb-1"></i>
-                        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ user.streak }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Day Streak</p>
-                    </div>
-                    <a href="{{ path('profile_achievements') }}" class="btn-primary">
-                        View All Badges
-                        <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
-                    </a>
-                </div>
+            
+            {# Edit Cover Button #}
+            <div class="absolute top-4 right-4">
+                <button class="btn-ghost bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 btn-sm">
+                    <i data-lucide="camera" class="w-4 h-4"></i>
+                    Edit Cover
+                </button>
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8">
-            {# Main Content #}
-            <div class="lg:col-span-2 space-y-8">
-                {# Recent Activity #}
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">Recent Activity</h2>
-                        <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium hover:text-harbor-700">View All</a>
-                    </div>
-
-                    <div class="space-y-4">
-                        {% set activities = [
-                            {icon: 'check-circle', color: 'emerald', text: 'Completed "React Fundamentals" course', time: '2 hours ago', xp: 500},
-                            {icon: 'trophy', color: 'amber', text: 'Earned "Quiz Master" badge', time: '5 hours ago', xp: 250},
-                            {icon: 'flame', color: 'orange', text: '7-day learning streak achieved!', time: 'Yesterday', xp: 100},
-                            {icon: 'award', color: 'violet', text: 'Reached Level 5!', time: 'Yesterday', xp: 0},
-                            {icon: 'play-circle', color: 'harbor', text: 'Started "Advanced TypeScript" course', time: '2 days ago', xp: 0}
-                        ] %}
-
-                        {% for activity in activities %}
-                        <div class="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-navy-800/50 transition-colors">
-                            <div class="w-10 h-10 rounded-xl bg-{{ activity.color }}-100 dark:bg-{{ activity.color }}-900/30 flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="{{ activity.icon }}" class="w-5 h-5 text-{{ activity.color }}-600 dark:text-{{ activity.color }}-400"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-slate-900 dark:text-white">{{ activity.text }}</p>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ activity.time }}</p>
-                            </div>
-                            {% if activity.xp > 0 %}
-                            <span class="badge bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
-                                +{{ activity.xp }} XP
-                            </span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                {# Learning Stats #}
-                <div class="card p-6">
-                    <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white mb-6">Learning Stats</h2>
-
-                    <div class="grid sm:grid-cols-2 gap-6">
-                        {# Weekly Study Time #}
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-medium text-slate-900 dark:text-white">Weekly Study Time</h3>
-                                <span class="text-sm text-emerald-600 dark:text-emerald-400">+12% vs last week</span>
-                            </div>
-                            <div class="flex items-end justify-between h-32">
-                                {% set days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
-                                {% set hours = [2.5, 3.2, 4.1, 2.8, 3.5, 5.0, 4.2] %}
-                                {% for i in 0..6 %}
-                                <div class="flex flex-col items-center gap-2">
-                                    <div class="w-8 bg-harbor-100 dark:bg-harbor-900/30 rounded-t-lg relative overflow-hidden" style="height: {{ hours[i] * 20 }}px">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-harbor-500 to-harbor-400"></div>
+        {# Profile Card #}
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="relative -mt-20 md:-mt-24">
+                <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-xl border border-navy-200 dark:border-navy-800 p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        {# Profile Picture #}
+                        <div class="relative group">
+                            <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden ring-4 ring-white dark:ring-navy-900 shadow-xl">
+                                {% if user.avatar %}
+                                    <img src="/uploads/avatars/{{ user.avatar }}" alt="{{ user.fullName }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <div class="w-full h-full bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white text-4xl md:text-5xl font-bold">
+                                        {{ user.firstName|slice(0,1)|upper }}{{ user.lastName|slice(0,1)|upper }}
                                     </div>
-                                    <span class="text-xs text-slate-500">{{ days[i] }}</span>
-                                </div>
-                                {% endfor %}
+                                {% endif %}
                             </div>
+                            {# Edit Photo Button #}
+                            <a href="{{ path('user_profile_settings') }}" class="absolute bottom-2 right-2 w-10 h-10 bg-white dark:bg-navy-800 rounded-xl shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="camera" class="w-5 h-5 text-navy-600 dark:text-navy-400"></i>
+                            </a>
                         </div>
 
-                        {# Skills Progress #}
-                        <div>
-                            <h3 class="font-medium text-slate-900 dark:text-white mb-4">Top Skills</h3>
-                            <div class="space-y-4">
-                                {% set skills = [
-                                    {name: 'JavaScript', progress: 85, color: 'amber'},
-                                    {name: 'React', progress: 72, color: 'harbor'},
-                                    {name: 'Python', progress: 65, color: 'emerald'},
-                                    {name: 'UI/UX Design', progress: 58, color: 'violet'}
-                                ] %}
-                                {% for skill in skills %}
+                        {# Profile Info #}
+                        <div class="flex-1">
+                            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-sm text-slate-700 dark:text-slate-300">{{ skill.name }}</span>
-                                        <span class="text-sm text-slate-500">{{ skill.progress }}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-200 dark:bg-navy-800 rounded-full h-2">
-                                        <div class="h-full bg-{{ skill.color }}-500 rounded-full" style="width: {{ skill.progress }}%"></div>
+                                    <h1 class="text-2xl md:text-3xl font-display font-bold text-navy-900 dark:text-white mb-2">
+                                        {{ user.fullName }}
+                                    </h1>
+                                    {% if user.fieldOfStudy %}
+                                    <p class="text-body-lg text-navy-600 dark:text-navy-400 mb-3">
+                                        <i data-lucide="graduation-cap" class="w-5 h-5 inline mr-1"></i>
+                                        {{ user.fieldOfStudy }}
+                                    </p>
+                                    {% endif %}
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <span class="inline-flex items-center gap-2 px-3 py-1 bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 rounded-lg text-body-sm font-medium">
+                                            <i data-lucide="user" class="w-4 h-4"></i>
+                                            {{ user.role|capitalize }}
+                                        </span>
+                                        {% if user.university %}
+                                        <span class="text-body-sm text-navy-500 dark:text-navy-400">
+                                            <i data-lucide="school" class="w-4 h-4 inline mr-1"></i>
+                                            {{ user.university }}
+                                        </span>
+                                        {% endif %}
+                                        {% if user.country %}
+                                        <span class="text-body-sm text-navy-500 dark:text-navy-400">
+                                            <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                            {{ user.country }}
+                                        </span>
+                                        {% endif %}
                                     </div>
                                 </div>
-                                {% endfor %}
+                                
+                                {# Action Buttons #}
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('user_profile_settings') }}" class="btn-outline btn-sm">
+                                        <i data-lucide="settings" class="w-4 h-4"></i>
+                                        <span class="hidden sm:inline">Edit Profile</span>
+                                    </a>
+                                    <button class="btn-primary btn-sm">
+                                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                                        <span class="hidden sm:inline">Share</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {# Stats Row #}
+                            <div class="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-navy-200 dark:border-navy-800">
+                                <div class="text-center">
+                                    <div class="text-2xl md:text-3xl font-bold text-navy-900 dark:text-white">12</div>
+                                    <div class="text-caption md:text-body-sm text-navy-500 dark:text-navy-400 mt-1">Courses</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl md:text-3xl font-bold text-navy-900 dark:text-white">45</div>
+                                    <div class="text-caption md:text-body-sm text-navy-500 dark:text-navy-400 mt-1">Hours</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl md:text-3xl font-bold text-navy-900 dark:text-white">8</div>
+                                    <div class="text-caption md:text-body-sm text-navy-500 dark:text-navy-400 mt-1">Certificates</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl md:text-3xl font-bold text-navy-900 dark:text-white">24</div>
+                                    <div class="text-caption md:text-body-sm text-navy-500 dark:text-navy-400 mt-1">Badges</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {# Certificates #}
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">Certificates</h2>
-                        <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium hover:text-harbor-700">View All</a>
+            {# Main Content #}
+            <div class="grid lg:grid-cols-3 gap-6 mt-6 pb-12">
+                {# Left Column #}
+                <div class="lg:col-span-2 space-y-6">
+                    {# About Section #}
+                    {% if user.bio or user.phone or user.email %}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <h2 class="text-xl font-display font-bold text-navy-900 dark:text-white mb-4">
+                            <i data-lucide="user" class="w-5 h-5 inline mr-2 text-harbor-500"></i>
+                            About
+                        </h2>
+                        {% if user.bio %}
+                        <p class="text-body-md text-navy-600 dark:text-navy-400 mb-4">
+                            {{ user.bio }}
+                        </p>
+                        {% endif %}
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                                    <i data-lucide="mail" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                                </div>
+                                <div>
+                                    <div class="text-caption text-navy-500 dark:text-navy-400">Email</div>
+                                    <div class="text-body-sm text-navy-900 dark:text-white">{{ user.email }}</div>
+                                </div>
+                            </div>
+                            {% if user.phone %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                                    <i data-lucide="phone" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                                </div>
+                                <div>
+                                    <div class="text-caption text-navy-500 dark:text-navy-400">Phone</div>
+                                    <div class="text-body-sm text-navy-900 dark:text-white">{{ user.phone }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if user.dateOfBirth %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                                    <i data-lucide="calendar" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                                </div>
+                                <div>
+                                    <div class="text-caption text-navy-500 dark:text-navy-400">Age</div>
+                                    <div class="text-body-sm text-navy-900 dark:text-white">{{ user.age }} years old</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                                    <i data-lucide="calendar-days" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                                </div>
+                                <div>
+                                    <div class="text-caption text-navy-500 dark:text-navy-400">Joined</div>
+                                    <div class="text-body-sm text-navy-900 dark:text-white">{{ user.createdAt|date('F Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# Learning Progress #}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-display font-bold text-navy-900 dark:text-white">
+                                <i data-lucide="trending-up" class="w-5 h-5 inline mr-2 text-harbor-500"></i>
+                                Learning Progress
+                            </h2>
+                            <a href="{{ path('learn_index') }}" class="text-body-sm text-harbor-600 dark:text-harbor-400 hover:underline">
+                                View All Courses
+                            </a>
+                        </div>
+
+                        {# Current Courses #}
+                        <div class="space-y-4">
+                            <div class="p-4 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                                <div class="flex items-center gap-4 mb-3">
+                                    <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center">
+                                        <i data-lucide="code-2" class="w-8 h-8 text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-navy-900 dark:text-white">Web Development Fundamentals</h3>
+                                        <p class="text-body-sm text-navy-500 dark:text-navy-400">12 of 24 lessons completed</p>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-navy-700 rounded-full h-2">
+                                    <div class="h-full bg-gradient-to-r from-harbor-500 to-harbor-400 rounded-full transition-all" style="width: 50%"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-caption text-navy-500 dark:text-navy-400">50% Complete</span>
+                                    <span class="text-caption font-medium text-harbor-600 dark:text-harbor-400">Continue Learning →</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                                <div class="flex items-center gap-4 mb-3">
+                                    <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center">
+                                        <i data-lucide="palette" class="w-8 h-8 text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-navy-900 dark:text-white">UI/UX Design Principles</h3>
+                                        <p class="text-body-sm text-navy-500 dark:text-navy-400">8 of 20 lessons completed</p>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-navy-700 rounded-full h-2">
+                                    <div class="h-full bg-gradient-to-r from-violet-500 to-violet-400 rounded-full transition-all" style="width: 40%"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-caption text-navy-500 dark:text-navy-400">40% Complete</span>
+                                    <span class="text-caption font-medium text-violet-600 dark:text-violet-400">Continue Learning →</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        {% for i in 1..2 %}
-                        <div class="group relative p-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-navy-800 dark:to-navy-900 border border-slate-200 dark:border-navy-700 hover:shadow-lg transition-all">
-                            <div class="absolute top-4 right-4">
-                                <i data-lucide="award" class="w-8 h-8 text-amber-500 opacity-30"></i>
-                            </div>
-                            <div class="w-12 h-12 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center mb-4">
-                                <i data-lucide="scroll-text" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
-                            </div>
-                            <h3 class="font-semibold text-slate-900 dark:text-white mb-1">{{ i == 1 ? 'React Professional' : 'JavaScript Mastery' }}</h3>
-                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Completed {{ i == 1 ? 'Jan 15, 2024' : 'Dec 20, 2023' }}</p>
-                            <div class="flex items-center gap-2">
-                                <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium hover:text-harbor-700 flex items-center gap-1">
+                    {# Certificates #}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-display font-bold text-navy-900 dark:text-white">
+                                <i data-lucide="award" class="w-5 h-5 inline mr-2 text-harbor-500"></i>
+                                Certificates
+                            </h2>
+                            <a href="#" class="text-body-sm text-harbor-600 dark:text-harbor-400 hover:underline">
+                                View All
+                            </a>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="group relative p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800/50 hover:shadow-lg transition-all cursor-pointer">
+                                <div class="absolute top-4 right-4 opacity-20">
+                                    <i data-lucide="shield-check" class="w-12 h-12 text-amber-600"></i>
+                                </div>
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mb-4">
+                                    <i data-lucide="scroll-text" class="w-6 h-6 text-amber-600 dark:text-amber-400"></i>
+                                </div>
+                                <h3 class="font-semibold text-navy-900 dark:text-white mb-1">JavaScript Professional</h3>
+                                <p class="text-body-sm text-navy-600 dark:text-navy-400 mb-4">Completed {{ user.createdAt|date('M Y') }}</p>
+                                <button class="btn-outline btn-sm border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40">
                                     <i data-lucide="download" class="w-4 h-4"></i>
                                     Download
-                                </a>
-                                <span class="text-slate-300 dark:text-slate-600">•</span>
-                                <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium hover:text-harbor-700 flex items-center gap-1">
-                                    <i data-lucide="share-2" class="w-4 h-4"></i>
-                                    Share
-                                </a>
+                                </button>
+                            </div>
+
+                            <div class="group relative p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800/50 hover:shadow-lg transition-all cursor-pointer">
+                                <div class="absolute top-4 right-4 opacity-20">
+                                    <i data-lucide="shield-check" class="w-12 h-12 text-emerald-600"></i>
+                                </div>
+                                <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-4">
+                                    <i data-lucide="scroll-text" class="w-6 h-6 text-emerald-600 dark:text-emerald-400"></i>
+                                </div>
+                                <h3 class="font-semibold text-navy-900 dark:text-white mb-1">React Fundamentals</h3>
+                                <p class="text-body-sm text-navy-600 dark:text-navy-400 mb-4">Completed {{ user.createdAt|date('M Y') }}</p>
+                                <button class="btn-outline btn-sm border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    Download
+                                </button>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
-            </div>
 
-            {# Sidebar #}
-            <div class="space-y-6">
-                {# Badges Showcase #}
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-slate-900 dark:text-white">Badges</h3>
-                        <a href="{{ path('profile_achievements') }}" class="text-harbor-600 dark:text-harbor-400 text-sm">View All</a>
+                {# Right Sidebar #}
+                <div class="space-y-6">
+                    {# Learning Streak #}
+                    <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display font-bold text-xl">Learning Streak</h3>
+                            <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                                <i data-lucide="flame" class="w-7 h-7"></i>
+                            </div>
+                        </div>
+                        <div class="text-5xl font-bold mb-2">7</div>
+                        <p class="text-white/90">Days in a row! Keep it up!</p>
+                        <div class="flex gap-1 mt-4">
+                            {% for day in 1..7 %}
+                            <div class="flex-1 h-2 bg-white/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-white rounded-full"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-3">
-                        {% for badge in badges|slice(0, 8) %}
-                        <div class="group relative">
-                            <div class="w-full aspect-square rounded-xl bg-gradient-to-br {{ badge.color }} flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                    {# Achievements #}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display font-semibold text-navy-900 dark:text-white">Achievements</h3>
+                            <a href="{{ path('profile_achievements') }}" class="text-body-sm text-harbor-600 dark:text-harbor-400 hover:underline">See All</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-4 gap-3">
+                            {% set badges = [
+                                {icon: 'trophy', color: 'from-amber-400 to-orange-500'},
+                                {icon: 'zap', color: 'from-yellow-400 to-amber-500'},
+                                {icon: 'star', color: 'from-blue-400 to-cyan-500'},
+                                {icon: 'heart', color: 'from-pink-400 to-rose-500'},
+                                {icon: 'shield', color: 'from-purple-400 to-violet-500'},
+                                {icon: 'crown', color: 'from-amber-500 to-yellow-600'},
+                                {icon: 'target', color: 'from-emerald-400 to-teal-500'},
+                                {icon: 'award', color: 'from-indigo-400 to-purple-500'}
+                            ] %}
+                            {% for badge in badges %}
+                            <div class="aspect-square rounded-xl bg-gradient-to-br {{ badge.color }} flex items-center justify-center hover:scale-110 transition-transform cursor-pointer shadow-md">
                                 <i data-lucide="{{ badge.icon }}" class="w-6 h-6 text-white"></i>
                             </div>
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-slate-900 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                {{ badge.name }}
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                {# Enrolled Courses #}
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-slate-900 dark:text-white">Current Courses</h3>
-                        <a href="{{ path('learn_index') }}" class="text-harbor-600 dark:text-harbor-400 text-sm">View All</a>
                     </div>
 
-                    <div class="space-y-4">
-                        {% for course in enrolledCourses|slice(0, 3) %}
-                        <a href="{{ path('course_show', {slug: course.slug}) }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800/50 transition-colors">
-                            <img src="{{ course.thumbnail }}" alt="{{ course.title }}" class="w-14 h-14 rounded-xl object-cover">
-                            <div class="flex-1 min-w-0">
-                                <p class="font-medium text-slate-900 dark:text-white text-sm truncate">{{ course.title }}</p>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <div class="flex-1 bg-slate-200 dark:bg-navy-800 rounded-full h-1.5">
-                                        <div class="h-full bg-harbor-500 rounded-full" style="width: {{ course.progress|default(45) }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-slate-500">{{ course.progress|default(45) }}%</span>
+                    {# Skills #}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <h3 class="font-display font-semibold text-navy-900 dark:text-white mb-4">Top Skills</h3>
+                        
+                        <div class="space-y-4">
+                            {% set skills = [
+                                {name: 'JavaScript', level: 85, color: 'amber'},
+                                {name: 'React', level: 72, color: 'harbor'},
+                                {name: 'Python', level: 68, color: 'emerald'},
+                                {name: 'CSS/Tailwind', level: 90, color: 'violet'}
+                            ] %}
+                            {% for skill in skills %}
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-body-sm font-medium text-navy-900 dark:text-white">{{ skill.name }}</span>
+                                    <span class="text-caption text-navy-500 dark:text-navy-400">{{ skill.level }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-navy-800 rounded-full h-2">
+                                    <div class="h-full bg-{{ skill.color }}-500 rounded-full transition-all" style="width: {{ skill.level }}%"></div>
                                 </div>
                             </div>
-                        </a>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
 
-                {# Leaderboard Position #}
-                <div class="card p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/50">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="trophy" class="w-7 h-7 text-white"></i>
-                        </div>
-                        <div>
-                            <p class="text-3xl font-display font-bold text-slate-900 dark:text-white">#{{ user.rank|default(42) }}</p>
-                            <p class="text-slate-600 dark:text-slate-400">Global Rank</p>
+                    {# Quick Actions #}
+                    <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-navy-200 dark:border-navy-800 p-6">
+                        <h3 class="font-display font-semibold text-navy-900 dark:text-white mb-4">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <a href="{{ path('courses_index') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-navy-800 transition-colors group">
+                                <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <i data-lucide="search" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                                </div>
+                                <span class="text-body-sm text-navy-900 dark:text-white">Browse Courses</span>
+                            </a>
+                            <a href="{{ path('profile_achievements') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-navy-800 transition-colors group">
+                                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <i data-lucide="trophy" class="w-5 h-5 text-amber-600 dark:text-amber-400"></i>
+                                </div>
+                                <span class="text-body-sm text-navy-900 dark:text-white">View Achievements</span>
+                            </a>
+                            <a href="{{ path('user_profile_settings') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-navy-800 transition-colors group">
+                                <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <i data-lucide="settings" class="w-5 h-5 text-violet-600 dark:text-violet-400"></i>
+                                </div>
+                                <span class="text-body-sm text-navy-900 dark:text-white">Settings</span>
+                            </a>
                         </div>
                     </div>
-                    <a href="{{ path('profile_leaderboard') }}" class="btn bg-amber-500 hover:bg-amber-600 text-white w-full justify-center">
-                        View Leaderboard
-                    </a>
                 </div>
             </div>
         </div>

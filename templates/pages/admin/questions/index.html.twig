@@ -51,11 +51,7 @@
               <div class="text-body-sm font-medium text-navy-900 dark:text-white">
                 #{{ evalId }} — {{ block.evaluation.title }}
               </div>
-<<<<<<< Updated upstream
-              <div class="text-caption text-navy-500">
-=======
               <div class="text-caption text-navy-500 dark:text-navy-400">
->>>>>>> Stashed changes
                 Type: {{ block.evaluation.type }}
               </div>
             </td>
@@ -65,11 +61,7 @@
                 Total: <b>{{ block.items|length }}</b>
               </div>
 
-<<<<<<< Updated upstream
-              <div class="mt-2 text-caption text-navy-500 space-y-2">
-=======
               <div class="mt-2 text-caption text-navy-500 dark:text-navy-400 space-y-2">
->>>>>>> Stashed changes
                 {% for q in block.items %}
                   <div class="flex items-start justify-between gap-4">
                     <div class="pr-2">
@@ -84,22 +76,10 @@
               </div>
             </td>
 
-<<<<<<< Updated upstream
-            {# ✅ Actions pour CHAQUE question #}
-=======
->>>>>>> Stashed changes
             <td class="px-6 py-4 align-top text-right">
               <div class="flex flex-col items-end gap-2">
                 {% for q in block.items %}
                   <div class="flex items-center justify-end gap-2">
-<<<<<<< Updated upstream
-                    <span class="text-caption text-navy-500">#{{ q.id }}</span>
-
-                    <a href="{{ path('admin_question_show', {id: q.id}) }}"
-                       class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
-                      View
-                    </a>
-=======
                     <span class="text-caption text-navy-500 dark:text-navy-400">#{{ q.id }}</span>
 
                     {# Si tu n'as pas la route show, supprime ce bouton #}
@@ -107,7 +87,6 @@
                        class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
                       View
                     </a> #}
->>>>>>> Stashed changes
 
                     <a href="{{ path('admin_question_edit', {id: q.id}) }}"
                        class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
@@ -120,11 +99,7 @@
           </tr>
         {% else %}
           <tr>
-<<<<<<< Updated upstream
-            <td colspan="3" class="px-6 py-12 text-center text-navy-500">
-=======
             <td colspan="3" class="px-6 py-12 text-center text-navy-500 dark:text-navy-400">
->>>>>>> Stashed changes
               No quiz evaluations found.
             </td>
           </tr>
@@ -166,11 +141,7 @@
               <div class="text-body-sm font-medium text-navy-900 dark:text-white">
                 #{{ evalId }} — {{ block.evaluation.title }}
               </div>
-<<<<<<< Updated upstream
-              <div class="text-caption text-navy-500">
-=======
               <div class="text-caption text-navy-500 dark:text-navy-400">
->>>>>>> Stashed changes
                 Type: {{ block.evaluation.type }}
               </div>
             </td>
@@ -180,11 +151,7 @@
                 Total: <b>{{ block.items|length }}</b>
               </div>
 
-<<<<<<< Updated upstream
-              <div class="mt-2 text-caption text-navy-500 space-y-2">
-=======
               <div class="mt-2 text-caption text-navy-500 dark:text-navy-400 space-y-2">
->>>>>>> Stashed changes
                 {% for q in block.items %}
                   <div class="flex items-start justify-between gap-4">
                     <div class="pr-2">
@@ -199,29 +166,16 @@
               </div>
             </td>
 
-<<<<<<< Updated upstream
-            {# ✅ Actions pour CHAQUE question #}
-=======
->>>>>>> Stashed changes
             <td class="px-6 py-4 align-top text-right">
               <div class="flex flex-col items-end gap-2">
                 {% for q in block.items %}
                   <div class="flex items-center justify-end gap-2">
-<<<<<<< Updated upstream
-                    <span class="text-caption text-navy-500">#{{ q.id }}</span>
-
-                    <a href="{{ path('admin_question_show', {id: q.id}) }}"
-                       class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
-                      View
-                    </a>
-=======
                     <span class="text-caption text-navy-500 dark:text-navy-400">#{{ q.id }}</span>
 
                     {# <a href="{{ path('admin_question_show', {id: q.id}) }}"
                        class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
                       View
                     </a> #}
->>>>>>> Stashed changes
 
                     <a href="{{ path('admin_question_edit', {id: q.id}) }}"
                        class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
@@ -234,11 +188,7 @@
           </tr>
         {% else %}
           <tr>
-<<<<<<< Updated upstream
-            <td colspan="3" class="px-6 py-12 text-center text-navy-500">
-=======
             <td colspan="3" class="px-6 py-12 text-center text-navy-500 dark:text-navy-400">
->>>>>>> Stashed changes
               No exam evaluations found.
             </td>
           </tr>
@@ -247,8 +197,4 @@
     </table>
   </div>
 </div>
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 {% endblock %}

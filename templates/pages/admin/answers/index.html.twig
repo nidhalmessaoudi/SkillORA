@@ -3,88 +3,6 @@
 {% block title %}Answers - Admin{% endblock %}
 
 {% block admin_content %}
-<<<<<<< Updated upstream
-<h1 class="text-display-lg font-bold mb-6">Answers grouped by Evaluation</h1>
-
-{% for evalId, block in grouped %}
-  <div class="card mb-8">
-    <div class="p-6 border-b flex justify-between items-center">
-      <div>
-        <h2 class="text-heading-lg font-semibold">
-          Evaluation #{{ evalId }} — {{ block.evaluation.title }}
-        </h2>
-        <p class="text-caption text-navy-500">
-          Type: {{ block.evaluation.type }}
-        </p>
-      </div>
-
-      <div class="flex gap-2">
-        <span class="badge bg-harbor-100 text-harbor-700">
-          Correct: {{ block.correct }}
-        </span>
-        <span class="badge bg-danger-100 text-danger-700">
-          Incorrect: {{ block.incorrect }}
-        </span>
-      </div>
-    </div>
-
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-navy-50">
-          <tr>
-            <th class="px-6 py-3 text-left">ID</th>
-            <th class="px-6 py-3 text-left">Answer</th>
-            <th class="px-6 py-3 text-left">Question</th>
-            <th class="px-6 py-3 text-left">Correct?</th>
-            <th class="px-6 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody class="divide-y">
-          {% for a in block.answers %}
-            <tr class="hover:bg-navy-50">
-              <td class="px-6 py-4">#{{ a.id }}</td>
-
-              <td class="px-6 py-4">
-                {{ a.content|slice(0, 80) }}{% if a.content|length > 80 %}…{% endif %}
-              </td>
-
-              <td class="px-6 py-4">
-                #{{ a.question.id }} — {{ a.question.content|slice(0, 50) }}…
-              </td>
-
-              <td class="px-6 py-4">
-                {% if a.isCorrect is same as(true) %}
-                  <span class="badge bg-harbor-100 text-harbor-700">✅ Correct</span>
-                {% elseif a.isCorrect is same as(false) %}
-                  <span class="badge bg-danger-100 text-danger-700">❌ Incorrect</span>
-                {% else %}
-                  <span class="badge bg-navy-100 text-navy-700">N/A</span>
-                {% endif %}
-              </td>
-
-              <td class="px-6 py-4 text-right">
-                <a href="{{ path('admin_answer_show', {id: a.id}) }}"
-                   class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
-                  View
-                </a>
-              </td>
-            </tr>
-          {% else %}
-            <tr>
-              <td colspan="5" class="px-6 py-8 text-center text-navy-500">
-                No answers for this evaluation.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-{% else %}
-  <p class="text-navy-500">No answers found.</p>
-{% endfor %}
-=======
 {% set backUrl = back ?? app.request.query.get('back') %}
 
 <div class="mb-6 flex items-center justify-between">
@@ -173,6 +91,5 @@
     <div class="card p-6 text-gray-500">No answers found.</div>
   {% endif %}
 {% endif %}
->>>>>>> Stashed changes
 
 {% endblock %}

@@ -17,7 +17,10 @@
 
             <div>
                 <label class="input-label" for="title">Title</label>
-                <input id="title" name="title" type="text" class="input" value="{{ form_data.title|default('') }}" required>
+                {% if errors.title is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.title }}</p>
+                {% endif %}
+                <input id="title" name="title" type="text" class="input" value="{{ form_data.title|default('') }}">
             </div>
 
             <div>
@@ -28,19 +31,28 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="start_date">Start Date</label>
-                    <input id="start_date" name="start_date" type="datetime-local" class="input" value="{{ form_data.start_date|default('') }}" required>
+                    {% if errors.start_date is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.start_date }}</p>
+                    {% endif %}
+                    <input id="start_date" name="start_date" type="datetime-local" class="input" value="{{ form_data.start_date|default('') }}">
                     <p class="text-caption text-navy-500 dark:text-navy-400 mt-1">Defaults to the current time, but you can edit it.</p>
                 </div>
                 <div>
                     <label class="input-label" for="end_date">End Date</label>
-                    <input id="end_date" name="end_date" type="datetime-local" class="input" value="{{ form_data.end_date|default('') }}" required>
+                    {% if errors.end_date is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.end_date }}</p>
+                    {% endif %}
+                    <input id="end_date" name="end_date" type="datetime-local" class="input" value="{{ form_data.end_date|default('') }}">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="event_type">Event Type</label>
-                    <select id="event_type" name="event_type" class="select" required></select>
+                    {% if errors.event_type is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.event_type }}</p>
+                    {% endif %}
+                    <select id="event_type" name="event_type" class="select"></select>
                     <div class="mt-2 flex items-center gap-2">
                         <input id="event_type_new" type="text" class="input" placeholder="Add new type">
                         <button type="button" id="event_type_add" class="btn-secondary btn-sm">Add</button>
@@ -49,7 +61,10 @@
                 </div>
                 <div>
                     <label class="input-label" for="price_type">Prix</label>
-                    <select id="price_type" name="price_type" class="input" required>
+                    {% if errors.price_type is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.price_type }}</p>
+                    {% endif %}
+                    <select id="price_type" name="price_type" class="input">
                         <option value="">Selectionnez un type</option>
                         <option value="gratuit" {% if form_data.price_type == 'gratuit' %}selected{% endif %}>Gratuit</option>
                         <option value="payant" {% if form_data.price_type == 'payant' %}selected{% endif %}>Payant</option>
@@ -58,6 +73,9 @@
 
                 <div id="price-field" class="space-y-2" style="display: none;">
                     <label class="input-label" for="price">Prix</label>
+                    {% if errors.price is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.price }}</p>
+                    {% endif %}
                     <div class="flex items-center gap-2">
                         <input id="price" name="price" type="number" step="0.01" min="0" class="input" value="{{ form_data.price|default('') }}" placeholder="Entrez le prix">
                         
@@ -83,12 +101,18 @@
 
             <div>
                 <label class="input-label" for="salle_name">Salle Name</label>
-                <input id="salle_name" name="salle_name" type="text" class="input" value="{{ form_data.salle_name|default('') }}" required>
+                {% if errors.salle_name is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.salle_name }}</p>
+                {% endif %}
+                <input id="salle_name" name="salle_name" type="text" class="input" value="{{ form_data.salle_name|default('') }}">
             </div>
 
             <div>
                 <label class="input-label" for="salle_location">Location</label>
-                <input id="salle_location" name="salle_location" type="text" class="input" value="{{ form_data.salle_location|default('') }}" required>
+                {% if errors.salle_location is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.salle_location }}</p>
+                {% endif %}
+                <input id="salle_location" name="salle_location" type="text" class="input" value="{{ form_data.salle_location|default('') }}">
                 <input type="hidden" id="salle_lat" name="salle_lat" value="{{ form_data.salle_lat|default('') }}">
                 <input type="hidden" id="salle_lng" name="salle_lng" value="{{ form_data.salle_lng|default('') }}">
                 <div id="location-suggestions" class="mt-2 space-y-1"></div>
@@ -99,11 +123,17 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="salle_max_participants">Max Participants</label>
-                    <input id="salle_max_participants" name="salle_max_participants" type="number" min="1" class="input" value="{{ form_data.salle_max_participants|default('') }}" required>
+                    {% if errors.salle_max_participants is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.salle_max_participants }}</p>
+                    {% endif %}
+                    <input id="salle_max_participants" name="salle_max_participants" type="number" min="1" class="input" value="{{ form_data.salle_max_participants|default('') }}">
                 </div>
                 <div>
                     <label class="input-label" for="salle_duration">Duration (minutes)</label>
-                    <input id="salle_duration" name="salle_duration" type="number" min="1" class="input" value="{{ form_data.salle_duration|default('') }}" required>
+                    {% if errors.salle_duration is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.salle_duration }}</p>
+                    {% endif %}
+                    <input id="salle_duration" name="salle_duration" type="number" min="1" class="input" value="{{ form_data.salle_duration|default('') }}">
                 </div>
             </div>
 
@@ -143,11 +173,8 @@
         const togglePriceField = () => {
             const isPaid = priceType.value === 'payant';
             priceField.style.display = isPaid ? 'block' : 'none';
-            if (priceInput) {
-                priceInput.required = isPaid;
-                if (!isPaid) {
-                    priceInput.value = '';
-                }
+            if (priceInput && !isPaid) {
+                priceInput.value = '';
             }
         };
 

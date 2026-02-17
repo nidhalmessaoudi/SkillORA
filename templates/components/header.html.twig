@@ -38,19 +38,12 @@
                 <a href="{{ path('events_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Events
                 </a>
-<<<<<<< Updated upstream
-                  <a href="{{ path('user_evaluation_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
-                    Evaluations
-                </a>
-              
-=======
                 <a href="{{ path('user_evaluation_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Evaluations
                 </a>
                 <a href="{{ path('public_rendezvous_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Rendez-vous
                 </a>
->>>>>>> Stashed changes
 
                 {# Instructor Dropdown #}
                 <div class="relative" data-dropdown>
@@ -107,8 +100,6 @@
                     <i data-lucide="search" class="w-5 h-5"></i>
                 </button>
 
-<<<<<<< Updated upstream
-=======
                 {# Admin Quick Access #}
                 {% if app.user and is_granted('ROLE_ADMIN') %}
                 <a href="{{ path('admin_dashboard') }}" class="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 hover:bg-harbor-200 dark:hover:bg-harbor-900/50 transition-colors" title="Admin Dashboard">
@@ -123,7 +114,6 @@
                 </a>
                 {% endif %}
 
->>>>>>> Stashed changes
                 {# Theme Toggle #}
                 <button
                     onclick="toggleTheme()"
@@ -199,16 +189,24 @@
                         onclick="toggleDropdown('user-dropdown')"
                         class="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-navy-100 dark:bg-navy-800 hover:bg-navy-200 dark:hover:bg-navy-700 transition-colors"
                     >
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-harbor-600 to-harbor-500 flex items-center justify-center text-white font-semibold text-sm">
-                            {{ app.user.firstName|slice(0, 1)|upper }}{{ app.user.lastName|slice(0, 1)|upper }}
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-harbor-600 to-harbor-500 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+                            {% if app.user.avatar %}
+                                <img src="/uploads/avatars/{{ app.user.avatar }}" alt="Profile" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ app.user.firstName|slice(0, 1)|upper }}{{ app.user.lastName|slice(0, 1)|upper }}
+                            {% endif %}
                         </div>
                         <i data-lucide="chevron-down" class="w-4 h-4 text-navy-500 hidden sm:block"></i>
                     </button>
                     <div id="user-dropdown" class="dropdown hidden right-0 w-64">
                         <div class="px-4 py-3 border-b border-navy-100 dark:border-navy-800">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-600 to-harbor-500 flex items-center justify-center text-white font-semibold">
-                                    {{ app.user.firstName|slice(0, 1)|upper }}{{ app.user.lastName|slice(0, 1)|upper }}
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-600 to-harbor-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                    {% if app.user.avatar %}
+                                        <img src="/uploads/avatars/{{ app.user.avatar }}" alt="Profile" class="w-full h-full object-cover">
+                                    {% else %}
+                                        {{ app.user.firstName|slice(0, 1)|upper }}{{ app.user.lastName|slice(0, 1)|upper }}
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <p class="font-display font-semibold text-navy-900 dark:text-white">{{ app.user.fullName }}</p>
@@ -226,7 +224,7 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="{{ path('profile_index') }}" class="dropdown-item">
+                            <a href="{{ path('user_profile') }}" class="dropdown-item">
                                 <i data-lucide="user" class="w-4 h-4"></i>
                                 <span>My Profile</span>
                             </a>
@@ -238,23 +236,16 @@
                                 <i data-lucide="award" class="w-4 h-4"></i>
                                 <span>Achievements</span>
                             </a>
-<<<<<<< Updated upstream
-                            <a href="{{ path('profile_index') }}" class="dropdown-item">
-=======
                             <a href="{{ path('profile_statistics') }}" class="dropdown-item">
                                 <i data-lucide="activity" class="w-4 h-4"></i>
                                 <span>Profile Statistics</span>
                             </a>
                             <a href="{{ path('user_profile') }}" class="dropdown-item">
->>>>>>> Stashed changes
                                 <i data-lucide="file-badge" class="w-4 h-4"></i>
                                 <span>Certificates</span>
                             </a>
                         </div>
                         <div class="border-t border-navy-100 dark:border-navy-800 py-2">
-<<<<<<< Updated upstream
-                            <a href="#" class="dropdown-item">
-=======
                             {% if is_granted('ROLE_ADMIN') %}
                             <a href="{{ path('admin_dashboard') }}" class="dropdown-item text-harbor-600 dark:text-harbor-400">
                                 <i data-lucide="shield" class="w-4 h-4"></i>
@@ -268,7 +259,6 @@
                             </a>
                             {% endif %}
                             <a href="{{ path('user_profile_settings') }}" class="dropdown-item">
->>>>>>> Stashed changes
                                 <i data-lucide="settings" class="w-4 h-4"></i>
                                 <span>Settings</span>
                             </a>
@@ -332,13 +322,10 @@
                 <i data-lucide="calendar" class="w-5 h-5"></i>
                 <span>Events</span>
             </a>
-<<<<<<< Updated upstream
-=======
             <a href="{{ path('user_evaluation_index') }}" class="sidebar-nav-item">
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                 <span>Evaluations</span>
             </a>
->>>>>>> Stashed changes
             <a href="{{ path('quiz_index') }}" class="sidebar-nav-item">
                 <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                 <span>Quizzes</span>
@@ -346,9 +333,6 @@
 
             <div class="my-4 border-t border-navy-200 dark:border-navy-800"></div>
 
-<<<<<<< Updated upstream
-            <a href="{{ path('profile_index') }}" class="sidebar-nav-item">
-=======
             {% if app.user and is_granted('ROLE_ADMIN') %}
             <a href="{{ path('admin_dashboard') }}" class="sidebar-nav-item bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400">
                 <i data-lucide="shield" class="w-5 h-5"></i>
@@ -363,7 +347,6 @@
             {% endif %}
 
             <a href="{{ path('user_profile') }}" class="sidebar-nav-item">
->>>>>>> Stashed changes
                 <i data-lucide="user" class="w-5 h-5"></i>
                 <span>Profile</span>
             </a>
@@ -371,17 +354,11 @@
                 <i data-lucide="award" class="w-5 h-5"></i>
                 <span>Achievements</span>
             </a>
-            <a href="{{ path('profile_index') }}" class="sidebar-nav-item">
+            <a href="{{ path('user_profile') }}" class="sidebar-nav-item">
                 <i data-lucide="file-badge" class="w-5 h-5"></i>
                 <span>Certificates</span>
             </a>
 
-            <a href="{{ path('profile_statistics') }}" class="sidebar-nav-item">
-                <i data-lucide="file-badge" class="w-5 h-5"></i>
-                <span>Statistic</span>
-            </a>
-
-        
             <div class="my-4 border-t border-navy-200 dark:border-navy-800"></div>
 
             <a href="{{ path('instructors_index') }}" class="sidebar-nav-item">
