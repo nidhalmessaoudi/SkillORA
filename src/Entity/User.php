@@ -75,6 +75,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'profile_completed', type: 'boolean', options: ['default' => 0])]
     private bool $profileCompleted = false;
 
+    #[ORM\Column(name: 'face_data', type: 'text', length: 4294967295, nullable: true)]
+    private ?string $faceData = null;
+
+    #[ORM\Column(name: 'face_id_enabled', type: 'boolean', options: ['default' => 0])]
+    private bool $faceIdEnabled = false;
+
     private ?string $role = null; // This will be loaded from user_roles table
 
     public function __construct()
@@ -394,5 +400,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return false;
         }
         return new \DateTime() < $this->verificationTokenExpiresAt;
+    }
+
+    public function getFaceData(): ?string
+    {
+        return $this->faceData;
+    }
+
+    public function setFaceData(?string $faceData): static
+    {
+        $this->faceData = $faceData;
+        return $this;
+    }
+
+    public function isFaceIdEnabled(): bool
+    {
+        return $this->faceIdEnabled;
+    }
+
+    public function setFaceIdEnabled(bool $faceIdEnabled): static
+    {
+        $this->faceIdEnabled = $faceIdEnabled;
+        return $this;
     }
 }

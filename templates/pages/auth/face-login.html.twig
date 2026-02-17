@@ -1,0 +1,407 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Face ID Login - SkillHarbor{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex bg-white dark:bg-navy-950">
+    {# Left Panel - Face Recognition #}
+    <div class="w-full lg:w-1/2 flex flex-col">
+        {# Header #}
+        <div class="flex items-center justify-between p-6">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2.5 group">
+                <div class="w-9 h-9 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-xl flex items-center justify-center">
+                    <i data-lucide="anchor" class="w-4.5 h-4.5 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillHarbor</span>
+            </a>
+            <button onclick="toggleTheme()" class="btn-ghost btn-icon">
+                <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+            </button>
+        </div>
+
+        {# Face Recognition Container #}
+        <div class="flex-1 flex items-center justify-center px-6 lg:px-16 py-8">
+            <div class="w-full max-w-lg">
+                {# Header #}
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-harbor-500 to-sky-500 mb-6">
+                        <i data-lucide="scan-face" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-2">
+                        Face ID Login
+                    </h1>
+                    <p class="text-body-md text-navy-500 dark:text-navy-400">
+                        Position your face in the frame to sign in
+                    </p>
+                </div>
+
+                {# Camera Status #}
+                <div class="text-center mb-6">
+                    <div id="camera-status" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-100 dark:bg-navy-800 border border-navy-200 dark:border-navy-700">
+                        <div class="w-2 h-2 rounded-full bg-navy-400"></div>
+                        <span class="text-sm font-medium text-navy-600 dark:text-navy-300">Initializing...</span>
+                    </div>
+                </div>
+
+                {# Video Preview Container #}
+                <div class="relative mx-auto mb-8" style="max-width: 480px;">
+                    {# Main Video Container #}
+                    <div class="relative rounded-3xl overflow-hidden bg-navy-900 aspect-[4/3] shadow-2xl">
+                        <video id="face-login-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                        
+                        {# Animated Scan Overlay #}
+                        <div class="absolute inset-0 pointer-events-none">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                {# Face frame corners #}
+                                <g id="face-frame">
+                                    {# Top-left #}
+                                    <path d="M 25 35 L 25 25 L 35 25" stroke="#0ea5e9" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                    {# Top-right #}
+                                    <path d="M 65 25 L 75 25 L 75 35" stroke="#0ea5e9" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                    {# Bottom-right #}
+                                    <path d="M 75 65 L 75 75 L 65 75" stroke="#0ea5e9" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                    {# Bottom-left #}
+                                    <path d="M 35 75 L 25 75 L 25 65" stroke="#0ea5e9" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                    
+                                    {# Center crosshair #}
+                                    <circle cx="50" cy="50" r="2" fill="#0ea5e9" opacity="0.5"/>
+                                </g>
+                                
+                                {# Scanning line animation #}
+                                <line id="scan-line" x1="30" y1="30" x2="70" y2="30" stroke="#0ea5e9" stroke-width="2" opacity="0.7">
+                                    <animate attributeName="y1" values="30;70;30" dur="2s" repeatCount="indefinite"/>
+                                    <animate attributeName="y2" values="30;70;30" dur="2s" repeatCount="indefinite"/>
+                                </line>
+                            </svg>
+                        </div>
+
+                        {# Status Message #}
+                        <div id="face-status" class="absolute bottom-6 left-0 right-0 text-center">
+                            <div class="inline-block px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20">
+                                <p class="text-white text-sm font-medium">Scanning...</p>
+                            </div>
+                        </div>
+
+                        {# Success/Error Overlay #}
+                        <div id="result-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center">
+                            <div class="text-center">
+                                <div id="result-icon" class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4">
+                                    {# Icon will be injected via JavaScript #}
+                                </div>
+                                <p id="result-message" class="text-white text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Recognition Progress #}
+                    <div class="mt-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-navy-600 dark:text-navy-400">Recognition Progress</span>
+                            <span id="confidence-percentage" class="text-sm font-semibold text-navy-900 dark:text-white">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-navy-200 dark:bg-navy-700 rounded-full overflow-hidden">
+                            <div id="confidence-bar" class="h-full bg-gradient-to-r from-harbor-500 to-sky-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Action Buttons #}
+                <div class="space-y-3">
+                    <button type="button" id="scan-face-btn" class="btn-primary w-full" disabled>
+                        <i data-lucide="scan" class="w-5 h-5 mr-2"></i>
+                        Start Face Recognition
+                    </button>
+                    
+                    <a href="{{ path('auth_login') }}" class="btn-outline w-full flex items-center justify-center">
+                        <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                        Back to Regular Login
+                    </a>
+                </div>
+
+                {# Help Text #}
+                <div class="mt-8 p-4 rounded-2xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5"></i>
+                        <div class="text-sm text-sky-700 dark:text-sky-300">
+                            <p class="font-semibold mb-1">Tips for best results:</p>
+                            <ul class="space-y-1 text-sky-600 dark:text-sky-400">
+                                <li>• Make sure you're in a well-lit area</li>
+                                <li>• Position your face in the center of the frame</li>
+                                <li>• Remove glasses or hats if possible</li>
+                                <li>• Look directly at the camera</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="p-6 text-center">
+            <p class="text-caption text-navy-400 flex items-center justify-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                Your face data is encrypted and never shared
+            </p>
+        </div>
+    </div>
+
+    {# Right Panel - Info #}
+    <div class="hidden lg:block lg:w-1/2 bg-gradient-to-br from-harbor-600 to-sky-600 relative overflow-hidden">
+        {# Animated Background #}
+        <div class="absolute inset-0">
+            <div class="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-20 left-20 w-80 h-80 bg-sky-400/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-harbor-400/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        </div>
+
+        {# Content #}
+        <div class="relative h-full flex flex-col justify-center p-12 lg:p-16">
+            <div class="max-w-md">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 mb-6">
+                    <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+                </div>
+                
+                <h2 class="font-display font-bold text-3xl lg:text-4xl text-white mb-4">
+                    The Future of Login
+                </h2>
+                <p class="text-lg text-white/80 mb-10">
+                    Say goodbye to passwords. Face ID uses advanced biometric technology to securely identify you in seconds.
+                </p>
+
+                {# Features #}
+                <div class="space-y-5">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Lightning Fast</h3>
+                            <p class="text-white/70 text-sm">Login in under 2 seconds</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="lock" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Bank-Level Security</h3>
+                            <p class="text-white/70 text-sm">256-bit encryption protects your data</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="smile" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Effortless Experience</h3>
+                            <p class="text-white/70 text-sm">No passwords to remember</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="eye-off" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Privacy First</h3>
+                            <p class="text-white/70 text-sm">Your face data stays on your device</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Stats #}
+                <div class="mt-12 grid grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-white mb-1">99.9%</div>
+                        <div class="text-white/60 text-sm">Accuracy</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-white mb-1">&lt;2s</div>
+                        <div class="text-white/60 text-sm">Login Time</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-white mb-1">100%</div>
+                        <div class="text-white/60 text-sm">Secure</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="/js/face-recognition.js"></script>
+<script>
+    lucide.createIcons();
+
+    let faceRecognition = new FaceRecognition();
+    let videoElement = document.getElementById('face-login-video');
+    let cameraReady = false;
+
+    // Initialize camera on page load
+    async function initCamera() {
+        try {
+            updateCameraStatus('Requesting camera access...', false);
+            await faceRecognition.initCamera(videoElement);
+            cameraReady = true;
+            updateCameraStatus('Camera ready', true);
+            document.getElementById('scan-face-btn').disabled = false;
+        } catch (error) {
+            console.error('Camera initialization failed:', error);
+            updateCameraStatus('Camera access denied', false);
+            showResult(false, 'Please allow camera access to use Face ID login');
+        }
+    }
+
+    // Update camera status indicator
+    function updateCameraStatus(message, active) {
+        const statusDiv = document.getElementById('camera-status');
+        const dot = statusDiv.querySelector('div');
+        const text = statusDiv.querySelector('span');
+        
+        text.textContent = message;
+        
+        if (active) {
+            dot.className = 'w-2 h-2 rounded-full bg-success-500 animate-pulse';
+            statusDiv.className = 'inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-100 dark:bg-success-900/30 border border-success-200 dark:border-success-800';
+            text.className = 'text-sm font-medium text-success-700 dark:text-success-300';
+        } else {
+            dot.className = 'w-2 h-2 rounded-full bg-navy-400';
+            statusDiv.className = 'inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-100 dark:bg-navy-800 border border-navy-200 dark:border-navy-700';
+            text.className = 'text-sm font-medium text-navy-600 dark:text-navy-300';
+        }
+    }
+
+    // Update face status message
+    function updateFaceStatus(message) {
+        const statusDiv = document.getElementById('face-status');
+        statusDiv.innerHTML = `
+            <div class="inline-block px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20">
+                <p class="text-white text-sm font-medium">${message}</p>
+            </div>
+        `;
+    }
+
+    // Update confidence progress
+    function updateConfidence(percentage) {
+        const bar = document.getElementById('confidence-bar');
+        const text = document.getElementById('confidence-percentage');
+        
+        bar.style.width = percentage + '%';
+        text.textContent = Math.round(percentage) + '%';
+        
+        // Color coding
+        if (percentage < 50) {
+            bar.className = 'h-full bg-gradient-to-r from-danger-500 to-warning-500 rounded-full transition-all duration-300';
+        } else if (percentage < 85) {
+            bar.className = 'h-full bg-gradient-to-r from-warning-500 to-success-500 rounded-full transition-all duration-300';
+        } else {
+            bar.className = 'h-full bg-gradient-to-r from-success-500 to-emerald-500 rounded-full transition-all duration-300';
+        }
+    }
+
+    // Show result overlay
+    function showResult(success, message) {
+        const overlay = document.getElementById('result-overlay');
+        const icon = document.getElementById('result-icon');
+        const messageEl = document.getElementById('result-message');
+        
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        
+        if (success) {
+            icon.className = 'inline-flex items-center justify-center w-20 h-20 rounded-full bg-success-500 mb-4';
+            icon.innerHTML = '<i data-lucide="check" class="w-10 h-10 text-white"></i>';
+            messageEl.textContent = message;
+        } else {
+            icon.className = 'inline-flex items-center justify-center w-20 h-20 rounded-full bg-danger-500 mb-4';
+            icon.innerHTML = '<i data-lucide="x" class="w-10 h-10 text-white"></i>';
+            messageEl.textContent = message;
+        }
+        
+        lucide.createIcons();
+    }
+
+    // Scan face button handler
+    document.getElementById('scan-face-btn').addEventListener('click', async function() {
+        if (!cameraReady) return;
+        
+        this.disabled = true;
+        updateFaceStatus('Analyzing your face...');
+        updateConfidence(0);
+        
+        try {
+            // Capture face descriptors
+            await faceRecognition.captureFaceDescriptors(3, (progress) => {
+                updateConfidence(progress * 40); // 0-40%
+                updateFaceStatus(`Capturing face data (${Math.round(progress * 100)}%)...`);
+            });
+            
+            updateConfidence(50);
+            updateFaceStatus('Matching against database...');
+            
+            // Send to server for authentication
+            const faceDataJSON = faceRecognition.getFaceDataJSON();
+            console.log('Sending face data to server:', faceDataJSON);
+            
+            const response = await fetch('{{ path('auth_face_authenticate') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    face_data: faceDataJSON
+                })
+            });
+            
+            updateConfidence(80);
+            
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            updateConfidence(100);
+            
+            if (result.success) {
+                showResult(true, 'Welcome back, ' + result.user.firstName + '!');
+                updateFaceStatus('Login successful!');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = result.redirect_url;
+                }, 1500);
+            } else {
+                const errorMsg = result.message || 'Face not recognized';
+                const detailedError = result.error ? ` (${result.error})` : '';
+                console.error('Authentication failed:', errorMsg, detailedError);
+                showResult(false, errorMsg);
+                updateFaceStatus('Authentication failed');
+                this.disabled = false;
+            }
+            
+        } catch (error) {
+            console.error('Face recognition error:', error);
+            const errorMsg = error.message || 'An error occurred during face recognition';
+            showResult(false, errorMsg);
+            updateFaceStatus('Error occurred');
+            updateConfidence(0);
+            this.disabled = false;
+        }
+    });
+
+    // Initialize on load
+    window.addEventListener('load', initCamera);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        faceRecognition.stopCamera();
+    });
+</script>
+{% endblock %}

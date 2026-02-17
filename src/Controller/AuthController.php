@@ -360,6 +360,7 @@ class AuthController extends AbstractController
             $firstName = trim($request->request->get('firstname', ''));
             $lastName = trim($request->request->get('lastname', ''));
             $role = $request->request->get('role', 'student');
+            $faceData = $request->request->get('face_data', '');
             
             // Store form data for re-population
             $formData = [
@@ -473,6 +474,12 @@ class AuthController extends AbstractController
                     $user->setIsActive(true);
                     $user->setIsVerified(false);
 
+                    // Save Face ID data if provided
+                    if (!empty($faceData)) {
+                        $user->setFaceData($faceData);
+                        $user->setFaceIdEnabled(true);
+                    }
+
                     // Save user
                     $this->entityManager->persist($user);
                     $this->entityManager->flush();
@@ -497,8 +504,9 @@ class AuthController extends AbstractController
                     return $this->redirectToRoute('auth_login');
                     
                 } catch (\Exception $e) {
-                    // Log the error (in production, use proper logging)
-                    $errors[] = 'An unexpected error occurred while creating your account. Please try again. If the problem persists, contact support.';
+                    // Show actual error for debugging
+                    $errorMessage = $e->getMessage();
+                    $errors[] = 'Registration error: ' . $errorMessage;
                     
                     // Roll back transaction if partially completed
                     if ($this->entityManager->getConnection()->isTransactionActive()) {

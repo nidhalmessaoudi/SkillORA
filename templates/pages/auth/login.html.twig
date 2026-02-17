@@ -150,6 +150,32 @@
                     </div>
                 </form>
 
+                {# Face ID Login Option #}
+                <div class="mt-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="flex-1 h-px bg-navy-200 dark:bg-navy-800"></div>
+                        <span class="text-caption text-navy-400 uppercase">Or use</span>
+                        <div class="flex-1 h-px bg-navy-200 dark:bg-navy-800"></div>
+                    </div>
+
+                    <a href="{{ path('auth_face_login') }}" class="group block w-full p-4 rounded-2xl border-2 border-harbor-200 dark:border-harbor-700 bg-gradient-to-br from-harbor-50 to-sky-50 dark:from-harbor-900/20 dark:to-sky-900/20 hover:border-harbor-400 dark:hover:border-harbor-500 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-harbor-500 to-sky-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <i data-lucide="scan-face" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-navy-900 dark:text-white mb-0.5">Sign in with Face ID</h4>
+                                <p class="text-sm text-navy-600 dark:text-navy-400">Fast, secure, passwordless login</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-harbor-600 dark:text-harbor-400 group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
                 {# Register Link #}
                 <p class="mt-8 text-center text-body-sm text-navy-500 dark:text-navy-400">
                     Don't have an account?
