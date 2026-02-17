@@ -1,0 +1,85 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Search Courses{% endblock %}
+
+{% block body %}
+<section class="py-10">
+  <div class="container-wide">
+    <div class="flex flex-col gap-6">
+
+      {# Header / Search Box #}
+      <div class="glass border border-navy-200/50 dark:border-navy-800/50 rounded-3xl p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">
+              Search
+            </h1>
+
+            <p class="text-body-md text-navy-600 dark:text-navy-400 mt-1">
+              {% if q %}
+                Results for
+                <span class="font-medium text-navy-900 dark:text-white">“{{ q }}”</span>
+                <span class="text-navy-500">· {{ total }} found</span>
+              {% else %}
+                Type something to search courses.
+              {% endif %}
+            </p>
+          </div>
+
+          <a href="{{ path('courses_index') }}" class="btn-secondary btn-sm">
+            <i data-lucide="compass" class="w-4 h-4"></i>
+            Browse
+          </a>
+        </div>
+
+        <form method="get" action="{{ path('courses_search') }}" class="mt-5">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-navy-400"></i>
+            <input
+              type="search"
+              name="q"
+              value="{{ q }}"
+              placeholder="Search courses..."
+              class="search-input w-full pl-12"
+              autofocus
+            >
+          </div>
+        </form>
+      </div>
+
+      {# No Results #}
+      {% if q and total == 0 %}
+        <div class="card p-8 text-center">
+          <div class="mx-auto w-12 h-12 rounded-2xl bg-navy-100 dark:bg-navy-800 flex items-center justify-center">
+            <i data-lucide="search-x" class="w-6 h-6 text-navy-600 dark:text-navy-300"></i>
+          </div>
+
+          <h2 class="mt-4 text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+            No results found
+          </h2>
+
+          <p class="mt-2 text-body-md text-navy-600 dark:text-navy-400">
+            Try different keywords or browse all courses.
+          </p>
+
+          <div class="mt-5 flex items-center justify-center gap-3">
+            <a href="{{ path('courses_index') }}" class="btn-primary btn-sm">
+              Browse Courses
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      {# Results Grid #}
+      {% if total > 0 %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for course in results %}
+            {% include 'components/course-card.html.twig' with { course: course } %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+{% endblock %}

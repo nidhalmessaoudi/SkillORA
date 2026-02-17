@@ -1,5 +1,6 @@
 {% extends 'layouts/user.html.twig' %}
 
+<<<<<<< Updated upstream
 {% block title %}Résultat — {{ userEvaluation.evaluation.title }}{% endblock %}
 
 {% block content %}
@@ -28,12 +29,38 @@
     {% if userEvaluation.evaluation.type == 'QUIZ' %}
       {% set correct = null %}
       {% for a in question.getAnswers() %}
+=======
+{% block title %}Résultat — {{ evaluation.title }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Résultat : {{ evaluation.title }}</h1>
+
+{% if evaluation.type == 'QUIZ' %}
+  <p class="mb-6">
+    <b>Score :</b> {{ userEvaluation.score }} / {{ evaluation.totalScore }}
+  </p>
+
+  {% for question in questions %}
+    {% set myAnswer = submittedMap[question.id] ?? null %}
+
+    <div class="mb-6 p-4 border rounded">
+      <p class="font-medium">{{ loop.index }}. {{ question.content }}</p>
+
+      <p class="mt-3">
+        <b>Votre réponse :</b>
+        {{ myAnswer ? myAnswer.content : 'Non répondu' }}
+      </p>
+
+      {% set correct = null %}
+      {% for a in question.answers %}
+>>>>>>> Stashed changes
         {% if a.role == 'CHOICE' and a.isCorrect %}
           {% set correct = a.content %}
         {% endif %}
       {% endfor %}
 
       <p class="mt-2">
+<<<<<<< Updated upstream
         <b>Réponse correcte :</b> {{ correct ?? '—' }}
       </p>
     {% endif %}
@@ -41,4 +68,25 @@
 {% endfor %}
 
 <a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour aux évaluations</a>
+=======
+        <b>Bonne réponse :</b> {{ correct ?? '—' }}
+      </p>
+    </div>
+  {% endfor %}
+
+{% else %}
+  <div class="p-4 border rounded mb-6">
+    {% if userEvaluation.isCorrected %}
+      <p><b>Note :</b> {{ userEvaluation.score }} / {{ evaluation.totalScore }}</p>
+    {% else %}
+      <p class="text-gray-700">
+        Votre examen a été soumis ✅.<br>
+        <b>En attente de correction par l’admin.</b>
+      </p>
+    {% endif %}
+  </div>
+{% endif %}
+
+<a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour</a>
+>>>>>>> Stashed changes
 {% endblock %}

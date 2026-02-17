@@ -10,6 +10,7 @@
 </h1>
 
 <div class="card p-6 max-w-4xl">
+<<<<<<< Updated upstream
   {{ form_start(form) }}
 
   <div class="space-y-5">
@@ -18,15 +19,36 @@
     {{ form_row(form.content) }}
 
     {# Type + Score #}
+=======
+  {% set evalId = app.request.query.get('evaluationId') %}
+  {% set backUrl = app.request.query.get('back') %}
+
+  {{ form_start(form, {
+    action: path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge({
+      evaluationId: evalId,
+      back: backUrl
+    }))
+  }) }}
+
+  <div class="space-y-5">
+
+    {{ form_row(form.content) }}
+
+>>>>>>> Stashed changes
     <div class="grid grid-cols-2 gap-4">
       {{ form_row(form.type) }}
       {{ form_row(form.score) }}
     </div>
 
+<<<<<<< Updated upstream
     {# Evaluation selector #}
     {{ form_row(form.evaluation) }}
 
     {# ✅ CHOICES (A/B/C/D) - seulement si type = MCQ #}
+=======
+    {{ form_row(form.evaluation) }}
+
+>>>>>>> Stashed changes
     <div id="mcq-block" class="mt-6">
       <h3 class="text-heading-md font-semibold mb-3 text-navy-900 dark:text-white">
         Choices (A / B / C / D)
@@ -35,7 +57,10 @@
       <div class="space-y-3">
         {% set letters = ['A','B','C','D','E','F'] %}
 
+<<<<<<< Updated upstream
         {# si tu n'as pas encore ajouté answers dans QuestionType => form.answers n'existe pas #}
+=======
+>>>>>>> Stashed changes
         {% if form.answers is defined %}
           {% for choiceForm in form.answers %}
             <div class="flex items-center gap-3">
@@ -68,6 +93,7 @@
   </div>
 
   <div class="mt-6 flex gap-3">
+<<<<<<< Updated upstream
     <button class="btn-primary">
       {{ mode == 'new' ? 'Create' : 'Update' }}
     </button>
@@ -75,12 +101,23 @@
     <a href="{{ path('admin_question_index') }}" class="btn-secondary">
       Cancel
     </a>
+=======
+    <button class="btn-primary" type="submit">
+      {{ mode == 'new' ? 'Create' : 'Update' }}
+    </button>
+
+    {% set cancelUrl = backUrl ?: path('admin_question_index') %}
+    <a href="{{ cancelUrl }}" class="btn-secondary">Cancel</a>
+>>>>>>> Stashed changes
   </div>
 
   {{ form_end(form) }}
 </div>
 
+<<<<<<< Updated upstream
 {# ✅ JS : afficher/masquer le bloc choices selon le type #}
+=======
+>>>>>>> Stashed changes
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const typeSelect = document.querySelector('[name$="[type]"]');

@@ -1,0 +1,20 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Correction examen{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-4">Correction : {{ evaluation.title }}</h1>
+
+<p class="mb-4">
+  Étudiant : <b>{{ userEvaluation.user.email }}</b><br>
+  Soumis le : {{ userEvaluation.submittedAt ? userEvaluation.submittedAt|date('d/m/Y H:i') : '—' }}
+</p>
+
+<form method="post">
+  <label class="block mb-2 font-semibold">Note / {{ evaluation.totalScore }}</label>
+  <input type="number" name="score" class="border p-2 rounded w-40" required min="0" max="{{ evaluation.totalScore }}">
+
+  <button class="btn-primary ml-2">Valider</button>
+  <a href="{{ path('evaluation_index') }}" class="btn-secondary ml-2">Retour</a>
+</form>
+{% endblock %}

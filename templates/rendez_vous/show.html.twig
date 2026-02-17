@@ -1,0 +1,100 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Rendez-vous #{{ rdv.id }} - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ path('admin_rendezvous_index') }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">Rendez-vous #{{ rdv.id }}</h1>
+            </div>
+            <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Détails du rendez-vous</p>
+        </div>
+        <div class="flex items-center gap-2 ml-9 md:ml-0">
+            <a href="{{ path('admin_rendezvous_edit', {id: rdv.id}) }}" class="btn-secondary btn-sm">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Modifier
+            </a>
+            <form method="post" action="{{ path('admin_rendezvous_delete', {id: rdv.id}) }}" class="inline" onsubmit="return confirmDelete('Supprimer ce rendez-vous ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rdv.id) }}">
+                <button type="submit" class="btn-danger btn-sm">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {# Infos RDV #}
+    <div class="card p-6 space-y-6">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="info" class="w-5 h-5 text-harbor-500"></i>
+            Informations
+        </h2>
+        <div class="space-y-4">
+            <div class="flex items-start gap-3 p-3 rounded-lg {% if rdv.statut == 'confirmé' %}bg-success-50 dark:bg-success-900/20{% elseif rdv.statut == 'rejeté' %}bg-danger-50 dark:bg-danger-900/20{% else %}bg-warning-50 dark:bg-warning-900/20{% endif %}">
+                <i data-lucide="{% if rdv.statut == 'confirmé' %}check-circle{% elseif rdv.statut == 'rejeté' %}x-circle{% else %}clock{% endif %}" class="w-5 h-5 {% if rdv.statut == 'confirmé' %}text-success-600{% elseif rdv.statut == 'rejeté' %}text-danger-600{% else %}text-warning-600{% endif %} mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide {% if rdv.statut == 'confirmé' %}text-success-900 dark:text-success-300{% elseif rdv.statut == 'rejeté' %}text-danger-900 dark:text-danger-300{% else %}text-warning-900 dark:text-warning-300{% endif %}">Statut</p>
+                    <p class="text-sm font-medium {% if rdv.statut == 'confirmé' %}text-success-800 dark:text-success-200{% elseif rdv.statut == 'rejeté' %}text-danger-800 dark:text-danger-200{% else %}text-warning-800 dark:text-warning-200{% endif %}">
+                        {% if rdv.statut == 'confirmé' %}Confirmé{% elseif rdv.statut == 'rejeté' %}Rejeté{% else %}En attente{% endif %}
+                    </p>
+                </div>
+            </div>
+
+           
+
+            <div class="flex items-start gap-3 p-3 bg-navy-50 dark:bg-navy-800/50 rounded-lg">
+                <i data-lucide="clock" class="w-5 h-5 text-navy-500 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wide">Créé le</p>
+                    <p class="text-sm text-navy-700 dark:text-navy-300 font-medium">{{ rdv.createdAt|date('d/m/Y à H:i') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Créneau lié #}
+    <div class="card p-6 space-y-6">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="calendar-clock" class="w-5 h-5 text-harbor-500"></i>
+            Créneau associé
+        </h2>
+        {% if rdv.slot %}
+            <div class="space-y-4">
+                <div class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <i data-lucide="calendar" class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-semibold text-blue-900 dark:text-blue-300 uppercase tracking-wide">Début</p>
+                        <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">{{ rdv.slot.startAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <i data-lucide="calendar-check" class="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-semibold text-purple-900 dark:text-purple-300 uppercase tracking-wide">Fin</p>
+                        <p class="text-sm text-purple-800 dark:text-purple-200 font-medium">{{ rdv.slot.endAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <a href="{{ path('admin_slots_show', {id: rdv.slot.id}) }}" class="btn-ghost btn-sm">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        Voir le créneau #{{ rdv.slot.id }}
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="flex flex-col items-center gap-3 py-8">
+                <i data-lucide="calendar-x" class="w-12 h-12 text-navy-300 dark:text-navy-600"></i>
+                <p class="text-body-md text-navy-500">Aucun créneau associé.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

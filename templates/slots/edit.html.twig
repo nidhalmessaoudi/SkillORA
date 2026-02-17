@@ -1,0 +1,37 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Modifier le créneau - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="container-wide py-10">
+    <div class="max-w-lg mx-auto bg-white dark:bg-navy-900 rounded-2xl shadow-lg p-8">
+        <h1 class="font-display font-bold text-2xl mb-6">Modifier le créneau</h1>
+        <form method="post">
+            <div class="mb-4">
+                <label class="input-label" for="start_date">Date de début</label>
+                <input type="date" id="start_date" name="start_date" class="input w-full" value="{{ form_data.start_date }}">
+                {% if errors.start_date %}<div class="text-danger-500 text-xs mt-1">{{ errors.start_date }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="start_time">Heure de début</label>
+                <input type="time" id="start_time" name="start_time" class="input w-full" value="{{ form_data.start_time }}">
+                {% if errors.start_time %}<div class="text-danger-500 text-xs mt-1">{{ errors.start_time }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="end_date">Date de fin</label>
+                <input type="date" id="end_date" name="end_date" class="input w-full" value="{{ form_data.end_date }}">
+                {% if errors.end_date %}<div class="text-danger-500 text-xs mt-1">{{ errors.end_date }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="end_time">Heure de fin</label>
+                <input type="time" id="end_time" name="end_time" class="input w-full" value="{{ form_data.end_time }}">
+                {% if errors.end_time %}<div class="text-danger-500 text-xs mt-1">{{ errors.end_time }}</div>{% endif %}
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{{ path('slots_front') }}" class="btn-ghost">Annuler</a>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -65,20 +65,20 @@
                 {% endif %}
 
                 {# Form #}
-                <form method="post" action="{{ path('auth_login') }}" id="login-form">
+                <form method="post" action="{{ path('auth_login') }}" id="login-form" novalidate>
                     <div class="space-y-4">
                         {# Email #}
                         <div>
                             <label for="email" class="input-label">Email</label>
                             <input
-                                type="email"
+                                type="text"
                                 id="email"
                                 name="_username"
                                 value="{{ last_username }}"
                                 placeholder="you@example.com"
                                 autocomplete="email"
                                 class="input"
-                                required
+                                {% if rate_limited is defined and rate_limited %}disabled{% endif %}
                             >
                         </div>
 
@@ -98,7 +98,7 @@
                                     placeholder="Enter your password"
                                     autocomplete="current-password"
                                     class="input pr-12"
-                                    required
+                                    {% if rate_limited is defined and rate_limited %}disabled{% endif %}
                                 >
                                 <button
                                     type="button"

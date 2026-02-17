@@ -1,0 +1,58 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Nouveau rendez-vous - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+        <a href="{{ path('admin_rendezvous_index') }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+        </a>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">Nouveau rendez-vous</h1>
+    </div>
+    <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Associez un rendez-vous à un créneau disponible.</p>
+</div>
+
+<form method="post" class="space-y-6">
+    <div class="card p-6 space-y-4">
+        <div>
+            <label class="input-label" for="slot_id">Créneau disponible</label>
+            {% if errors.slot_id is defined %}
+                <p class="text-red-600 text-sm mt-1">{{ errors.slot_id }}</p>
+            {% endif %}
+            {% if available_slots|length > 0 %}
+                <select id="slot_id" name="slot_id" class="input">
+                    <option value="">Sélectionnez un créneau...</option>
+                    {% for slot in available_slots %}
+                        <option value="{{ slot.id }}" {{ form_data.slot_id == slot.id ? 'selected' : '' }}>
+                            Slot #{{ slot.id }} — {{ slot.startAt|date('d/m/Y H:i') }} → {{ slot.endAt|date('d/m/Y H:i') }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <div class="flex items-center gap-3 p-4 bg-warning-50 dark:bg-warning-900/20 rounded-lg">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-warning-600 dark:text-warning-400"></i>
+                    <p class="text-body-sm text-warning-700 dark:text-warning-300">Aucun créneau disponible. <a href="{{ path('admin_slots_new') }}" class="underline font-semibold">Créer un créneau</a> d'abord.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="input-label">Statut</label>
+            <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300 text-body-sm font-medium">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                En attente
+            </div>
+            <p class="input-hint">Le statut est automatiquement défini à « En attente » lors de la création.</p>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary" {{ available_slots|length == 0 ? 'disabled' : '' }}>
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Créer le rendez-vous
+        </button>
+        <a href="{{ path('admin_rendezvous_index') }}" class="btn-ghost btn-sm">Annuler</a>
+    </div>
+</form>
+{% endblock %}

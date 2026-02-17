@@ -1,5 +1,6 @@
 {% extends 'layouts/user.html.twig' %}
 
+<<<<<<< Updated upstream
 {% block title %}Passer l'Évaluation — {{ evaluation.title }}{% endblock %}
 
 {% block content %}
@@ -84,10 +85,69 @@ let timerInterval = setInterval(() => {
   if (distance <= 0) {
     clearInterval(timerInterval);
     document.getElementById("timer").innerText = "Temps écoulé. Rechargement...";
+=======
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-4">{{ evaluation.title }}</h1>
+
+<p id="timer" class="text-red-600 font-bold mb-4"></p>
+
+<form method="post">
+  <input type="hidden" name="_token" value="{{ csrf_token('take_evaluation_' ~ evaluation.id) }}">
+
+  {% if evaluation.type == 'EXAM' %}
+
+    {% if evaluation.pdfPath %}
+      <div class="mb-4 border rounded overflow-hidden">
+        <iframe src="{{ asset('uploads/pdf/' ~ evaluation.pdfPath) }}" width="100%" height="600"></iframe>
+      </div>
+    {% else %}
+      <div class="p-4 bg-yellow-50 border rounded text-yellow-800">
+        Aucun PDF n’a été ajouté pour cet examen.
+      </div>
+    {% endif %}
+
+    <textarea name="exam_response" class="w-full border p-3 mt-4" rows="10" required
+              placeholder="Écrivez votre réponse ici..."></textarea>
+
+  {% else %}
+
+    {% for question in questions %}
+      <div class="mb-4 p-4 border rounded">
+        <p class="font-semibold">{{ question.content }}</p>
+
+        {% for ans in question.answers %}
+          {% if ans.role == 'CHOICE' %}
+            <label class="block mt-2">
+              <input type="radio" name="answers[{{ question.id }}]" value="{{ ans.id }}" required>
+              {{ ans.content }}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+  {% endif %}
+
+  <button class="btn-primary mt-4">Soumettre</button>
+</form>
+
+<script>
+const endTime = new Date("{{ endTime|date('Y-m-d H:i:s') }}").getTime();
+const timer = document.getElementById("timer");
+
+const interval = setInterval(() => {
+  const now = new Date().getTime();
+  const distance = endTime - now;
+
+  if (distance <= 0) {
+    clearInterval(interval);
+>>>>>>> Stashed changes
     location.reload();
     return;
   }
 
+<<<<<<< Updated upstream
   let minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
   let seconds = Math.floor((distance % (1000*60)) / 1000);
   document.getElementById("timer").innerText = minutes + "m " + seconds + "s";
@@ -95,4 +155,12 @@ let timerInterval = setInterval(() => {
 </script>
 
 {% endif %}
+=======
+  const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+  const seconds = Math.floor((distance % (1000*60)) / 1000);
+  timer.innerText = minutes + "m " + seconds + "s";
+}, 1000);
+</script>
+
+>>>>>>> Stashed changes
 {% endblock %}

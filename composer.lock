@@ -4,7 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< Updated upstream
     "content-hash": "55efcbf5c7c98ed4f0715ad7d64db0a6",
+=======
+    "content-hash": "4f53c0310a2755daeed55b64f56d6e1a",
+>>>>>>> Stashed changes
     "packages": [
         {
             "name": "composer/semver",
@@ -1741,6 +1745,57 @@
                 "source": "https://github.com/MyIntervals/PHP-CSS-Parser/tree/v9.1.0"
             },
             "time": "2025-09-14T07:37:21+00:00"
+        },
+        {
+            "name": "smalot/pdfparser",
+            "version": "v2.12.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smalot/pdfparser.git",
+                "reference": "61c9bcafcb92899b76d8ebda6508267bae77e264"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/61c9bcafcb92899b76d8ebda6508267bae77e264",
+                "reference": "61c9bcafcb92899b76d8ebda6508267bae77e264",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "ext-zlib": "*",
+                "php": ">=7.1",
+                "symfony/polyfill-mbstring": "^1.18"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Smalot\\PdfParser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Sebastien MALOT",
+                    "email": "sebastien@malot.fr"
+                }
+            ],
+            "description": "Pdf parser library. Can read and extract information from pdf file.",
+            "homepage": "https://www.pdfparser.org",
+            "keywords": [
+                "extract",
+                "parse",
+                "parser",
+                "pdf",
+                "text"
+            ],
+            "support": {
+                "issues": "https://github.com/smalot/pdfparser/issues",
+                "source": "https://github.com/smalot/pdfparser/tree/v2.12.3"
+            },
+            "time": "2026-01-08T08:04:04+00:00"
         },
         {
             "name": "symfony/asset",
@@ -5705,6 +5760,107 @@
                 }
             ],
             "time": "2026-01-05T12:44:39+00:00"
+        },
+        {
+            "name": "symfony/validator",
+            "version": "v6.4.33",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/validator.git",
+                "reference": "da1a40418439c0483ca7e0d4ae4c4f744f6b8536"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/validator/zipball/da1a40418439c0483ca7e0d4ae4c4f744f6b8536",
+                "reference": "da1a40418439c0483ca7e0d4ae4c4f744f6b8536",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-ctype": "~1.8",
+                "symfony/polyfill-mbstring": "~1.0",
+                "symfony/polyfill-php83": "^1.27",
+                "symfony/translation-contracts": "^2.5|^3"
+            },
+            "conflict": {
+                "doctrine/annotations": "<1.13",
+                "doctrine/lexer": "<1.1",
+                "symfony/dependency-injection": "<5.4",
+                "symfony/expression-language": "<5.4",
+                "symfony/http-kernel": "<5.4",
+                "symfony/intl": "<5.4",
+                "symfony/property-info": "<5.4",
+                "symfony/translation": "<5.4.35|>=6.0,<6.3.12|>=6.4,<6.4.3|>=7.0,<7.0.3",
+                "symfony/yaml": "<5.4"
+            },
+            "require-dev": {
+                "doctrine/annotations": "^1.13|^2",
+                "egulias/email-validator": "^2.1.10|^3|^4",
+                "symfony/cache": "^5.4|^6.0|^7.0",
+                "symfony/config": "^5.4|^6.0|^7.0",
+                "symfony/console": "^5.4|^6.0|^7.0",
+                "symfony/dependency-injection": "^5.4|^6.0|^7.0",
+                "symfony/expression-language": "^5.4|^6.0|^7.0",
+                "symfony/finder": "^5.4|^6.0|^7.0",
+                "symfony/http-client": "^5.4|^6.0|^7.0",
+                "symfony/http-foundation": "^5.4|^6.0|^7.0",
+                "symfony/http-kernel": "^5.4|^6.0|^7.0",
+                "symfony/intl": "^5.4|^6.0|^7.0",
+                "symfony/mime": "^5.4|^6.0|^7.0",
+                "symfony/property-access": "^5.4|^6.0|^7.0",
+                "symfony/property-info": "^5.4|^6.0|^7.0",
+                "symfony/translation": "^5.4.35|~6.3.12|^6.4.3|^7.0.3",
+                "symfony/yaml": "^5.4|^6.0|^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Validator\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/",
+                    "/Resources/bin/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides tools to validate values",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/validator/tree/v6.4.33"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-01-26T16:20:53+00:00"
         },
         {
             "name": "symfony/var-dumper",

@@ -109,7 +109,34 @@
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span>User Management</span>
                 </a>
+<<<<<<< Updated upstream
                 <a href="{{ path('admin_events_index') }}" class="sidebar-nav-item {% if currentRoute starts with 'admin_events' %}sidebar-nav-item-active{% endif %}">
+=======
+                <a href="{{ path('admin_stats') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'admin_stats' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span>Statistics</span>
+                </a>
+                
+                
+                {# Evaluation Management Section #}
+                <div class="pt-4 pb-2 px-3">
+                    <span class="text-caption font-semibold text-navy-400 uppercase tracking-wider">Learning</span>
+                </div>
+                <a href="{{ path('admin_courses_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'admin_stats' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span>Courses</span>
+                </a>
+                <a href="{{ path('evaluation_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'evaluation' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                    <span>Evaluations</span>
+                </a>
+               
+                {# Event Management Section #}
+                <div class="pt-4 pb-2 px-3">
+                    <span class="text-caption font-semibold text-navy-400 uppercase tracking-wider">Event Management</span>
+                </div>
+                <a href="{{ path('admin_events_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_events' %}sidebar-nav-item-active{% endif %}">
+>>>>>>> Stashed changes
                     <i data-lucide="calendar" class="w-5 h-5"></i>
                     <span>Événement</span>
                 </a>
@@ -121,6 +148,7 @@
                     <i data-lucide="ticket" class="w-5 h-5"></i>
                     <span>Reservations</span>
                 </a>
+<<<<<<< Updated upstream
                 <a href="{{ path('admin_stats') }}" class="sidebar-nav-item {% if currentRoute == 'admin_stats' %}sidebar-nav-item-active{% endif %}">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span>Statistics</span>
@@ -157,6 +185,19 @@
 </div>
 
 
+=======
+                <a href="{{ path('admin_slots_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_slots' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                    <span>Slots</span>
+                </a>
+                <a href="{{ path('admin_rendezvous_index') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'admin_rendezvous' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="handshake" class="w-5 h-5"></i>
+                    <span>Rendez-vous</span>
+                </a>
+                
+    
+                
+>>>>>>> Stashed changes
             </nav>
         </aside>
 

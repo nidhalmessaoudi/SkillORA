@@ -1,0 +1,86 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Manage Exam{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold">Manage Exam</h1>
+    <p class="text-gray-600">
+      Evaluation: <span class="font-semibold text-black">{{ evaluation.title }}</span>
+    </p>
+  </div>
+
+  <a href="{{ path('evaluation_index', { type: evaluation.type }) }}"
+     class="btn-secondary">
+    Back to evaluations
+  </a>
+</div>
+
+<div class="card p-6">
+
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold">
+      Exam Questions ({{ questions|length }})
+    </h2>
+
+    <div class="flex items-center gap-2">
+
+      {# ✅ Import PDF #}
+      <form method="post"
+            action="{{ path('admin_exam_import_pdf', {id: evaluation.id}) }}"
+            enctype="multipart/form-data"
+            class="flex items-center gap-2">
+        <input type="hidden" name="_token" value="{{ csrf_token('import_exam_pdf_' ~ evaluation.id) }}">
+
+        <input type="file" name="pdf" accept="application/pdf" class="text-sm" required>
+        <button class="btn-secondary btn-sm" type="submit">
+          Import PDF
+        </button>
+      </form>
+
+      {# ✅ Add question manual #}
+      <a href="{{ path('admin_question_new', {
+        evaluationId: evaluation.id,
+        back: path('admin_exam_manage', { id: evaluation.id })
+      }) }}" class="btn-primary btn-sm">
+        + Add Question
+      </a>
+
+    </div>
+  </div>
+
+  <div class="space-y-3">
+    {% for q in questions %}
+      <div class="p-4 rounded-lg border bg-white">
+        <div class="font-medium text-sm whitespace-pre-line">{{ q.content }}</div>
+        <div class="text-xs text-gray-500 mt-1">Type: {{ q.type }} • Score: {{ q.score }}</div>
+
+        <div class="mt-3 flex justify-end gap-2">
+          <a class="btn-sm"
+             href="{{ path('admin_question_edit', {
+               id: q.id,
+               evaluationId: evaluation.id,
+               back: path('admin_exam_manage', { id: evaluation.id })
+             }) }}">
+            Edit
+          </a>
+
+          <form method="post"
+                action="{{ path('admin_question_delete', {
+                  id: q.id,
+                  back: path('admin_exam_manage', { id: evaluation.id })
+                }) }}"
+                onsubmit="return confirm('Delete this question?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_question_' ~ q.id) }}">
+            <button class="btn-sm text-red-600 hover:text-red-800">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="text-gray-500 text-sm">No questions yet for this exam.</div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

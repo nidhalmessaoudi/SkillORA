@@ -2,16 +2,28 @@
 
 namespace App\Controller;
 
+<<<<<<< Updated upstream
 use App\Entity\Evaluation;
 use App\Entity\Answer;
+=======
+use App\Entity\Answer;
+use App\Entity\Evaluation;
+>>>>>>> Stashed changes
 use App\Entity\UserEvaluation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+<<<<<<< Updated upstream
 
 #[Route('/user/evaluation')]
+=======
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/user/evaluation')]
+#[IsGranted('ROLE_USER')]
+>>>>>>> Stashed changes
 class UserEvaluationController extends AbstractController
 {
     #[Route('/', name: 'user_evaluation_index', methods: ['GET'])]
@@ -27,6 +39,7 @@ class UserEvaluationController extends AbstractController
     #[Route('/{id}', name: 'user_evaluation_show', methods: ['GET'])]
     public function show(Evaluation $evaluation, EntityManagerInterface $em): Response
     {
+<<<<<<< Updated upstream
         // ✅ Si c'est un QUIZ, on force l’accès au quiz directement
         if ($evaluation->getType() === 'QUIZ') {
             return $this->redirectToRoute('user_evaluation_take', [
@@ -35,6 +48,12 @@ class UserEvaluationController extends AbstractController
         }
 
         $user = $this->getUser();
+=======
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException();
+        }
+>>>>>>> Stashed changes
 
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
@@ -47,31 +66,51 @@ class UserEvaluationController extends AbstractController
         ]);
     }
 
+<<<<<<< Updated upstream
     #[Route('/{id}/take', name: 'user_evaluation_take', methods: ['GET', 'POST'])]
     public function take(Evaluation $evaluation, Request $request, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
 
         // 1) récupérer / créer UserEvaluation
+=======
+    #[Route('/{id}/take', name: 'user_evaluation_take', methods: ['GET','POST'])]
+    public function take(Evaluation $evaluation, Request $request, EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // 1) get/create UserEvaluation
+>>>>>>> Stashed changes
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
             'evaluation' => $evaluation,
         ]);
 
+<<<<<<< Updated upstream
         if ($userEvaluation && $userEvaluation->getSubmittedAt() !== null) {
             $this->addFlash('warning', 'Vous avez déjà passé cette évaluation.');
             return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
         }
 
+=======
+>>>>>>> Stashed changes
         if (!$userEvaluation) {
             $userEvaluation = new UserEvaluation();
             $userEvaluation->setUser($user);
             $userEvaluation->setEvaluation($evaluation);
+<<<<<<< Updated upstream
             $userEvaluation->setStartedAt(new \DateTimeImmutable()); // ✅ IMPORTANT
+=======
+            $userEvaluation->setStartedAt(new \DateTimeImmutable());
+>>>>>>> Stashed changes
             $em->persist($userEvaluation);
             $em->flush();
         }
 
+<<<<<<< Updated upstream
         $questions = $evaluation->getQuestions();
 
         // 2) timer
@@ -121,6 +160,69 @@ class UserEvaluationController extends AbstractController
                     $selectedChoice = null;
                     foreach ($question->getAnswers() as $choice) {
                         if ($choice->isChoice() && $choice->getId() === $answerId) {
+=======
+        // already submitted -> result
+        if ($userEvaluation->getSubmittedAt()) {
+            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+        }
+
+        // 2) timer
+        $startedAt = $userEvaluation->getStartedAt();
+        $endTime = (clone $startedAt)->modify("+{$evaluation->getDuration()} minutes");
+
+        if (new \DateTimeImmutable() > $endTime) {
+            // auto submit when time is over
+            $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
+            if ($evaluation->getType() === 'QUIZ') {
+                $userEvaluation->setScore(0);
+                $userEvaluation->setIsCorrected(true);
+            } else {
+                $userEvaluation->setScore(null);
+                $userEvaluation->setIsCorrected(false);
+            }
+            $em->flush();
+
+            $this->addFlash('danger', 'Temps écoulé. Évaluation soumise automatiquement.');
+            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+        }
+
+        $questions = $evaluation->getQuestions();
+
+        // 3) submit
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('take_evaluation_'.$evaluation->getId(), (string)$request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF');
+            }
+
+            // delete previous submissions (safe if user refresh)
+            $old = $em->getRepository(Answer::class)->findBy([
+                'student' => $user,
+                'role' => 'SUBMISSION',
+            ]);
+            foreach ($old as $o) {
+                // optionnel : mieux filtrer par evaluation, mais OK si tu n’as pas beaucoup de data
+            }
+
+            $score = 0;
+
+            if ($evaluation->getType() === 'QUIZ') {
+                $submittedAnswers = $request->request->all('answers');
+
+                foreach ($questions as $question) {
+                    $qid = $question->getId();
+                    $raw = $submittedAnswers[$qid] ?? null;
+
+                    $answer = new Answer();
+                    $answer->setRole('SUBMISSION');
+                    $answer->setQuestion($question);
+                    $answer->setStudent($user);
+
+                    $answerId = (int) $raw;
+                    $selectedChoice = null;
+
+                    foreach ($question->getAnswers() as $choice) {
+                        if ($choice->getRole() === 'CHOICE' && $choice->getId() === $answerId) {
+>>>>>>> Stashed changes
                             $selectedChoice = $choice;
                             break;
                         }
@@ -128,13 +230,18 @@ class UserEvaluationController extends AbstractController
 
                     if ($selectedChoice) {
                         $answer->setContent($selectedChoice->getContent());
+<<<<<<< Updated upstream
                         $isCorrect = $selectedChoice->isCorrectAnswer();
+=======
+                        $isCorrect = (bool) $selectedChoice->getIsCorrect();
+>>>>>>> Stashed changes
                         $answer->setIsCorrect($isCorrect);
 
                         if ($isCorrect) {
                             $score += (int) $question->getScore();
                         }
                     } else {
+<<<<<<< Updated upstream
                         $answer->setContent((string) $rawValue);
                         $answer->setIsCorrect(false);
                     }
@@ -158,6 +265,49 @@ class UserEvaluationController extends AbstractController
         }
 
         // 4) GET = afficher formulaire
+=======
+                        $answer->setContent('');
+                        $answer->setIsCorrect(false);
+                    }
+
+                    $em->persist($answer);
+                }
+
+                $userEvaluation->setScore($score);
+                $userEvaluation->setIsCorrected(true);
+            } else {
+                // EXAM: une seule réponse globale
+                $examResponse = trim((string) $request->request->get('exam_response'));
+
+                $answer = new Answer();
+                $answer->setRole('SUBMISSION');
+                $answer->setStudent($user);
+                // si ton Answer exige question non-null => il faut une "question placeholder" EXAM
+                // Donc on prend la 1ère question si existe, sinon tu dois créer une question EXAM obligatoire côté admin.
+                $firstQuestion = $questions->first() ?: null;
+                if (!$firstQuestion) {
+                    $this->addFlash('danger', "EXAM: ajoute au moins 1 question (placeholder) pour stocker la réponse.");
+                    return $this->redirectToRoute('user_evaluation_show', ['id' => $evaluation->getId()]);
+                }
+                $answer->setQuestion($firstQuestion);
+
+                $answer->setContent($examResponse);
+                $answer->setIsCorrect(null);
+
+                $em->persist($answer);
+
+                $userEvaluation->setScore(null);
+                $userEvaluation->setIsCorrected(false);
+            }
+
+            $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
+            $em->flush();
+
+            $this->addFlash('success', 'Évaluation soumise ✅');
+            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+        }
+
+>>>>>>> Stashed changes
         return $this->render('evaluation/user_take.html.twig', [
             'evaluation' => $evaluation,
             'questions' => $questions,
@@ -169,6 +319,7 @@ class UserEvaluationController extends AbstractController
     #[Route('/result/{id}', name: 'user_evaluation_result', methods: ['GET'])]
     public function result(UserEvaluation $userEvaluation, EntityManagerInterface $em): Response
     {
+<<<<<<< Updated upstream
         $questions = $userEvaluation->getEvaluation()->getQuestions();
 
         $user = $this->getUser();
@@ -180,16 +331,48 @@ class UserEvaluationController extends AbstractController
             ->setParameter('user', $user)
             ->setParameter('role', 'SUBMISSION')
             ->setParameter('questions', $questions)
+=======
+        $user = $this->getUser();
+        if (!$user) throw $this->createAccessDeniedException();
+
+        if ($userEvaluation->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $evaluation = $userEvaluation->getEvaluation();
+        $questions = $evaluation->getQuestions();
+
+        // IMPORTANT: récupérer seulement submissions liées à cette évaluation
+        $submitted = $em->createQueryBuilder()
+            ->select('a')
+            ->from(Answer::class, 'a')
+            ->join('a.question', 'q')
+            ->where('a.student = :user')
+            ->andWhere('a.role = :role')
+            ->andWhere('q.evaluation = :evaluation')
+            ->setParameter('user', $user)
+            ->setParameter('role', 'SUBMISSION')
+            ->setParameter('evaluation', $evaluation)
+>>>>>>> Stashed changes
             ->getQuery()
             ->getResult();
 
         $submittedMap = [];
+<<<<<<< Updated upstream
         foreach ($submitted as $ans) {
             $submittedMap[$ans->getQuestion()->getId()] = $ans;
+=======
+        foreach ($submitted as $a) {
+            $submittedMap[$a->getQuestion()->getId()] = $a;
+>>>>>>> Stashed changes
         }
 
         return $this->render('evaluation/user_result.html.twig', [
             'userEvaluation' => $userEvaluation,
+<<<<<<< Updated upstream
+=======
+            'evaluation' => $evaluation,
+>>>>>>> Stashed changes
             'questions' => $questions,
             'submittedMap' => $submittedMap,
         ]);

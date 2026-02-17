@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Evaluations - Admin - SkillHarbor{% endblock %}
@@ -136,3 +137,138 @@
     </div>
 </div>
 {% endblock %}
+=======
+{# RIGHT: QUESTIONS PANEL #}
+<div class="lg:col-span-1">
+  <div class="card shadow-sm rounded-xl overflow-hidden">
+
+    {# HEADER #}
+    <div class="p-6 border-b">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold">
+          {{ selectedEvaluation ? (selectedEvaluation.type == 'EXAM' ? 'Exam' : 'Questions') : 'Questions' }}
+        </h3>
+
+        {% if selectedEvaluation %}
+          {% if selectedEvaluation.type == 'QUIZ' %}
+            <div class="flex items-center gap-2">
+
+              {# ✅ Edit Questions (go to create question, then back) #}
+              <a href="{{ path('admin_question_new', {
+                evaluationId: selectedEvaluation.id,
+                back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+              }) }}"
+                 class="btn-secondary btn-sm">
+                Edit Questions
+              </a>
+
+              {# ✅ View Answers (go to answers page filtered by evaluation) #}
+              <a href="{{ path('admin_answer_index', {
+                evaluationId: selectedEvaluation.id,
+                back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+              }) }}"
+                 class="btn-primary btn-sm">
+                View Answers
+              </a>
+
+            </div>
+          {% else %}
+            <a href="{{ path('admin_exam_manage', { id: selectedEvaluation.id }) }}"
+               class="btn-primary btn-sm">
+              Manage Exam
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {# BODY #}
+    <div class="p-6 space-y-4">
+      {% if not selectedEvaluation %}
+        <div class="text-gray-500 text-sm">
+          Click on an evaluation title to view its questions.
+        </div>
+      {% else %}
+        <div>
+          <div class="font-semibold text-gray-900">
+            {{ selectedEvaluation.title }}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            {{ questions|length }} question(s)
+          </div>
+        </div>
+
+        {% if selectedEvaluation.type == 'QUIZ' %}
+          <div class="space-y-3">
+            {% for q in questions %}
+              <div class="p-3 rounded-lg border bg-white">
+                <div class="text-sm font-medium whitespace-pre-wrap">{{ q.content }}</div>
+
+                <div class="text-xs text-gray-500 mt-1">
+                  Type: {{ q.type }} • Score: {{ q.score }}
+                </div>
+
+                {# ACTIONS per question #}
+                <div class="mt-3 flex justify-end gap-2">
+
+                  {# ✅ View Answers for MCQ #}
+                  {% if q.type == 'MCQ' %}
+                    <a class="btn-sm"
+                       href="{{ path('admin_question_show', {
+                         id: q.id,
+                         back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+                       }) }}">
+                      View Answers
+                    </a>
+                  {% endif %}
+
+                  <a class="btn-sm"
+                     href="{{ path('admin_question_edit', {
+                       id: q.id,
+                       evaluationId: selectedEvaluation.id,
+                       back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+                     }) }}">
+                    Edit
+                  </a>
+
+                  <form method="post"
+                        action="{{ path('admin_question_delete', {
+                          id: q.id,
+                          back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+                        }) }}"
+                        onsubmit="return confirm('Delete this question?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_question_' ~ q.id) }}">
+                    <button type="submit" class="btn-sm text-red-600 hover:text-red-800">
+                      Delete
+                    </button>
+                  </form>
+
+                </div>
+              </div>
+            {% else %}
+              <div class="text-gray-500 text-sm">No questions for this evaluation.</div>
+            {% endfor %}
+          </div>
+
+          {# FOOTER: Add Question #}
+          <div class="pt-3 border-t">
+            <a href="{{ path('admin_question_new', {
+              evaluationId: selectedEvaluation.id,
+              back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+            }) }}"
+               class="btn-primary btn-sm w-full text-center block">
+              + Add Question
+            </a>
+          </div>
+
+        {% else %}
+          <div class="text-gray-500 text-sm">
+            This is an exam. Click <b>Manage Exam</b> to manage its questions.
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+>>>>>>> Stashed changes

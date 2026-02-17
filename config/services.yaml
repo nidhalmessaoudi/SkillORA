@@ -4,6 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
+    lesson_upload_public_base: "/uploads/lessons"
+    exam_pdf_upload_dir: '%kernel.project_dir%/public/uploads/pdf'
+
 
 services:
     # default configuration for services in *this* file

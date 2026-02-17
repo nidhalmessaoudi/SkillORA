@@ -25,7 +25,11 @@ class Evaluation
     private string $type; // QUIZ | EXAM
 
     #[ORM\Column]
+<<<<<<< Updated upstream
     private int $duration; // en minutes
+=======
+    private int $duration; // minutes
+>>>>>>> Stashed changes
 
     #[ORM\Column]
     private int $totalScore = 0;
@@ -33,6 +37,7 @@ class Evaluation
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+<<<<<<< Updated upstream
    
 
     #[ORM\OneToMany(
@@ -41,6 +46,13 @@ class Evaluation
         cascade: ['persist', 'remove'],
         orphanRemoval: true
     )]
+=======
+    // ✅ PDF PATH (only for EXAM)
+    #[ORM\Column(name: 'pdf_path', length: 255, nullable: true)]
+    private ?string $pdfPath = null;
+
+    #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+>>>>>>> Stashed changes
     private Collection $questions;
 
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: UserEvaluation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -53,6 +65,7 @@ class Evaluation
         $this->createdAt = new \DateTimeImmutable();
     }
 
+<<<<<<< Updated upstream
     /* ===================== */
     /* GETTERS / SETTERS     */
     /* ===================== */
@@ -72,12 +85,20 @@ class Evaluation
         $this->title = $title;
         return $this;
     }
+=======
+    public function getId(): ?int { return $this->id; }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
+    public function getTitle(): string { return $this->title; }
+    public function setTitle(string $title): static { $this->title = $title; return $this; }
 
+    public function getDescription(): ?string { return $this->description; }
+    public function setDescription(?string $description): static { $this->description = $description; return $this; }
+>>>>>>> Stashed changes
+
+    public function getType(): string { return $this->type; }
+    public function setType(string $type): static { $this->type = $type; return $this; }
+
+<<<<<<< Updated upstream
     public function setDescription(?string $description): static
     {
         $this->description = $description;
@@ -105,9 +126,25 @@ class Evaluation
         $this->duration = $duration;
         return $this;
     }
+=======
+    public function getDuration(): int { return $this->duration; }
+    public function setDuration(int $duration): static { $this->duration = $duration; return $this; }
 
-    public function getTotalScore(): int
+    public function getTotalScore(): int { return $this->totalScore; }
+    public function setTotalScore(int $totalScore): static { $this->totalScore = $totalScore; return $this; }
+
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
+    public function getPdfPath(): ?string { return $this->pdfPath; }
+    public function setPdfPath(?string $pdfPath): static { $this->pdfPath = $pdfPath; return $this; }
+
+    public function getQuestions(): Collection { return $this->questions; }
+    public function getUserEvaluations(): Collection { return $this->userEvaluations; }
+>>>>>>> Stashed changes
+
+    public function calculateTotalScore(): void
     {
+<<<<<<< Updated upstream
         return $this->totalScore;
     }
 
@@ -151,6 +188,13 @@ class Evaluation
         }
 
         return $this;
+=======
+        $total = 0;
+        foreach ($this->questions as $question) {
+            $total += (int) $question->getScore();
+        }
+        $this->totalScore = $total;
+>>>>>>> Stashed changes
     }
 
     /* ===================== */

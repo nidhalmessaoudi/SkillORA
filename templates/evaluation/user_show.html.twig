@@ -1,4 +1,5 @@
 {% extends 'layouts/user.html.twig' %}
+<<<<<<< Updated upstream
 
 {% block title %}{{ evaluation.title }}{% endblock %}
 
@@ -32,5 +33,26 @@
         {% endif %}
         <a href="{{ path('user_evaluation_index') }}" class="btn-secondary ml-2">Retour</a>
     </div>
+=======
+{% block title %}{{ evaluation.title }}{% endblock %}
+
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-4">{{ evaluation.title }}</h1>
+
+<p>Durée : {{ evaluation.duration }} min</p>
+<p>Type : {{ evaluation.type }}</p>
+<p>Points : {{ evaluation.totalScore }}</p>
+
+{% if userEvaluation and userEvaluation.submittedAt %}
+    <a href="{{ path('user_evaluation_result', {id:userEvaluation.id}) }}" class="btn-secondary mt-4">
+        Voir résultat
+    </a>
+{% else %}
+    <a href="{{ path('user_evaluation_take', {id:evaluation.id}) }}" class="btn-primary mt-4">
+        Commencer
+    </a>
+{% endif %}
+>>>>>>> Stashed changes
 
 {% endblock %}

@@ -30,6 +30,13 @@ class UserEvaluation
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $score = null;
 
+<<<<<<< Updated upstream
+=======
+    // ✅ AJOUT IMPORTANT
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isCorrected = false;
+
+>>>>>>> Stashed changes
     public function __construct()
     {
         $this->startedAt = new \DateTimeImmutable();
@@ -98,4 +105,25 @@ class UserEvaluation
         $this->score = $score;
         return $this;
     }
+<<<<<<< Updated upstream
+=======
+
+    // ✅ NOUVELLES MÉTHODES
+
+    public function isCorrected(): bool
+    {
+        return $this->isCorrected;
+    }
+
+    public function getIsCorrected(): bool
+    {
+        return $this->isCorrected;
+    }
+
+    public function setIsCorrected(bool $isCorrected): static
+    {
+        $this->isCorrected = $isCorrected;
+        return $this;
+    }
+>>>>>>> Stashed changes
 }

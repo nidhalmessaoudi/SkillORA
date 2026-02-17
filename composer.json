@@ -12,7 +12,13 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
+<<<<<<< Updated upstream
         "dompdf/dompdf": "^3.1",
+=======
+        "knpuniversity/oauth2-client-bundle": "^2.20",
+        "league/oauth2-google": "^4.1",
+        "smalot/pdfparser": "^2.12",
+>>>>>>> Stashed changes
         "symfony/asset": "^6.4",
         "symfony/asset-mapper": "^6.4",
         "symfony/console": "^6.4",
@@ -24,6 +30,7 @@
         "symfony/security-bundle": "6.4.*",
         "symfony/stimulus-bundle": "^2.13",
         "symfony/twig-bundle": "^6.4",
+        "symfony/validator": "6.4.*",
         "symfony/yaml": "^6.4",
         "twig/extra-bundle": "^3.0",
         "twig/twig": "^3.0"

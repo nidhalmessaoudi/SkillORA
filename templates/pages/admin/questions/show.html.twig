@@ -3,6 +3,7 @@
 {% block title %}Question #{{ question.id }} - Admin{% endblock %}
 
 {% block admin_content %}
+<<<<<<< Updated upstream
 <div class="mb-8">
   <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
     Question #{{ question.id }}
@@ -10,21 +11,52 @@
   <p class="text-body-md text-navy-600 dark:text-navy-400">
     Question details and answers.
   </p>
+=======
+{% set backUrl = back ?? app.request.query.get('back') %}
+{% set evalId = question.evaluation ? question.evaluation.id : null %}
+
+<div class="mb-8 flex items-start justify-between gap-4">
+  <div>
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+      Question #{{ question.id }}
+    </h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">
+      Question details and answers.
+    </p>
+  </div>
+
+  <a href="{{ backUrl ?: path('admin_question_index') }}"
+     class="btn-secondary btn-sm">
+    Back
+  </a>
+>>>>>>> Stashed changes
 </div>
 
 <div class="card p-6 space-y-6">
 
+<<<<<<< Updated upstream
   {# === Question content === #}
+=======
+>>>>>>> Stashed changes
   <div>
     <h2 class="text-heading-md font-semibold text-navy-900 dark:text-white mb-2">
       Content
     </h2>
+<<<<<<< Updated upstream
     <div class="prose max-w-none text-navy-700 dark:text-navy-300">
       {{ question.content|raw }}
     </div>
   </div>
 
   {# === Meta info === #}
+=======
+
+    <div class="rounded-xl border border-navy-100 dark:border-navy-800 bg-navy-50 dark:bg-navy-900/30 p-4">
+      <pre class="whitespace-pre-wrap font-sans text-sm leading-6 text-navy-800 dark:text-navy-200 m-0">{{ question.content }}</pre>
+    </div>
+  </div>
+
+>>>>>>> Stashed changes
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
     <div>
@@ -39,13 +71,21 @@
 
     <div>
       <strong class="text-navy-600 dark:text-navy-400">Score:</strong>
+<<<<<<< Updated upstream
       <span class="ml-2">{{ question.score }}</span>
+=======
+      <span class="ml-2 text-navy-900 dark:text-white">{{ question.score }}</span>
+>>>>>>> Stashed changes
     </div>
 
     <div>
       <strong class="text-navy-600 dark:text-navy-400">Evaluation:</strong>
       {% if question.evaluation %}
+<<<<<<< Updated upstream
         <span class="ml-2">
+=======
+        <span class="ml-2 text-navy-900 dark:text-white">
+>>>>>>> Stashed changes
           #{{ question.evaluation.id }} — {{ question.evaluation.title }}
         </span>
       {% else %}
@@ -55,22 +95,35 @@
 
     <div>
       <strong class="text-navy-600 dark:text-navy-400">Answers count:</strong>
+<<<<<<< Updated upstream
       <span class="ml-2">{{ question.answers|length }}</span>
+=======
+      <span class="ml-2 text-navy-900 dark:text-white">{{ question.answers|length }}</span>
+>>>>>>> Stashed changes
     </div>
 
   </div>
 
+<<<<<<< Updated upstream
   {# === Answers (MCQ) === #}
+=======
+>>>>>>> Stashed changes
   {% if question.isMcq() %}
     <div>
       <h2 class="text-heading-md font-semibold text-navy-900 dark:text-white mb-3">
         Choices
       </h2>
 
+<<<<<<< Updated upstream
+=======
+      {% set letters = ['A','B','C','D','E','F','G','H','I','J','K','L'] %}
+
+>>>>>>> Stashed changes
       {% if question.answers|length > 0 %}
         <ul class="space-y-2">
           {% for answer in question.answers %}
             {% if answer.isChoice() %}
+<<<<<<< Updated upstream
               <li class="flex items-start gap-3 p-3 border rounded
                 {{ answer.isCorrectAnswer()
                   ? 'bg-green-50 border-green-200'
@@ -82,6 +135,19 @@
 
                 {% if answer.isCorrectAnswer() %}
                   <span class="ml-auto text-green-600 font-semibold">
+=======
+              <li class="flex items-start gap-3 p-3 border rounded-xl
+                {{ answer.isCorrectAnswer()
+                  ? 'bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/20'
+                  : 'bg-navy-50 border-navy-100 dark:bg-navy-900/30 dark:border-navy-800' }}">
+                <span class="font-bold text-navy-700 dark:text-navy-200">
+                  {{ letters[loop.index0] ~ '.' }}
+                </span>
+                <span class="text-navy-800 dark:text-navy-200">{{ answer.content }}</span>
+
+                {% if answer.isCorrectAnswer() %}
+                  <span class="ml-auto text-green-600 dark:text-green-300 font-semibold">
+>>>>>>> Stashed changes
                     ✔ Correct
                   </span>
                 {% endif %}
@@ -90,20 +156,37 @@
           {% endfor %}
         </ul>
       {% else %}
+<<<<<<< Updated upstream
         <p class="text-navy-500">No answers defined for this question.</p>
+=======
+        <p class="text-navy-500 dark:text-navy-400">No answers defined for this question.</p>
+>>>>>>> Stashed changes
       {% endif %}
     </div>
   {% endif %}
 
+<<<<<<< Updated upstream
   {# === Actions === #}
   <div class="flex items-center gap-3 pt-4 border-t">
     <a href="{{ path('admin_question_edit', {id: question.id}) }}"
+=======
+  <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-navy-100 dark:border-navy-800">
+    <a href="{{ path('admin_question_edit', {
+          id: question.id,
+          evaluationId: evalId,
+          back: backUrl
+        }) }}"
+>>>>>>> Stashed changes
        class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
       Edit
     </a>
 
     <form method="post"
+<<<<<<< Updated upstream
           action="{{ path('admin_question_delete', {id: question.id}) }}"
+=======
+          action="{{ path('admin_question_delete', { id: question.id, back: backUrl }) }}"
+>>>>>>> Stashed changes
           onsubmit="return confirm('Delete this question?');">
       <input type="hidden" name="_token" value="{{ csrf_token('delete_question_' ~ question.id) }}">
       <button type="submit"
@@ -111,11 +194,14 @@
         Delete
       </button>
     </form>
+<<<<<<< Updated upstream
 
     <a href="{{ path('admin_question_index') }}"
        class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200 ml-auto">
       Back to list
     </a>
+=======
+>>>>>>> Stashed changes
   </div>
 
 </div>
