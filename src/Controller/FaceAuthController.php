@@ -91,6 +91,7 @@ class FaceAuthController extends AbstractController
             // Try to match face with stored faces
             $bestMatch = null;
             $bestSimilarity = 0;
+            $secondBestSimilarity = 0;
 
             foreach ($users as $user) {
                 $storedFaceData = $user->getFaceData();
@@ -111,15 +112,37 @@ class FaceAuthController extends AbstractController
                 $log("User {$user->getEmail()}: similarity = " . round($similarity * 100, 2) . "%");
 
                 if ($similarity > $bestSimilarity) {
+                    // Demote current best to second best
+                    $secondBestSimilarity = $bestSimilarity;
                     $bestSimilarity = $similarity;
                     $bestMatch = $user;
+                } elseif ($similarity > $secondBestSimilarity) {
+                    $secondBestSimilarity = $similarity;
                 }
             }
 
-           $log("Best match: " . ($bestMatch ? $bestMatch->getEmail() : 'none') . " with " . round($bestSimilarity * 100, 2) . "% similarity");
+            $log("Best match: " . ($bestMatch ? $bestMatch->getEmail() : 'none') . " with " . round($bestSimilarity * 100, 2) . "% similarity");
+            $log("Second best similarity: " . round($secondBestSimilarity * 100, 2) . "%");
+            
+            $confidenceGap = $bestSimilarity - $secondBestSimilarity;
+            $log("Confidence gap: " . round($confidenceGap * 100, 2) . "%");
 
-            // Threshold: 70% similarity required
-            if ($bestMatch && $bestSimilarity >= 0.70) {
+            // STRICT SECURITY REQUIREMENTS:
+            // 1. Minimum 92% similarity threshold (increased from 70% for security)
+            // 2. At least 5% confidence gap from second-best match to ensure uniqueness
+            $SIMILARITY_THRESHOLD = 0.92;  // 92% minimum match
+            $CONFIDENCE_GAP_THRESHOLD = 0.05; // 5% minimum gap from next best match
+            
+            if ($bestMatch && $bestSimilarity >= $SIMILARITY_THRESHOLD) {
+                // Additional security: check confidence gap if there are multiple users
+                if (count($users) > 1 && $confidenceGap < $CONFIDENCE_GAP_THRESHOLD) {
+                    $log("Face authentication failed: Match not unique enough (gap: " . round($confidenceGap * 100, 2) . "%)");
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Face match is ambiguous. Please use regular login for security.',
+                        'similarity' => round($bestSimilarity * 100, 2)
+                    ], 401);
+                }
                 // Check if user is active and verified
                 if (!$bestMatch->isActive()) {
                     $log("Face authentication failed: User account suspended");
@@ -161,12 +184,18 @@ class FaceAuthController extends AbstractController
                 ]);
             }
 
-            $log("Face authentication failed: Similarity too low (" . round($bestSimilarity * 100, 2) . "%)");
+            // If we get here, either no match or similarity too low
+            if ($bestMatch) {
+                $log("Face authentication failed: Similarity too low (" . round($bestSimilarity * 100, 2) . "% < " . ($SIMILARITY_THRESHOLD * 100) . "% required)");
+            } else {
+                $log("Face authentication failed: No face match found");
+            }
             
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Face not recognized. Please try again or use regular login.',
-                'similarity' => round($bestSimilarity * 100, 2)
+                'message' => 'Face not recognized. Please ensure good lighting and try again, or use regular login.',
+                'similarity' => round($bestSimilarity * 100, 2),
+                'threshold' => round($SIMILARITY_THRESHOLD * 100, 2)
             ], 401);
 
         } catch (\Exception $e) {

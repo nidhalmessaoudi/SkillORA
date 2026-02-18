@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face ID Section Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'harbor': {
+                            '50': '#f0f9ff',
+                            '300': '#7dd3fc',
+                            '500': '#0ea5e9',
+                            '600': '#0284c7',
+                            '700': '#0369a1',
+                            '900': '#0c4a6e',
+                        },
+                        'sky': {
+                            '50': '#f0f9ff',
+                            '500': '#0ea5e9',
+                        },
+                        'navy': {
+                            '200': '#cbd5e1',
+                            '300': '#94a3b8',
+                            '400': '#64748b',
+                            '600': '#475569',
+                            '700': '#334155',
+                            '900': '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold mb-6">Face ID Section Visibility Test</h1>
+        
+        <p class="mb-4 text-gray-700">This section should be clearly visible with a blue gradient background:</p>
+        
+        <!-- EXACT COPY from register.html.twig lines 195-287 -->
+        <div class="mt-6 p-6 rounded-2xl bg-gradient-to-br from-harbor-50 to-sky-50 border-2 border-dashed border-harbor-300">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-harbor-500 to-sky-500 flex items-center justify-center">
+                        <i data-lucide="scan-face" class="w-6 h-6 text-white"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-navy-900 mb-1">Enable Face ID (Optional)</h3>
+                    <p class="text-sm text-navy-600">Login faster and more securely with facial recognition</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="enable-face-id" class="sr-only peer">
+                        <div class="w-11 h-6 bg-navy-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-harbor-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-navy-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-harbor-600"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Face ID Capture Interface -->
+            <div id="face-capture-container" class="hidden">
+                <div class="text-center mb-4">
+                    <button type="button" class="inline-flex items-center px-4 py-2 bg-harbor-600 text-white rounded-lg">
+                        <i data-lucide="video" class="w-5 h-5 mr-2"></i>
+                        Start Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 p-4 bg-green-100 border border-green-300 rounded-lg">
+            <p class="text-green-800 font-semibold">✅ If you can see the blue gradient box above with "Enable Face ID (Optional)", then the Face ID section IS WORKING and VISIBLE in your registration page!</p>
+        </div>
+        
+        <div class="mt-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
+            <p class="text-blue-800"><strong>How to access:</strong></p>
+            <ol class="list-decimal ml-5 mt-2 text-blue-700">
+                <li>Start server: <code class="bg-white px-2 py-1 rounded">php -S localhost:8000 -t public</code></li>
+                <li>Open: <code class="bg-white px-2 py-1 rounded">http://localhost:8000/auth/register</code></li>
+                <li>Scroll down after the "Confirm Password" field</li>
+                <li>You'll see this exact blue box!</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+        
+        // Toggle functionality
+        document.getElementById('enable-face-id').addEventListener('change', function() {
+            const container = document.getElementById('face-capture-container');
+            if (this.checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
