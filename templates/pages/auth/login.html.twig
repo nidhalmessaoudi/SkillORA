@@ -203,51 +203,10 @@
             <div class="absolute bottom-20 left-20 w-80 h-80 bg-harbor-400/20 rounded-full blur-3xl"></div>
         </div>
 
-        {# Content #}
+        {# 3D Spline Model #}
         <div class="relative h-full flex flex-col justify-center p-12 lg:p-16">
-            <div class="max-w-md">
-                <h2 class="font-display font-bold text-3xl lg:text-4xl text-white mb-4">
-                    Continue your learning journey
-                </h2>
-                <p class="text-lg text-white/80 mb-10">
-                    Pick up where you left off. Your progress, certificates, and bookmarks are waiting.
-                </p>
-
-                {# Stats #}
-                <div class="flex gap-8 mb-10">
-                    <div>
-                        <div class="font-display font-bold text-2xl text-white">500K+</div>
-                        <div class="text-body-sm text-white/60">Learners</div>
-                    </div>
-                    <div>
-                        <div class="font-display font-bold text-2xl text-white">10K+</div>
-                        <div class="text-body-sm text-white/60">Courses</div>
-                    </div>
-                    <div>
-                        <div class="font-display font-bold text-2xl text-white">4.8</div>
-                        <div class="text-body-sm text-white/60">Rating</div>
-                    </div>
-                </div>
-
-                {# Testimonial #}
-                <div class="bg-white/10 backdrop-blur rounded-3xl p-6">
-                    <div class="flex items-center gap-1 mb-3">
-                        {% for i in 1..5 %}
-                        <i data-lucide="star" class="w-4 h-4 text-warning-400 fill-warning-400"></i>
-                        {% endfor %}
-                    </div>
-                    <p class="text-white/90 mb-4">
-                        "The best investment I made in my career. Went from junior to senior developer in 8 months."
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt="" class="w-10 h-10 rounded-full object-cover">
-                        <div>
-                            <div class="font-semibold text-white text-body-sm">Sarah Mitchell</div>
-                            <div class="text-white/60 text-caption">Software Engineer at Stripe</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.58/build/spline-viewer.js"></script>
+            <spline-viewer url="https://prod.spline.design/1V0P7xpRO0kes-qw/scene.splinecode" style="width: 100%; height: 100%;"></spline-viewer>
         </div>
     </div>
 </div>
