@@ -33,6 +33,9 @@ class Evaluation
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(name: 'docx_path', length: 255, nullable: true)]
+private ?string $docxPath = null;
+
     // ✅ PDF PATH (only for EXAM)
     #[ORM\Column(name: 'pdf_path', length: 255, nullable: true)]
     private ?string $pdfPath = null;
@@ -74,6 +77,9 @@ class Evaluation
 
     public function getQuestions(): Collection { return $this->questions; }
     public function getUserEvaluations(): Collection { return $this->userEvaluations; }
+
+    public function getDocxPath(): ?string { return $this->docxPath; }
+public function setDocxPath(?string $docxPath): static { $this->docxPath = $docxPath; return $this; }
 
     public function calculateTotalScore(): void
     {

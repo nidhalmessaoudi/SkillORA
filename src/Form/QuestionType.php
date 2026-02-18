@@ -22,21 +22,26 @@ class QuestionType extends AbstractType
     {
         $builder
             ->add('content', TextareaType::class, [
-                'label' => 'Question content',
-                'attr' => ['rows' => 4],
+                'label' => 'Question / Exercice',
+                'attr' => ['rows' => 10],
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Question type',
-                'choices' => ['MCQ' => 'MCQ', 'TEXT' => 'TEXT'],
+                'choices' => [
+                    'MCQ' => 'MCQ',
+                    'TEXT' => 'TEXT',
+                ],
             ])
             ->add('score', IntegerType::class, [
-                'label' => 'Score',
+                'label' => 'Points',
+                'attr' => ['min' => 1],
+                'empty_data' => '1',
             ])
             ->add('evaluation', EntityType::class, [
                 'class' => Evaluation::class,
                 'choice_label' => 'title',
                 'label' => 'Evaluation',
-                'disabled' => $options['evaluation_locked'], // ✅ lock if coming from exam
+                'disabled' => $options['evaluation_locked'],
             ])
             ->add('answers', CollectionType::class, [
                 'entry_type' => AnswerType::class,
@@ -47,6 +52,7 @@ class QuestionType extends AbstractType
                 'allow_delete' => false,
             ]);
 
+        // ✅ Pré-remplir 4 choix quand c'est un nouveau MCQ (inchangé)
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $question = $event->getData();
             if (!$question) return;
@@ -63,9 +69,15 @@ class QuestionType extends AbstractType
             }
         });
 
+        // ✅ Nettoyage côté MCQ (inchangé)
         $builder->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
             $question = $event->getData();
             if (!$question) return;
+
+            // Toujours garantir un score >= 1
+            if ((int) $question->getScore() < 1) {
+                $question->setScore(1);
+            }
 
             if ($question->getType() === 'MCQ') {
                 foreach ($question->getAnswers() as $a) {
@@ -73,6 +85,8 @@ class QuestionType extends AbstractType
                     $a->setStudent(null);
                 }
             }
+
+            // Pour TEXT : on ne touche pas answers (tu peux les laisser, ou les ignorer côté affichage)
         });
     }
 

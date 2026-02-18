@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Answer;
 use App\Entity\Evaluation;
 use App\Entity\UserEvaluation;
+use App\Entity\Question;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,8 +69,12 @@ class UserEvaluationController extends AbstractController
             $em->flush();
         }
 
-        // already submitted -> result
+        // already submitted
         if ($userEvaluation->getSubmittedAt()) {
+            // ✅ EXAM: ne pas revenir sur "Commencer"
+            if ($evaluation->getType() === 'EXAM') {
+                return $this->redirectToRoute('user_evaluation_index');
+            }
             return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
         }
 
@@ -80,38 +85,61 @@ class UserEvaluationController extends AbstractController
         if (new \DateTimeImmutable() > $endTime) {
             // auto submit when time is over
             $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
+
             if ($evaluation->getType() === 'QUIZ') {
                 $userEvaluation->setScore(0);
                 $userEvaluation->setIsCorrected(true);
-            } else {
-                $userEvaluation->setScore(null);
-                $userEvaluation->setIsCorrected(false);
+                $em->flush();
+
+                $this->addFlash('danger', 'Time is up. Your quiz has been submitted automatically.');
+                return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
             }
+
+            // EXAM
+            $userEvaluation->setScore(null);
+            $userEvaluation->setIsCorrected(false);
             $em->flush();
 
-            $this->addFlash('danger', 'Temps écoulé. Évaluation soumise automatiquement.');
-            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+            $this->addFlash(
+                'danger',
+                'Time is up. Your exam has been submitted automatically and is now pending review by your instructor.'
+            );
+
+            // ✅ EXAM -> index
+            return $this->redirectToRoute('user_evaluation_index');
         }
 
         $questions = $evaluation->getQuestions();
 
         // 3) submit
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('take_evaluation_'.$evaluation->getId(), (string)$request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('take_evaluation_'.$evaluation->getId(), (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Invalid CSRF');
             }
 
-            // delete previous submissions (safe if user refresh)
-            $old = $em->getRepository(Answer::class)->findBy([
-                'student' => $user,
-                'role' => 'SUBMISSION',
-            ]);
-            foreach ($old as $o) {
-                // optionnel : mieux filtrer par evaluation, mais OK si tu n’as pas beaucoup de data
+            // ✅ Nettoyer anciennes submissions de cet user POUR CETTE evaluation (évite doublons)
+            $oldSubmissions = $em->createQueryBuilder()
+                ->select('a')
+                ->from(Answer::class, 'a')
+                ->join('a.question', 'q')
+                ->where('a.student = :user')
+                ->andWhere('a.role = :role')
+                ->andWhere('q.evaluation = :evaluation')
+                ->setParameter('user', $user)
+                ->setParameter('role', 'SUBMISSION')
+                ->setParameter('evaluation', $evaluation)
+                ->getQuery()
+                ->getResult();
+
+            foreach ($oldSubmissions as $old) {
+                $em->remove($old);
             }
 
             $score = 0;
 
+            // ======================
+            // QUIZ (inchangé)
+            // ======================
             if ($evaluation->getType() === 'QUIZ') {
                 $submittedAnswers = $request->request->all('answers');
 
@@ -152,36 +180,54 @@ class UserEvaluationController extends AbstractController
 
                 $userEvaluation->setScore($score);
                 $userEvaluation->setIsCorrected(true);
-            } else {
-                // EXAM: une seule réponse globale
-                $examResponse = trim((string) $request->request->get('exam_response'));
 
-                $answer = new Answer();
-                $answer->setRole('SUBMISSION');
-                $answer->setStudent($user);
-                // si ton Answer exige question non-null => il faut une "question placeholder" EXAM
-                // Donc on prend la 1ère question si existe, sinon tu dois créer une question EXAM obligatoire côté admin.
-                $firstQuestion = $questions->first() ?: null;
-                if (!$firstQuestion) {
-                    $this->addFlash('danger', "EXAM: ajoute au moins 1 question (placeholder) pour stocker la réponse.");
-                    return $this->redirectToRoute('user_evaluation_show', ['id' => $evaluation->getId()]);
-                }
-                $answer->setQuestion($firstQuestion);
+                $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
+                $em->flush();
 
-                $answer->setContent($examResponse);
-                $answer->setIsCorrect(null);
-
-                $em->persist($answer);
-
-                $userEvaluation->setScore(null);
-                $userEvaluation->setIsCorrected(false);
+                $this->addFlash('success', 'Quiz submitted successfully.');
+                return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
             }
 
+            // ======================
+            // EXAM (sans examResponse, on stocke dans Answer)
+            // ======================
+            $examResponse = trim((string) $request->request->get('exam_response'));
+
+            // ✅ garantir une question placeholder pour éviter setQuestion(null)
+            $firstQuestion = $questions->first() ?: null;
+
+            if (!$firstQuestion) {
+                $firstQuestion = new Question();
+                $firstQuestion->setEvaluation($evaluation);
+                $firstQuestion->setType('TEXT');
+                $firstQuestion->setScore(0);
+                $firstQuestion->setContent('EXAM_SUBMISSION_PLACEHOLDER');
+                $em->persist($firstQuestion);
+                $em->flush(); // important: assure une question existante
+            }
+
+            $answer = new Answer();
+            $answer->setRole('SUBMISSION');
+            $answer->setStudent($user);
+            $answer->setQuestion($firstQuestion); // ✅ jamais null
+            $answer->setContent($examResponse);
+            $answer->setIsCorrect(null);
+
+            $em->persist($answer);
+
+            $userEvaluation->setScore(null);
+            $userEvaluation->setIsCorrected(false);
             $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
             $em->flush();
 
-            $this->addFlash('success', 'Évaluation soumise ✅');
-            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+            // ✅ Message pro
+            $this->addFlash(
+                'success',
+                'Submission successful. Your exam has been sent to your instructor for evaluation. You will receive a notification once your grade and feedback are available. Thank you.'
+            );
+
+            // ✅ EXAM -> index
+            return $this->redirectToRoute('user_evaluation_index');
         }
 
         return $this->render('evaluation/user_take.html.twig', [
@@ -205,7 +251,6 @@ class UserEvaluationController extends AbstractController
         $evaluation = $userEvaluation->getEvaluation();
         $questions = $evaluation->getQuestions();
 
-        // IMPORTANT: récupérer seulement submissions liées à cette évaluation
         $submitted = $em->createQueryBuilder()
             ->select('a')
             ->from(Answer::class, 'a')

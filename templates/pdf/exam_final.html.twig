@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+    h1 { font-size: 18px; margin: 0 0 6px 0; }
+    .meta { color: #444; margin-bottom: 16px; }
+    .exercise { margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+    .title { font-weight: bold; font-size: 14px; }
+    .score { float: right; font-weight: bold; }
+    .content { margin-top: 8px; white-space: pre-line; }
+    .clear { clear: both; }
+  </style>
+</head>
+<body>
+
+<h1>{{ evaluation.title }}</h1>
+<div class="meta">
+  Durée: {{ evaluation.duration }} min — Total: {{ evaluation.totalScore }} pts
+</div>
+
+{% for q in questions %}
+  <div class="exercise">
+    <div class="title">
+      Exercice {{ loop.index }}
+      <span class="score">{{ q.score }} pts</span>
+    </div>
+    <div class="clear"></div>
+    <div class="content">{{ q.content }}</div>
+  </div>
+{% endfor %}
+
+</body>
+</html>

@@ -11,15 +11,16 @@
 
   {% if evaluation.type == 'EXAM' %}
 
-    {% if evaluation.pdfPath %}
-      <div class="mb-4 border rounded overflow-hidden">
-        <iframe src="{{ asset('uploads/pdf/' ~ evaluation.pdfPath) }}" width="100%" height="600"></iframe>
-      </div>
-    {% else %}
-      <div class="p-4 bg-yellow-50 border rounded text-yellow-800">
-        Aucun PDF n’a été ajouté pour cet examen.
-      </div>
-    {% endif %}
+   {% if evaluation.pdfPath %}
+  <div class="mb-4 border rounded overflow-hidden">
+    <iframe src="{{ asset(evaluation.pdfPath) }}" width="100%" height="600"></iframe>
+  </div>
+{% else %}
+  <div class="p-4 bg-yellow-50 border rounded text-yellow-800">
+    Aucun PDF n’a été ajouté pour cet examen.
+  </div>
+{% endif %}
+
 
     <textarea name="exam_response" class="w-full border p-3 mt-4" rows="10" required
               placeholder="Écrivez votre réponse ici..."></textarea>

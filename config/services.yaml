@@ -6,7 +6,12 @@
 parameters:
     lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
     lesson_upload_public_base: "/uploads/lessons"
+    # exam_pdf_upload_dir: '%kernel.project_dir%/public/uploads/exams'
+    exam_docx_upload_dir: '%kernel.project_dir%/public/uploads/docx'
     exam_pdf_upload_dir: '%kernel.project_dir%/public/uploads/pdf'
+
+    # ✅ Windows (change si ton chemin diffère)
+    libreoffice_soffice_path: 'C:\Program Files\LibreOffice\program\soffice.exe'
 
 
 services:
@@ -23,6 +28,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
