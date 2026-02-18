@@ -321,19 +321,60 @@
         </div>
     </div>
 
-    {# Right Panel - Brand #}
-    <div class="hidden lg:block lg:w-1/2 bg-gradient-to-br from-harbor-600 to-harbor-500 relative">
-        {# Subtle background #}
-        <div class="absolute inset-0">
-            <div class="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-20 left-20 w-80 h-80 bg-harbor-400/20 rounded-full blur-3xl"></div>
+    {# Right Panel - Interactive 3D Experience #}
+    <div class="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        {# Animated gradient background #}
+        <div class="absolute inset-0 bg-gradient-to-br from-[#0A0E27] via-[#1A1F3A] to-[#0F1629]"></div>
+        
+        {# Floating orbs animation #}
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-1/4 -right-20 w-96 h-96 bg-gradient-to-br from-harbor-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-1/4 -left-20 w-80 h-80 bg-gradient-to-tr from-sky-500/20 to-harbor-400/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 2s;"></div>
         </div>
 
-        {# 3D Spline Model #}
-        <div class="relative h-full flex flex-col justify-center p-12 lg:p-16">
-            <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.58/build/spline-viewer.js"></script>
-            <spline-viewer url="https://prod.spline.design/1V0P7xpRO0kes-qw/scene.splinecode" style="width: 100%; height: 100%;"></spline-viewer>
+        {# Dot pattern overlay #}
+        <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        {# Grid lines for tech feel #}
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-harbor-400 to-transparent"></div>
+            <div class="absolute top-0 left-2/4 w-px h-full bg-gradient-to-b from-transparent via-sky-400 to-transparent"></div>
+            <div class="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400 to-transparent"></div>
+            <div class="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-harbor-400 to-transparent"></div>
+            <div class="absolute top-2/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-sky-400 to-transparent"></div>
+            <div class="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
         </div>
+
+        {# Glowing corners #}
+        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-harbor-500/40 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-500/40 to-transparent"></div>
+
+        {# 3D Spline Model Container #}
+        <div class="relative h-full flex items-center justify-center p-8">
+            {# Outer glow container #}
+            <div class="relative w-full h-full rounded-3xl overflow-hidden">
+                {# Inner shadow for depth #}
+                <div class="absolute inset-0 rounded-3xl shadow-[inset_0_0_60px_rgba(0,0,0,0.3)]"></div>
+                
+                {# Spline viewer #}
+                <div class="relative w-full h-full">
+                    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.58/build/spline-viewer.js"></script>
+                    <spline-viewer url="https://prod.spline.design/1V0P7xpRO0kes-qw/scene.splinecode" 
+                                   style="width: 100%; height: 100%; border-radius: 1.5rem;"></spline-viewer>
+                </div>
+
+                {# Subtle border glow #}
+                <div class="absolute inset-0 rounded-3xl border border-white/10"></div>
+                <div class="absolute inset-0 rounded-3xl ring-1 ring-harbor-400/20"></div>
+            </div>
+        </div>
+
+        {# Floating particles effect (optional decorative elements) #}
+        <div class="absolute top-20 right-32 w-2 h-2 bg-white/40 rounded-full animate-ping"></div>
+        <div class="absolute top-40 right-20 w-1.5 h-1.5 bg-harbor-400/60 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-32 left-24 w-2 h-2 bg-sky-400/40 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-48 right-40 w-1 h-1 bg-purple-400/60 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
     </div>
 </div>
 {% endblock %}
