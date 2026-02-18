@@ -25,7 +25,8 @@
 
       <div class="flex gap-2">
         {% if evaluation.docxPath %}
-          <form method="post" action="{{ path('admin_exam_delete_docx', {id: evaluation.id}) }}"
+          <form method="post"
+                action="{{ path('admin_exam_delete_docx', {id: evaluation.id}) }}"
                 onsubmit="return confirm('Supprimer le Word ?');">
             <input type="hidden" name="_token" value="{{ csrf_token('delete_exam_docx_' ~ evaluation.id) }}">
             <button class="btn-sm text-red-600 hover:text-red-800">Delete Word</button>
@@ -33,7 +34,8 @@
         {% endif %}
 
         {% if evaluation.pdfPath %}
-          <form method="post" action="{{ path('admin_exam_delete_pdf', {id: evaluation.id}) }}"
+          <form method="post"
+                action="{{ path('admin_exam_delete_pdf', {id: evaluation.id}) }}"
                 onsubmit="return confirm('Supprimer le PDF ?');">
             <input type="hidden" name="_token" value="{{ csrf_token('delete_exam_pdf_' ~ evaluation.id) }}">
             <button class="btn-sm text-red-600 hover:text-red-800">Delete PDF</button>
@@ -52,10 +54,15 @@
       <button class="btn-secondary btn-sm" type="submit">Import Word (.docx)</button>
     </form>
 
+    {# ✅ Affichage PDF (UNE SEULE FOIS) #}
     {% if evaluation.pdfPath %}
       <div class="w-full rounded border" style="height: 75vh;">
-        <iframe src="{{ asset(evaluation.pdfPath) }}" class="w-full h-full"></iframe>
+        <iframe
+          src="{{ asset(evaluation.pdfPath) ~ '?v=' ~ date().timestamp }}"
+          class="w-full h-full">
+        </iframe>
       </div>
+
       <div class="text-xs text-gray-500 mt-2">PDF: {{ evaluation.pdfPath }}</div>
       {% if evaluation.docxPath %}
         <div class="text-xs text-gray-500">Word: {{ evaluation.docxPath }}</div>

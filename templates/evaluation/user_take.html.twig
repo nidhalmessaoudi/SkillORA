@@ -13,7 +13,7 @@
 
    {% if evaluation.pdfPath %}
   <div class="mb-4 border rounded overflow-hidden">
-    <iframe src="{{ asset(evaluation.pdfPath) }}" width="100%" height="600"></iframe>
+<iframe src="{{ asset(evaluation.pdfPath) ~ '?v=' ~ random() }}" width="100%" height="600"></iframe>
   </div>
 {% else %}
   <div class="p-4 bg-yellow-50 border rounded text-yellow-800">

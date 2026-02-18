@@ -15,6 +15,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class QuestionType extends AbstractType
 {
@@ -23,6 +24,11 @@ class QuestionType extends AbstractType
         $builder
             ->add('content', TextareaType::class, [
                 'label' => 'Question / Exercice',
+                'required' => true,
+                'empty_data' => '',
+                'constraints' => [
+                    new NotBlank(['message' => 'Veuillez saisir le contenu de la question/exercice.']),
+                ],
                 'attr' => ['rows' => 10],
             ])
             ->add('type', ChoiceType::class, [
@@ -52,7 +58,7 @@ class QuestionType extends AbstractType
                 'allow_delete' => false,
             ]);
 
-        // ✅ Pré-remplir 4 choix quand c'est un nouveau MCQ (inchangé)
+        // Pré-remplir 4 choix si nouveau MCQ
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $question = $event->getData();
             if (!$question) return;
@@ -69,12 +75,14 @@ class QuestionType extends AbstractType
             }
         });
 
-        // ✅ Nettoyage côté MCQ (inchangé)
+        // Nettoyage
         $builder->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
             $question = $event->getData();
             if (!$question) return;
 
-            // Toujours garantir un score >= 1
+            // content toujours string
+            $question->setContent(trim((string) $question->getContent()));
+
             if ((int) $question->getScore() < 1) {
                 $question->setScore(1);
             }
@@ -85,8 +93,6 @@ class QuestionType extends AbstractType
                     $a->setStudent(null);
                 }
             }
-
-            // Pour TEXT : on ne touche pas answers (tu peux les laisser, ou les ignorer côté affichage)
         });
     }
 

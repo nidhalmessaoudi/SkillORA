@@ -6,6 +6,7 @@ use App\Entity\Answer;
 use App\Entity\Evaluation;
 use App\Entity\Question;
 use App\Form\QuestionType;
+use App\Service\ExamPdfUpdater;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,21 +54,33 @@ class QuestionController extends AbstractController
     }
 
     #[Route('/new', name: 'admin_question_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $em, ExamPdfUpdater $pdfUpdater): Response
     {
         $question = new Question();
-        $question->setType('MCQ');
         $question->setScore(1);
 
         $evaluationId = $request->query->getInt('evaluationId');
+        $evaluation = null;
+
         if ($evaluationId > 0) {
             $evaluation = $em->getRepository(Evaluation::class)->find($evaluationId);
             if ($evaluation) {
                 $question->setEvaluation($evaluation);
+
+                // ✅ EXAM => TEXT (exercice)
+                if (strtoupper((string) $evaluation->getType()) === 'EXAM') {
+                    $question->setType('TEXT');
+                } else {
+                    $question->setType('MCQ');
+                }
             }
+        } else {
+            $question->setType('MCQ');
         }
 
-        $this->ensureDefaultChoices($question, 4);
+        if ($question->getType() === 'MCQ') {
+            $this->ensureDefaultChoices($question, 4);
+        }
 
         $form = $this->createForm(QuestionType::class, $question, [
             'evaluation_locked' => (bool) $evaluationId,
@@ -76,14 +89,30 @@ class QuestionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            // ✅ sécurité content
+            $question->setContent(trim((string) $question->getContent()));
+            if ($question->getContent() === '') {
+                $this->addFlash('error', 'Veuillez saisir le contenu de la question/exercice.');
+                return $this->render('pages/admin/questions/form.html.twig', [
+                    'form' => $form->createView(),
+                    'question' => $question,
+                    'mode' => 'new',
+                ]);
+            }
+
+            // TEXT => supprimer answers CHOICE
             if ($question->getType() === 'TEXT') {
                 foreach ($question->getAnswers() as $a) {
-                    if ($a->isChoice()) $em->remove($a);
+                    if ($a->isChoice()) {
+                        $em->remove($a);
+                    }
                 }
             }
 
+            // MCQ => exactement 1 bonne réponse
             if ($question->getType() === 'MCQ') {
                 $correctCount = 0;
+
                 foreach ($question->getAnswers() as $a) {
                     $a->setRole('CHOICE');
                     $a->setStudent(null);
@@ -108,16 +137,16 @@ class QuestionController extends AbstractController
 
             $em->flush();
 
+            // ✅ Regénérer PDF si EXAM
+            $eval = $question->getEvaluation();
+            if ($eval && strtoupper((string) $eval->getType()) === 'EXAM') {
+                $pdfUpdater->regeneratePdf($eval);
+            }
+
             $this->addFlash('success', 'Question created successfully ✅');
 
             $back = $request->query->get('back');
             if ($back) return $this->redirect($back);
-
-            if ($question->getEvaluation()) {
-                return $this->redirectToRoute('evaluation_index', [
-                    'evaluationId' => $question->getEvaluation()->getId(),
-                ]);
-            }
 
             return $this->redirectToRoute('admin_question_index');
         }
@@ -130,7 +159,7 @@ class QuestionController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'admin_question_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Question $question, Request $request, EntityManagerInterface $em): Response
+    public function edit(Question $question, Request $request, EntityManagerInterface $em, ExamPdfUpdater $pdfUpdater): Response
     {
         if ($question->getType() === 'MCQ') {
             $this->ensureDefaultChoices($question, 4);
@@ -143,14 +172,27 @@ class QuestionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            $question->setContent(trim((string) $question->getContent()));
+            if ($question->getContent() === '') {
+                $this->addFlash('error', 'Veuillez saisir le contenu de la question/exercice.');
+                return $this->render('pages/admin/questions/form.html.twig', [
+                    'form' => $form->createView(),
+                    'question' => $question,
+                    'mode' => 'edit',
+                ]);
+            }
+
             if ($question->getType() === 'TEXT') {
                 foreach ($question->getAnswers() as $a) {
-                    if ($a->isChoice()) $em->remove($a);
+                    if ($a->isChoice()) {
+                        $em->remove($a);
+                    }
                 }
             }
 
             if ($question->getType() === 'MCQ') {
                 $correctCount = 0;
+
                 foreach ($question->getAnswers() as $a) {
                     $a->setRole('CHOICE');
                     $a->setStudent(null);
@@ -173,16 +215,16 @@ class QuestionController extends AbstractController
 
             $em->flush();
 
+            // ✅ Regénérer PDF si EXAM
+            $eval = $question->getEvaluation();
+            if ($eval && strtoupper((string) $eval->getType()) === 'EXAM') {
+                $pdfUpdater->regeneratePdf($eval);
+            }
+
             $this->addFlash('success', 'Question updated successfully ✅');
 
             $back = $request->query->get('back');
             if ($back) return $this->redirect($back);
-
-            if ($question->getEvaluation()) {
-                return $this->redirectToRoute('evaluation_index', [
-                    'evaluationId' => $question->getEvaluation()->getId(),
-                ]);
-            }
 
             return $this->redirectToRoute('admin_question_index');
         }
@@ -195,7 +237,7 @@ class QuestionController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'admin_question_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Question $question, Request $request, EntityManagerInterface $em): Response
+    public function delete(Question $question, Request $request, EntityManagerInterface $em, ExamPdfUpdater $pdfUpdater): Response
     {
         if (!$this->isCsrfTokenValid('delete_question_'.$question->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token');
@@ -209,6 +251,11 @@ class QuestionController extends AbstractController
         if ($evaluation) {
             $evaluation->calculateTotalScore();
             $em->flush();
+
+            // ✅ Regénérer PDF si EXAM
+            if (strtoupper((string) $evaluation->getType()) === 'EXAM') {
+                $pdfUpdater->regeneratePdf($evaluation);
+            }
         }
 
         $this->addFlash('success', 'Question deleted successfully 🗑️');
@@ -216,16 +263,9 @@ class QuestionController extends AbstractController
         $back = $request->query->get('back');
         if ($back) return $this->redirect($back);
 
-        if ($evaluation) {
-            return $this->redirectToRoute('evaluation_index', [
-                'evaluationId' => $evaluation->getId(),
-            ]);
-        }
-
         return $this->redirectToRoute('admin_question_index');
     }
 
-    // ✅ Route SHOW explicit pour éviter conflit
     #[Route('/{id}/show', name: 'admin_question_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Question $question, Request $request): Response
     {
