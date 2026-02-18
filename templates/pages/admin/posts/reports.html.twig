@@ -1,110 +1,141 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Reports Management - Admin | SkillHarbor{% endblock %}
 
-{% block body %}
-<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {# Header #}
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-display font-bold text-slate-900 dark:text-white mb-2">Reports Management</h1>
-                <p class="text-slate-600 dark:text-slate-400">Review and manage reported posts</p>
-            </div>
-            <a href="{{ path('admin_posts_index') }}" class="btn-outline">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                Back to Posts
-            </a>
+{% block admin_content %}
+<div class="space-y-6">
+    {# Header Section #}
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-navy-900 dark:text-white">Content Reports</h1>
+            <p class="text-navy-600 dark:text-navy-400 mt-1">Review and moderate reported community posts</p>
         </div>
+        <a href="{{ path('admin_posts_index') }}" class="btn-outline btn-sm">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to Posts
+        </a>
+    </div>
 
-        {# Status Tabs #}
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+    {# Status Filters - Enhanced #}
+    <div class="card p-2">
+        <div class="flex items-center gap-2 overflow-x-auto">
             <a href="{{ path('admin_reports_index', {'status': 'pending'}) }}" 
-               class="chip {{ currentStatus == 'pending' ? 'chip-active' : '' }}">
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all {{ currentStatus == 'pending' ? 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400 shadow-sm' : 'text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800' }}">
                 <i data-lucide="clock" class="w-4 h-4"></i>
-                Pending ({{ statusCounts['pending'] }})
+                <span>Pending</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ currentStatus == 'pending' ? 'bg-warning-200 dark:bg-warning-800 text-warning-900 dark:text-warning-200' : 'bg-navy-200 dark:bg-navy-700 text-navy-700 dark:text-navy-300' }}">
+                    {{ statusCounts['pending'] }}
+                </span>
             </a>
+            
             <a href="{{ path('admin_reports_index', {'status': 'reviewed'}) }}" 
-               class="chip {{ currentStatus == 'reviewed' ? 'chip-active' : '' }}">
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all {{ currentStatus == 'reviewed' ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 shadow-sm' : 'text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800' }}">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
-                Reviewed ({{ statusCounts['reviewed'] }})
+                <span>Reviewed</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ currentStatus == 'reviewed' ? 'bg-success-200 dark:bg-success-800 text-success-900 dark:text-success-200' : 'bg-navy-200 dark:bg-navy-700 text-navy-700 dark:text-navy-300' }}">
+                    {{ statusCounts['reviewed'] }}
+                </span>
             </a>
+            
             <a href="{{ path('admin_reports_index', {'status': 'dismissed'}) }}" 
-               class="chip {{ currentStatus == 'dismissed' ? 'chip-active' : '' }}">
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all {{ currentStatus == 'dismissed' ? 'bg-navy-200 dark:bg-navy-700 text-navy-800 dark:text-navy-200 shadow-sm' : 'text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800' }}">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
-                Dismissed ({{ statusCounts['dismissed'] }})
+                <span>Dismissed</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ currentStatus == 'dismissed' ? 'bg-navy-300 dark:bg-navy-600 text-navy-900 dark:text-navy-100' : 'bg-navy-200 dark:bg-navy-700 text-navy-700 dark:text-navy-300' }}">
+                    {{ statusCounts['dismissed'] }}
+                </span>
             </a>
+            
             <a href="{{ path('admin_reports_index', {'status': 'all'}) }}" 
-               class="chip {{ currentStatus == 'all' ? 'chip-active' : '' }}">
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all {{ currentStatus == 'all' ? 'bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 shadow-sm' : 'text-navy-600 dark:text-navy-400 hover:bg-navy-100 dark:hover:bg-navy-800' }}">
                 <i data-lucide="list" class="w-4 h-4"></i>
-                All ({{ statusCounts['all'] }})
+                <span>All Reports</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ currentStatus == 'all' ? 'bg-harbor-200 dark:bg-harbor-800 text-harbor-900 dark:text-harbor-200' : 'bg-navy-200 dark:bg-navy-700 text-navy-700 dark:text-navy-300' }}">
+                    {{ statusCounts['all'] }}
+                </span>
             </a>
         </div>
+    </div>
 
-        {# Reports List #}
-        <div class="space-y-4">
-            {% for report in reports %}
-            <div class="card p-6 hover:shadow-lg transition-all">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-start gap-4 flex-1">
-                        {# Reporter Info #}
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-coral-400 to-red-500 flex items-center justify-center text-white font-semibold shrink-0">
-                            {{ report.reporter.fullName|slice(0,1)|upper }}
+    {# Reports List - Enhanced #}
+    <div class="space-y-4">
+        {% for report in reports %}
+        <div class="card overflow-hidden hover:shadow-xl transition-all duration-300">
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    {# Reporter Avatar #}
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-coral-400 to-danger-500 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-lg">
+                        {{ report.reporter.fullName|slice(0,1)|upper }}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                        {# Report Header #}
+                        <div class="flex items-start justify-between gap-4 mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span class="font-semibold text-navy-900 dark:text-white">{{ report.reporter.fullName }}</span>
+                                    <span class="text-navy-500 dark:text-navy-400">reported</span>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-coral-100 dark:bg-coral-900/30 border border-coral-300 dark:border-coral-700">
+                                        <i data-lucide="flag" class="w-3 h-3 text-coral-700 dark:text-coral-400"></i>
+                                        <span class="text-sm font-semibold text-coral-700 dark:text-coral-400">{{ report.reasonLabel }}</span>
+                                    </span>
+                                </div>
+                                <p class="text-sm text-navy-500 dark:text-navy-400">
+                                    <i data-lucide="clock" class="w-3 h-3 inline"></i>
+                                    {{ report.createdAt|date('M j, Y \\a\\t H:i') }}
+                                </p>
+                            </div>
+
+                            {# Status Badge #}
+                            {% if report.status == 'pending' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning-100 dark:bg-warning-900/30 border border-warning-300 dark:border-warning-700 shadow-sm">
+                                    <span class="w-2 h-2 rounded-full bg-warning-500 animate-pulse"></span>
+                                    <span class="text-sm font-semibold text-warning-700 dark:text-warning-400">Pending Review</span>
+                                </span>
+                            {% elseif report.status == 'reviewed' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success-100 dark:bg-success-900/30 border border-success-300 dark:border-success-700">
+                                    <i data-lucide="check" class="w-3 h-3 text-success-700 dark:text-success-400"></i>
+                                    <span class="text-sm font-semibold text-success-700 dark:text-success-400">Reviewed</span>
+                                </span>
+                            {% elseif report.status == 'dismissed' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-navy-200 dark:bg-navy-700 border border-navy-300 dark:border-navy-600">
+                                    <i data-lucide="x" class="w-3 h-3 text-navy-700 dark:text-navy-300"></i>
+                                    <span class="text-sm font-semibold text-navy-700 dark:text-navy-300">Dismissed</span>
+                                </span>
+                            {% endif %}
                         </div>
                         
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <p class="font-semibold text-slate-900 dark:text-white">{{ report.reporter.fullName }}</p>
-                                <span class="text-sm text-slate-500">reported</span>
-                                <span class="badge badge-coral">{{ report.reasonLabel }}</span>
-                            </div>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                                {{ report.createdAt|date('M j, Y, H:i') }}
-                            </p>
-                            
-                            {# Report Description #}
-                            {% if report.description %}
-                            <div class="p-3 bg-slate-50 dark:bg-navy-900/50 rounded-lg mb-3">
-                                <p class="text-sm text-slate-700 dark:text-slate-300">{{ report.description }}</p>
-                            </div>
-                            {% endif %}
-
-                            {# Reported Post Preview #}
-                            <div class="p-4 border-l-4 border-coral-400 bg-slate-50 dark:bg-navy-900/50 rounded-r-lg">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
-                                        {{ report.post.author.fullName|slice(0,1)|upper }}
-                                    </div>
-                                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ report.post.author.fullName }}</span>
-                                    <span class="text-sm text-slate-400">•</span>
-                                    <span class="text-sm text-slate-500">{{ report.post.createdAt|date('M j, Y') }}</span>
-                                </div>
-                                <h4 class="font-semibold text-slate-900 dark:text-white mb-2">{{ report.post.title }}</h4>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{{ report.post.content }}</p>
-                            </div>
+                        {# Report Description #}
+                        {% if report.description %}
+                        <div class="mb-4 p-4 rounded-xl bg-navy-50 dark:bg-navy-900/50 border border-navy-200 dark:border-navy-800">
+                            <p class="text-sm text-navy-700 dark:text-navy-300 leading-relaxed">{{ report.description }}</p>
                         </div>
-                    </div>
-
-                    {# Status Badge #}
-                    <div>
-                        {% if report.status == 'pending' %}
-                            <span class="badge badge-warning">Pending</span>
-                        {% elseif report.status == 'reviewed' %}
-                            <span class="badge badge-success">Reviewed</span>
-                        {% elseif report.status == 'dismissed' %}
-                            <span class="badge badge-secondary">Dismissed</span>
-                        {% else %}
-                            <span class="badge">{{ report.status|capitalize }}</span>
                         {% endif %}
+
+                        {# Reported Post Preview #}
+                        <div class="p-4 rounded-xl bg-gradient-to-r from-coral-50 to-danger-50 dark:from-coral-900/10 dark:to-danger-900/10 border-l-4 border-coral-500">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-harbor-400 to-harbor-600 flex items-center justify-center text-white text-xs font-semibold">
+                                    {{ report.post.author.fullName|slice(0,1)|upper }}
+                                </div>
+                                <div class="flex items-center gap-2 text-sm flex-wrap">
+                                    <span class="font-medium text-navy-900 dark:text-white">{{ report.post.author.fullName }}</span>
+                                    <span class="text-navy-400">•</span>
+                                    <span class="text-navy-500 dark:text-navy-400">{{ report.post.createdAt|date('M j, Y') }}</span>
+                                </div>
+                            </div>
+                            <h4 class="font-semibold text-navy-900 dark:text-white mb-2 line-clamp-1">{{ report.post.title }}</h4>
+                            <p class="text-sm text-navy-600 dark:text-navy-400 line-clamp-2">{{ report.post.content }}</p>
+                        </div>
                     </div>
                 </div>
 
                 {# Actions #}
                 {% if report.isPending %}
-                <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-navy-800">
-                    <a href="{{ path('community_post', {'id': report.post.id}) }}" target="_blank" class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1">
+                <div class="flex items-center justify-between pt-4 mt-4 border-t border-navy-200 dark:border-navy-800">
+                    <a href="{{ path('community_post', {'id': report.post.id}) }}" target="_blank" class="inline-flex items-center gap-2 text-sm font-medium text-harbor-600 hover:text-harbor-700 dark:text-harbor-400 dark:hover:text-harbor-300 transition-colors">
                         <i data-lucide="external-link" class="w-4 h-4"></i>
-                        View Post
+                        View Original Post
                     </a>
                     <div class="flex items-center gap-2">
                         <button onclick="resolveReport({{ report.id }}, 'dismiss')" class="btn-outline btn-sm">
@@ -118,31 +149,41 @@
                     </div>
                 </div>
                 {% else %}
-                    <div class="pt-4 border-t border-slate-200 dark:border-navy-800">
-                        <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                            <i data-lucide="check" class="w-4 h-4"></i>
-                            <span>Reviewed by {{ report.reviewedBy.fullName }} on {{ report.reviewedAt|date('M j, Y, H:i') }}</span>
-                        </div>
+                <div class="pt-4 mt-4 border-t border-navy-200 dark:border-navy-800">
+                    <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
+                        <i data-lucide="user-check" class="w-4 h-4 text-success-600 dark:text-success-400"></i>
+                        <span class="text-sm text-success-700 dark:text-success-400">
+                            Reviewed by <strong>{{ report.reviewedBy.fullName }}</strong> on {{ report.reviewedAt|date('M j, Y \\a\\t H:i') }}
+                        </span>
                     </div>
+                </div>
                 {% endif %}
             </div>
-            {% else %}
-            <div class="card p-12 text-center">
-                <i data-lucide="inbox" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
-                <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">No reports found</h3>
-                <p class="text-slate-600 dark:text-slate-400">
-                    {% if currentStatus == 'pending' %}
-                        Great! There are no pending reports to review.
-                    {% else %}
-                        No reports with this status.
-                    {% endif %}
-                </p>
-            </div>
-            {% endfor %}
         </div>
+        {% else %}
+        {# Empty State #}
+        <div class="card p-16 text-center">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-success-100 to-success-200 dark:from-success-900/30 dark:to-success-800/30 flex items-center justify-center">
+                <i data-lucide="shield-check" class="w-10 h-10 text-success-600 dark:text-success-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+                {% if currentStatus == 'pending' %}
+                    All Clear!
+                {% else %}
+                    No Reports Found
+                {% endif %}
+            </h3>
+            <p class="text-navy-600 dark:text-navy-400 max-w-md mx-auto">
+                {% if currentStatus == 'pending' %}
+                    Great job! There are no pending reports to review. The community is safe and well-moderated.
+                {% else %}
+                    No reports match the selected status filter.
+                {% endif %}
+            </p>
+        </div>
+        {% endfor %}
     </div>
 </div>
-
 {% endblock %}
 
 {% block javascripts %}
@@ -151,13 +192,19 @@
     lucide.createIcons();
 
     function resolveReport(reportId, action) {
-        let message = action === 'delete_post' 
-            ? 'Are you sure you want to delete this post? This action cannot be undone.'
-            : 'Are you sure you want to dismiss this report?';
+        const messages = {
+            'delete_post': 'Are you sure you want to DELETE this post? This will permanently remove the post, all its replies, and reactions. This action cannot be undone.',
+            'dismiss': 'Are you sure you want to dismiss this report? The post will remain visible and this report will be marked as reviewed.'
+        };
 
-        if (!confirm(message)) {
+        if (!confirmDelete(messages[action])) {
             return;
         }
+
+        const button = event.target.closest('button');
+        button.disabled = true;
+        button.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Processing...';
+        lucide.createIcons();
 
         fetch(`/admin/posts/reports/${reportId}/resolve`, {
             method: 'POST',
@@ -170,15 +217,21 @@
         .then(res => res.json())
         .then(data => {
             if (data.ok) {
-                alert(data.message);
-                location.reload();
+                showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
             } else {
-                alert('Error: ' + (data.error || 'Failed to resolve report'));
+                showToast(data.error || 'Failed to resolve report', 'error');
+                button.disabled = false;
+                button.innerHTML = action === 'delete_post' 
+                    ? '<i data-lucide="trash-2" class="w-4 h-4"></i> Delete Post'
+                    : '<i data-lucide="x" class="w-4 h-4"></i> Dismiss Report';
+                lucide.createIcons();
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('Failed to resolve report');
+            showToast('Failed to resolve report', 'error');
+            button.disabled = false;
         });
     }
 </script>
