@@ -523,10 +523,164 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/forgot-password', name: 'auth_forgot_password')]
+    #[Route('/forgot-password', name: 'auth_forgot_password', methods: ['GET'])]
     public function forgotPassword(): Response
     {
         return $this->render('pages/auth/forgot-password.html.twig');
+    }
+
+    #[Route('/forgot-password', name: 'auth_forgot_password_submit', methods: ['POST'])]
+    public function forgotPasswordSubmit(Request $request): Response
+    {
+        $email = trim($request->request->get('email', ''));
+        
+        if (empty($email)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Please provide your email address.'
+            ], 400);
+        }
+        
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['email' => strtolower($email)]);
+        
+        // Don't reveal if email exists or not for security
+        if (!$user) {
+            return $this->json([
+                'success' => true,
+                'message' => 'If an account exists with this email, a reset link has been sent.'
+            ]);
+        }
+        
+        try {
+            $this->sendPasswordResetEmail($user);
+            return $this->json([
+                'success' => true,
+                'message' => 'Password reset link sent! Please check your inbox.'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to send reset email. Please try again later.'
+            ], 500);
+        }
+    }
+
+    private function sendPasswordResetEmail(User $user): void
+    {
+        // Generate reset token
+        $token = bin2hex(random_bytes(32));
+        $user->setResetToken($token);
+        
+        // Set expiration to 1 hour from now
+        $expiresAt = new \DateTime('+1 hour');
+        $user->setResetTokenExpiresAt($expiresAt);
+        
+        $this->entityManager->flush();
+        
+        // Generate reset URL
+        $resetUrl = $this->generateUrl('auth_reset_password', [
+            'token' => $token
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        // Create and send email
+        $email = (new TemplatedEmail())
+            ->from($_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com')
+            ->to($user->getEmail())
+            ->subject('Reset Your Password - SkillHarbor')
+            ->htmlTemplate('emails/reset-password.html.twig')
+            ->context([
+                'user' => $user,
+                'resetUrl' => $resetUrl,
+                'expirationDate' => $expiresAt,
+            ]);
+        
+        $this->mailer->send($email);
+    }
+
+    #[Route('/reset-password/{token}', name: 'auth_reset_password', methods: ['GET'])]
+    public function resetPassword(string $token): Response
+    {
+        // Find user by reset token
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['resetToken' => $token]);
+        
+        if (!$user) {
+            $this->addFlash('error', 'Invalid or expired reset link. Please request a new one.');
+            return $this->redirectToRoute('auth_forgot_password');
+        }
+        
+        // Check if token has expired
+        if (!$user->isResetTokenValid()) {
+            $this->addFlash('error', 'This reset link has expired. Please request a new one.');
+            return $this->redirectToRoute('auth_forgot_password');
+        }
+        
+        return $this->render('pages/auth/reset-password.html.twig', [
+            'token' => $token
+        ]);
+    }
+
+    #[Route('/reset-password/{token}', name: 'auth_reset_password_submit', methods: ['POST'])]
+    public function resetPasswordSubmit(Request $request, string $token): Response
+    {
+        // Find user by reset token
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['resetToken' => $token]);
+        
+        if (!$user || !$user->isResetTokenValid()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid or expired reset link.'
+            ], 400);
+        }
+        
+        $password = $request->request->get('password', '');
+        $confirmPassword = $request->request->get('confirm_password', '');
+        
+        // Validation
+        if (empty($password) || empty($confirmPassword)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Please provide both password fields.'
+            ], 400);
+        }
+        
+        if ($password !== $confirmPassword) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Passwords do not match.'
+            ], 400);
+        }
+        
+        if (strlen($password) < 8) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Password must be at least 8 characters long.'
+            ], 400);
+        }
+        
+        try {
+            // Hash the new password
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            $user->setPassword($hashedPassword);
+            
+            // Clear reset token
+            $user->setResetToken(null);
+            $user->setResetTokenExpiresAt(null);
+            
+            $this->entityManager->flush();
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'Password reset successfully! You can now sign in.'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to reset password. Please try again.'
+            ], 500);
+        }
     }
 
     #[Route('/verify-email/{token}', name: 'auth_verify_email')]

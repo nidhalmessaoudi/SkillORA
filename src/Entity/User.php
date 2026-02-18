@@ -42,6 +42,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'verification_token_expires_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $verificationTokenExpiresAt = null;
 
+    #[ORM\Column(name: 'reset_token', type: 'string', length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(name: 'reset_token_expires_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+
     #[ORM\Column(name: 'last_login_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
@@ -400,6 +406,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return false;
         }
         return new \DateTime() < $this->verificationTokenExpiresAt;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
+    }
+
+    public function isResetTokenValid(): bool
+    {
+        if (!$this->resetToken || !$this->resetTokenExpiresAt) {
+            return false;
+        }
+        return new \DateTime() < $this->resetTokenExpiresAt;
     }
 
     public function getFaceData(): ?string
