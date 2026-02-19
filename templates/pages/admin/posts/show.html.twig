@@ -1,21 +1,21 @@
 {# This template is loaded via AJAX into a modal #}
 <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white">Post Details</h2>
-    <button onclick="closePostModal()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
-        <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
+    <h2 class="text-2xl font-display font-bold text-navy-900 dark:text-white">Post Details</h2>
+    <button onclick="closePostModal()" class="p-2 rounded-lg hover:bg-navy-100 dark:hover:bg-navy-800 transition-colors">
+        <i data-lucide="x" class="w-5 h-5 text-navy-600 dark:text-navy-400"></i>
     </button>
 </div>
 
 {# Post Content #}
 <div class="space-y-6">
     {# Author Info #}
-    <div class="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-navy-800">
+    <div class="flex items-center gap-3 pb-4 border-b border-navy-200 dark:border-navy-800">
         <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold">
-            {{ post.author.fullName|slice(0,1)|upper }}
+            {{ post.author.username|default('U')|slice(0,1)|upper }}
         </div>
         <div>
-            <p class="font-semibold text-slate-900 dark:text-white">{{ post.author.fullName }}</p>
-            <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <p class="font-semibold text-navy-900 dark:text-white">{{ post.author.username }}</p>
+            <div class="flex items-center gap-2 text-sm text-navy-500 dark:text-navy-400">
                 <span>{{ post.createdAt|date('M j, Y, H:i') }}</span>
                 <span>•</span>
                 <span>{{ post.author.email }}</span>
@@ -26,77 +26,82 @@
     {# Post Header #}
     <div>
         <div class="flex items-center gap-2 mb-2">
-            {% set badgeClass = post.type == 'discussion' ? 'badge-primary' : (post.type == 'article' ? 'badge-success' : 'badge-secondary') %}
+            {% set badgeClass = post.type == 'discussion' 
+                ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300' 
+                : (post.type == 'article' 
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
+                    : 'bg-navy-100 dark:bg-navy-800 text-navy-700 dark:text-navy-300') 
+            %}
             <span class="badge {{ badgeClass }}">{{ post.type|capitalize }}</span>
             {% if post.topic %}
-                <span class="badge badge-secondary">{{ post.topic }}</span>
+                <span class="badge bg-navy-100 dark:bg-navy-800 text-navy-700 dark:text-navy-300">{{ post.topic }}</span>
             {% endif %}
         </div>
-        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">{{ post.title }}</h3>
+        <h3 class="text-xl font-bold text-navy-900 dark:text-white mb-3">{{ post.title }}</h3>
     </div>
 
     {# Post Content #}
     <div class="prose dark:prose-invert max-w-none">
-        <p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{{ post.content }}</p>
+        <p class="text-navy-700 dark:text-navy-300 whitespace-pre-wrap">{{ post.content }}</p>
     </div>
 
     {# Tags #}
     {% if post.tags|length > 0 %}
-    <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-200 dark:border-navy-800">
+    <div class="flex flex-wrap gap-2 pt-4 border-t border-navy-200 dark:border-navy-800">
         {% for tag in post.tags %}
-            <span class="badge badge-secondary">#{{ tag.name }}</span>
+            <span class="badge bg-navy-100 dark:bg-navy-800 text-navy-700 dark:text-navy-300">#{{ tag.name }}</span>
         {% endfor %}
     </div>
     {% endif %}
 
     {# Stats #}
-    <div class="grid grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-navy-900/50 rounded-xl">
+    <div class="grid grid-cols-3 gap-4 p-4 bg-navy-50 dark:bg-navy-900/50 rounded-xl">
         <div class="text-center">
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ post.replies|length }}</p>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Replies</p>
+            <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ post.replies|length }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Replies</p>
         </div>
         <div class="text-center">
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ reports|length }}</p>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Reports</p>
+            <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ reports|length }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Reports</p>
         </div>
         <div class="text-center">
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">0</p>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Reactions</p>
+            <p class="text-2xl font-bold text-navy-900 dark:text-white">0</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Reactions</p>
         </div>
     </div>
 
     {# Reports Section #}
     {% if reports|length > 0 %}
-    <div class="pt-4 border-t border-slate-200 dark:border-navy-800">
-        <h4 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <i data-lucide="flag" class="w-5 h-5 text-coral-500"></i>
+    <div class="pt-4 border-t border-navy-200 dark:border-navy-800">
+        <h4 class="font-semibold text-navy-900 dark:text-white mb-4 flex items-center gap-2">
+            <i data-lucide="flag" class="w-5 h-5 text-red-500"></i>
             Reports ({{ reports|length }})
         </h4>
         <div class="space-y-3">
             {% for report in reports %}
-            <div class="p-4 bg-slate-50 dark:bg-navy-900/50 rounded-xl">
+            <div class="p-4 bg-navy-50 dark:bg-navy-900/50 rounded-xl border border-navy-200 dark:border-navy-800">
                 <div class="flex items-start justify-between mb-2">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-coral-400 to-red-500 flex items-center justify-center text-white text-xs font-medium">
-                            {{ report.reporter.fullName|slice(0,1)|upper }}
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white text-xs font-medium">
+                            {{ report.reporter.username|default('U')|slice(0,1)|upper }}
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-slate-900 dark:text-white">{{ report.reporter.fullName }}</p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">{{ report.createdAt|date('M j, Y, H:i') }}</p>
+                            <p class="text-sm font-medium text-navy-900 dark:text-white">{{ report.reporter.username }}</p>
+                            <p class="text-xs text-navy-500 dark:text-navy-400">{{ report.createdAt|date('M j, Y, H:i') }}</p>
                         </div>
                     </div>
                     {% if report.status == 'pending' %}
-                        <span class="badge badge-warning text-xs">Pending</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Pending</span>
                     {% elseif report.status == 'reviewed' %}
-                        <span class="badge badge-success text-xs">Reviewed</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Reviewed</span>
                     {% else %}
-                        <span class="badge badge-secondary text-xs">{{ report.status|capitalize }}</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-navy-200 dark:bg-navy-700 text-navy-700 dark:text-navy-300">{{ report.status|capitalize }}</span>
                     {% endif %}
                 </div>
                 <div class="pl-10">
-                    <p class="text-sm font-medium text-coral-600 dark:text-coral-400 mb-1">{{ report.reasonLabel }}</p>
+                    <p class="text-sm font-medium text-red-600 dark:text-red-400 mb-1">{{ report.reasonLabel }}</p>
                     {% if report.description %}
-                        <p class="text-sm text-slate-600 dark:text-slate-400">{{ report.description }}</p>
+                        <p class="text-sm text-navy-600 dark:text-navy-400">{{ report.description }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -106,14 +111,14 @@
     {% endif %}
 
     {# Actions #}
-    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-200 dark:border-navy-800">
-        <a href="{{ path('community_post', {'id': post.id}) }}" target="_blank" class="btn-outline">
+    <div class="flex items-center justify-end gap-3 pt-6 border-t border-navy-200 dark:border-navy-800">
+        <a href="{{ path('community_post', {'id': post.id}) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-navy-700 dark:text-navy-300 bg-navy-100 dark:bg-navy-800 hover:bg-navy-200 dark:hover:bg-navy-700 transition-colors">
             <i data-lucide="external-link" class="w-4 h-4"></i>
-            View on Site
+            <span>View on Site</span>
         </a>
-        <button onclick="deletePostFromModal({{ post.id }})" class="btn-danger">
+        <button onclick="deletePostFromModal({{ post.id }})" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
-            Delete Post
+            <span>Delete Post</span>
         </button>
     </div>
 </div>
