@@ -155,59 +155,115 @@ class CommunityController extends AbstractController
         return $data;
     }
 
-    #[Route('/community/create', name: 'community_create', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function create(Request $request): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException('You must be logged in to create a post.');
+#[Route('/community/create', name: 'community_create', methods: ['GET', 'POST'])]
+#[IsGranted('ROLE_USER')]
+public function create(Request $request): Response
+{
+    $user = $this->getUser();
+    if (!$user instanceof User) {
+        throw $this->createAccessDeniedException('You must be logged in to create a post.');
+    }
+
+    if ($request->isMethod('POST')) {
+        $type = $request->request->get('type', 'question');
+        $title = trim((string) $request->request->get('title', ''));
+        $topic = trim((string) $request->request->get('topic', ''));
+        $content = trim((string) $request->request->get('content', ''));
+        $tagsRaw = trim((string) $request->request->get('tags', ''));
+
+        // Validation errors array
+        $errors = [];
+
+        // Validate type
+        if (!in_array($type, ['question', 'discussion', 'article'])) {
+            $errors['type'] = 'Invalid post type selected.';
         }
 
-        if ($request->isMethod('POST')) {
-            $type = $request->request->get('type', 'question');
-            $title = trim((string) $request->request->get('title', ''));
-            $topic = trim((string) $request->request->get('topic', ''));
-            $content = trim((string) $request->request->get('content', ''));
-            $tagsRaw = trim((string) $request->request->get('tags', ''));
+        // Validate title
+        if ($title === '') {
+            $errors['title'] = 'Title is required.';
+        } elseif (mb_strlen($title) < 10) {
+            $errors['title'] = 'Title must be at least 10 characters long.';
+        } elseif (mb_strlen($title) > 255) {
+            $errors['title'] = 'Title must not exceed 255 characters.';
+        }
 
-            if ($title === '' || $content === '') {
-                $this->addFlash('danger', 'Title and content are required.');
-            } else {
-                $post = new Post();
-                $post->setType($type);
-                $post->setTitle($title);
-                $post->setTopic($topic === '' ? null : $topic);
-                $post->setContent($content);
-                $post->setAuthor($user);
+        // Validate content
+        if ($content === '') {
+            $errors['content'] = 'Content is required.';
+        } elseif (mb_strlen($content) < 30) {
+            $errors['content'] = 'Content must be at least 30 characters long.';
+        }
 
-                $tagNames = array_filter(array_unique(array_map('trim', preg_split('/[,]+/', $tagsRaw))));
-                foreach ($tagNames as $tagName) {
-                    if ($tagName === '') continue;
-                    
-                    $existing = $this->em->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
-                    if ($existing) {
-                        $post->addTag($existing);
-                    } else {
-                        $slug = preg_replace('/[^a-z0-9]+/i', '-', strtolower(trim($tagName)));
-                        $tag = new Tag();
-                        $tag->setName($tagName);
-                        $tag->setSlug($slug);
-                        $this->em->persist($tag);
-                        $post->addTag($tag);
-                    }
+        // Validate tags
+        $tagNames = [];
+        if ($tagsRaw !== '') {
+            $tagNames = array_filter(array_unique(array_map('trim', preg_split('/[,]+/', $tagsRaw))));
+            
+            if (count($tagNames) > 5) {
+                $errors['tags'] = 'Maximum 5 tags allowed.';
+            }
+
+            foreach ($tagNames as $tagName) {
+                if (mb_strlen($tagName) > 50) {
+                    $errors['tags'] = 'Each tag must not exceed 50 characters.';
+                    break;
                 }
-
-                $this->em->persist($post);
-                $this->em->flush();
-
-                $this->addFlash('success', 'Post published.');
-                return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
             }
         }
 
-        return $this->render('pages/community/create.html.twig');
+        // If there are validation errors, show them and return
+        if (!empty($errors)) {
+            foreach ($errors as $field => $error) {
+                $this->addFlash('danger', $error);
+            }
+
+            return $this->render('pages/community/create.html.twig', [
+                'errors' => $errors,
+                'form_data' => [
+                    'type' => $type,
+                    'title' => $title,
+                    'topic' => $topic,
+                    'content' => $content,
+                    'tags' => $tagsRaw,
+                ]
+            ]);
+        }
+
+        // If validation passed, create the post
+        $post = new Post();
+        $post->setType($type);
+        $post->setTitle($title);
+        $post->setTopic($topic === '' ? null : $topic);
+        $post->setContent($content);
+        $post->setAuthor($user);
+
+        // Add tags
+        foreach ($tagNames as $tagName) {
+            if ($tagName === '') continue;
+            
+            $existing = $this->em->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
+            if ($existing) {
+                $post->addTag($existing);
+            } else {
+                $slug = preg_replace('/[^a-z0-9]+/i', '-', strtolower(trim($tagName)));
+                $tag = new Tag();
+                $tag->setName($tagName);
+                $tag->setSlug($slug);
+                $this->em->persist($tag);
+                $post->addTag($tag);
+            }
+        }
+
+        $this->em->persist($post);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Post published successfully!');
+        return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
     }
+
+    return $this->render('pages/community/create.html.twig');
+}
 
     #[Route('/community/{id}', name: 'community_post', requirements: ['id' => '\d+'])]
     public function show(int $id): Response
@@ -275,44 +331,69 @@ class CommunityController extends AbstractController
         return $counts;
     }
 
-    #[Route('/community/{id}/edit', name: 'community_edit_post', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function editPost(Request $request, Post $post): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        // Check if user owns this post
-        if ($post->getAuthor()->getId() !== $user->getId()) {
-            $this->addFlash('danger', 'You can only edit your own posts.');
-            return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
-        }
-
-        if ($request->isMethod('POST')) {
-            $title = trim((string) $request->request->get('title', ''));
-            $content = trim((string) $request->request->get('content', ''));
-            $topic = trim((string) $request->request->get('topic', ''));
-
-            if ($title === '' || $content === '') {
-                $this->addFlash('danger', 'Title and content are required.');
-            } else {
-                $post->setTitle($title);
-                $post->setContent($content);
-                $post->setTopic($topic === '' ? null : $topic);
-
-                $this->em->flush();
-
-                $this->addFlash('success', 'Post updated successfully.');
-                return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
-            }
-        }
-
-        return $this->render('pages/community/edit.html.twig', [
-            'post' => $post,
-        ]);
+#[Route('/community/{id}/edit', name: 'community_edit_post', methods: ['GET', 'POST'])]
+#[IsGranted('ROLE_USER')]
+public function editPost(Request $request, Post $post): Response
+{
+    $user = $this->getUser();
+    if (!$user instanceof User) {
+        throw $this->createAccessDeniedException();
     }
+
+    // Check if user owns this post
+    if ($post->getAuthor()->getId() !== $user->getId()) {
+        $this->addFlash('danger', 'You can only edit your own posts.');
+        return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
+    }
+
+    if ($request->isMethod('POST')) {
+        $title = trim((string) $request->request->get('title', ''));
+        $content = trim((string) $request->request->get('content', ''));
+        $topic = trim((string) $request->request->get('topic', ''));
+
+        // Validation
+        $errors = [];
+
+        if ($title === '') {
+            $errors['title'] = 'Title is required.';
+        } elseif (mb_strlen($title) < 10) {
+            $errors['title'] = 'Title must be at least 10 characters long.';
+        } elseif (mb_strlen($title) > 255) {
+            $errors['title'] = 'Title must not exceed 255 characters.';
+        }
+
+        if ($content === '') {
+            $errors['content'] = 'Content is required.';
+        } elseif (mb_strlen($content) < 30) {
+            $errors['content'] = 'Content must be at least 30 characters long.';
+        }
+
+        if (!empty($errors)) {
+            foreach ($errors as $field => $error) {
+                $this->addFlash('danger', $error);
+            }
+
+            return $this->render('pages/community/edit.html.twig', [
+                'post' => $post,
+                'errors' => $errors,
+            ]);
+        }
+
+        // Update post
+        $post->setTitle($title);
+        $post->setContent($content);
+        $post->setTopic($topic === '' ? null : $topic);
+
+        $this->em->flush();
+
+        $this->addFlash('success', 'Post updated successfully.');
+        return $this->redirectToRoute('community_post', ['id' => $post->getId()]);
+    }
+
+    return $this->render('pages/community/edit.html.twig', [
+        'post' => $post,
+    ]);
+}
 
     #[Route('/community/{id}/delete', name: 'community_delete_post', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]

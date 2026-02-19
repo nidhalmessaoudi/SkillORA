@@ -18,14 +18,15 @@
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' }}">
+                <div class="mb-4 p-4 rounded-lg flex items-center gap-3 {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' }}">
+                    <i data-lucide="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5"></i>
                     {{ message }}
                 </div>
             {% endfor %}
         {% endfor %}
 
         {# Edit Form #}
-        <form method="post" action="{{ path('community_edit_post', {id: post.id}) }}" class="card p-8">
+        <form id="editPostForm" method="post" action="{{ path('community_edit_post', {id: post.id}) }}" class="card p-8" novalidate>
             {# Title #}
             <div class="mb-6">
                 <label for="title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -39,7 +40,16 @@
                     class="input" 
                     placeholder="What's your question or topic?"
                     required
+                    minlength="10"
+                    maxlength="255"
                 >
+                <div class="error-message hidden mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span class="error-text"></span>
+                </div>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <span id="titleCounter">{{ post.title|length }}</span>/255 characters
+                </p>
             </div>
 
             {# Topic #}
@@ -70,10 +80,15 @@
                     class="input" 
                     placeholder="Provide more details about your post..."
                     required
+                    minlength="30"
                 >{{ post.content }}</textarea>
+                <div class="error-message hidden mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span class="error-text"></span>
+                </div>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-                    Markdown formatting is supported
+                    <span id="contentCounter">{{ post.content|length }}</span> characters. Minimum 30 required.
                 </p>
             </div>
 
@@ -96,5 +111,83 @@
 {{ parent() }}
 <script>
     lucide.createIcons();
+
+    // Form validation (same logic as create.html.twig)
+    const form = document.getElementById('editPostForm');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const titleCounter = document.getElementById('titleCounter');
+    const contentCounter = document.getElementById('contentCounter');
+
+    // Character counters
+    titleInput.addEventListener('input', function() {
+        titleCounter.textContent = this.value.length;
+        validateField(this);
+    });
+
+    contentInput.addEventListener('input', function() {
+        contentCounter.textContent = this.value.length;
+        validateField(this);
+    });
+
+    // Validate individual field
+    function validateField(field) {
+        const errorContainer = field.parentElement.querySelector('.error-message');
+        const errorText = errorContainer?.querySelector('.error-text');
+        
+        if (!errorContainer) return true;
+
+        let isValid = true;
+        let errorMessage = '';
+
+        if (field.hasAttribute('required') && field.value.trim() === '') {
+            isValid = false;
+            errorMessage = 'This field is required';
+        } else if (field.hasAttribute('minlength')) {
+            const minLength = parseInt(field.getAttribute('minlength'));
+            if (field.value.trim().length < minLength) {
+                isValid = false;
+                errorMessage = `Minimum ${minLength} characters required (current: ${field.value.trim().length})`;
+            }
+        }
+
+        if (isValid) {
+            errorContainer.classList.add('hidden');
+            field.classList.remove('border-red-500', 'dark:border-red-500');
+        } else {
+            errorContainer.classList.remove('hidden');
+            errorText.textContent = errorMessage;
+            field.classList.add('border-red-500', 'dark:border-red-500');
+            lucide.createIcons();
+        }
+
+        return isValid;
+    }
+
+    // Validate on blur
+    [titleInput, contentInput].forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        let isFormValid = true;
+
+        [titleInput, contentInput].forEach(field => {
+            if (!validateField(field)) {
+                isFormValid = false;
+            }
+        });
+
+        if (!isFormValid) {
+            e.preventDefault();
+            const firstError = form.querySelector('.error-message:not(.hidden)');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
 </script>
 {% endblock %}
