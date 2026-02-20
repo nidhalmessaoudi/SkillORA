@@ -36,16 +36,12 @@ class EvaluationType extends AbstractType
             ])
             ->add('duration', IntegerType::class, [
                 'label' => 'Duration (minutes)',
-                'attr' => [
-                    'min' => 1,
-                ],
+                // ✅ pas de min => pas de HTML5
             ])
-
-           ->add('totalScore', IntegerType::class, [
-    'label' => 'Total Score (max score)',
-    'attr' => ['min' => 1],
-])
-
+            ->add('totalScore', IntegerType::class, [
+                'label' => 'Total Score (max score)',
+                // ✅ pas de min => pas de HTML5
+            ])
         ;
     }
 

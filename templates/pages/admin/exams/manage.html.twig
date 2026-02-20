@@ -11,10 +11,18 @@
     </p>
   </div>
 
-  <a href="{{ path('evaluation_index', { type: evaluation.type }) }}" class="btn-secondary">
+
+  <a href="{{ path('admin_plagiarism_dashboard', {id: evaluation.id}) }}"
+     class="btn-secondary">
+    Plagiarism
+  </a>
+
+  <a href="{{ path('evaluation_index', { type: evaluation.type }) }}"
+     class="btn-secondary">
     Back to evaluations
   </a>
 </div>
+
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

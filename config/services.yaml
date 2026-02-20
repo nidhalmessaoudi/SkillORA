@@ -13,6 +13,13 @@ parameters:
     # ✅ Windows (change si ton chemin diffère)
     libreoffice_soffice_path: 'C:\Program Files\LibreOffice\program\soffice.exe'
 
+    # ✅ OpenAI (AJOUT)
+    openai_api_key: '%env(OPENAI_API_KEY)%'
+
+     
+    plagiarismsearch_api_key: '%env(PLAGIARISMSEARCH_API_KEY)%'
+    plagiarismsearch_endpoint: '%env(resolve:PLAGIARISMSEARCH_ENDPOINT)%'
+
 
 services:
     # default configuration for services in *this* file
@@ -29,6 +36,18 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # ✅ OpenAIEmbeddingsClient (AJOUT)
+    App\Service\OpenAIEmbeddingsClient:
+        arguments:
+            $openaiApiKey: '%openai_api_key%'
+            $model: 'text-embedding-3-small'
+
+             
+
+    App\Service\PlagiarismSearchClient:
+        arguments:
+            $apiKey: '%plagiarismsearch_api_key%'
+            $endpoint: '%plagiarismsearch_endpoint%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

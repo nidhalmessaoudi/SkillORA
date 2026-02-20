@@ -6,6 +6,7 @@ use App\Entity\Answer;
 use App\Entity\Evaluation;
 use App\Entity\UserEvaluation;
 use App\Entity\Question;
+use App\Service\AnswerPlagiarismOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,9 +32,7 @@ class UserEvaluationController extends AbstractController
     public function show(Evaluation $evaluation, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
+        if (!$user) throw $this->createAccessDeniedException();
 
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
@@ -47,12 +46,14 @@ class UserEvaluationController extends AbstractController
     }
 
     #[Route('/{id}/take', name: 'user_evaluation_take', methods: ['GET','POST'])]
-    public function take(Evaluation $evaluation, Request $request, EntityManagerInterface $em): Response
-    {
+    public function take(
+        Evaluation $evaluation,
+        Request $request,
+        EntityManagerInterface $em,
+        AnswerPlagiarismOrchestrator $orchestrator
+    ): Response {
         $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
+        if (!$user) throw $this->createAccessDeniedException();
 
         // 1) get/create UserEvaluation
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
@@ -71,7 +72,6 @@ class UserEvaluationController extends AbstractController
 
         // already submitted
         if ($userEvaluation->getSubmittedAt()) {
-            // ✅ EXAM: ne pas revenir sur "Commencer"
             if ($evaluation->getType() === 'EXAM') {
                 return $this->redirectToRoute('user_evaluation_index');
             }
@@ -83,7 +83,6 @@ class UserEvaluationController extends AbstractController
         $endTime = (clone $startedAt)->modify("+{$evaluation->getDuration()} minutes");
 
         if (new \DateTimeImmutable() > $endTime) {
-            // auto submit when time is over
             $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
 
             if ($evaluation->getType() === 'QUIZ') {
@@ -100,16 +99,44 @@ class UserEvaluationController extends AbstractController
             $userEvaluation->setIsCorrected(false);
             $em->flush();
 
-            $this->addFlash(
-                'danger',
-                'Time is up. Your exam has been submitted automatically and is now pending review by your instructor.'
-            );
-
-            // ✅ EXAM -> index
+            $this->addFlash('danger', 'Time is up. Your exam has been submitted automatically and is now pending review.');
             return $this->redirectToRoute('user_evaluation_index');
         }
 
         $questions = $evaluation->getQuestions();
+
+        // ✅ EXAM: create/find draft Answer to get an ID for integrity events
+        $examDraft = null;
+        if ($evaluation->getType() === 'EXAM') {
+            $firstQuestion = $questions->first() ?: null;
+
+            if (!$firstQuestion) {
+                $firstQuestion = new Question();
+                $firstQuestion->setEvaluation($evaluation);
+                $firstQuestion->setType('TEXT');
+                $firstQuestion->setScore(0);
+                $firstQuestion->setContent('EXAM_SUBMISSION_PLACEHOLDER');
+                $em->persist($firstQuestion);
+                $em->flush();
+            }
+
+            $examDraft = $em->getRepository(Answer::class)->findOneBy([
+                'student' => $user,
+                'question' => $firstQuestion,
+                'role' => 'SUBMISSION',
+            ]);
+
+            if (!$examDraft) {
+                $examDraft = new Answer();
+                $examDraft->setRole('SUBMISSION');
+                $examDraft->setStudent($user);
+                $examDraft->setQuestion($firstQuestion);
+                $examDraft->setContent('');
+                $examDraft->setIsCorrect(null);
+                $em->persist($examDraft);
+                $em->flush(); // ✅ to have ID
+            }
+        }
 
         // 3) submit
         if ($request->isMethod('POST')) {
@@ -117,30 +144,30 @@ class UserEvaluationController extends AbstractController
                 throw $this->createAccessDeniedException('Invalid CSRF');
             }
 
-            // ✅ Nettoyer anciennes submissions de cet user POUR CETTE evaluation (évite doublons)
-            $oldSubmissions = $em->createQueryBuilder()
-                ->select('a')
-                ->from(Answer::class, 'a')
-                ->join('a.question', 'q')
-                ->where('a.student = :user')
-                ->andWhere('a.role = :role')
-                ->andWhere('q.evaluation = :evaluation')
-                ->setParameter('user', $user)
-                ->setParameter('role', 'SUBMISSION')
-                ->setParameter('evaluation', $evaluation)
-                ->getQuery()
-                ->getResult();
-
-            foreach ($oldSubmissions as $old) {
-                $em->remove($old);
-            }
-
-            $score = 0;
-
             // ======================
-            // QUIZ (inchangé)
+            // QUIZ
             // ======================
             if ($evaluation->getType() === 'QUIZ') {
+
+                // ✅ Nettoyer anciennes submissions QUIZ uniquement
+                $oldSubmissions = $em->createQueryBuilder()
+                    ->select('a')
+                    ->from(Answer::class, 'a')
+                    ->join('a.question', 'q')
+                    ->where('a.student = :user')
+                    ->andWhere('a.role = :role')
+                    ->andWhere('q.evaluation = :evaluation')
+                    ->setParameter('user', $user)
+                    ->setParameter('role', 'SUBMISSION')
+                    ->setParameter('evaluation', $evaluation)
+                    ->getQuery()
+                    ->getResult();
+
+                foreach ($oldSubmissions as $old) {
+                    $em->remove($old);
+                }
+
+                $score = 0;
                 $submittedAnswers = $request->request->all('answers');
 
                 foreach ($questions as $question) {
@@ -166,7 +193,6 @@ class UserEvaluationController extends AbstractController
                         $answer->setContent($selectedChoice->getContent());
                         $isCorrect = (bool) $selectedChoice->getIsCorrect();
                         $answer->setIsCorrect($isCorrect);
-
                         if ($isCorrect) {
                             $score += (int) $question->getScore();
                         }
@@ -180,7 +206,6 @@ class UserEvaluationController extends AbstractController
 
                 $userEvaluation->setScore($score);
                 $userEvaluation->setIsCorrected(true);
-
                 $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
                 $em->flush();
 
@@ -189,44 +214,28 @@ class UserEvaluationController extends AbstractController
             }
 
             // ======================
-            // EXAM (sans examResponse, on stocke dans Answer)
+            // EXAM
             // ======================
-            $examResponse = trim((string) $request->request->get('exam_response'));
+            $examResponse = trim((string) $request->request->get('exam_response', ''));
 
-            // ✅ garantir une question placeholder pour éviter setQuestion(null)
-            $firstQuestion = $questions->first() ?: null;
-
-            if (!$firstQuestion) {
-                $firstQuestion = new Question();
-                $firstQuestion->setEvaluation($evaluation);
-                $firstQuestion->setType('TEXT');
-                $firstQuestion->setScore(0);
-                $firstQuestion->setContent('EXAM_SUBMISSION_PLACEHOLDER');
-                $em->persist($firstQuestion);
-                $em->flush(); // important: assure une question existante
+            if (!$examDraft) {
+                throw new \RuntimeException('Exam draft not found');
             }
 
-            $answer = new Answer();
-            $answer->setRole('SUBMISSION');
-            $answer->setStudent($user);
-            $answer->setQuestion($firstQuestion); // ✅ jamais null
-            $answer->setContent($examResponse);
-            $answer->setIsCorrect(null);
-
-            $em->persist($answer);
+            // ✅ update the SAME draft (keeps pasteCount, tabSwitchCount, etc.)
+            $examDraft->setContent($examResponse);
+            $em->persist($examDraft);
 
             $userEvaluation->setScore(null);
             $userEvaluation->setIsCorrected(false);
             $userEvaluation->setSubmittedAt(new \DateTimeImmutable());
+
             $em->flush();
 
-            // ✅ Message pro
-            $this->addFlash(
-                'success',
-                'Submission successful. Your exam has been sent to your instructor for evaluation. You will receive a notification once your grade and feedback are available. Thank you.'
-            );
+            // ✅ Analyze final text
+            $orchestrator->analyzeAndSave($examDraft);
 
-            // ✅ EXAM -> index
+            $this->addFlash('success', 'Submission successful. Your exam is being analyzed for plagiarism.');
             return $this->redirectToRoute('user_evaluation_index');
         }
 
@@ -235,6 +244,7 @@ class UserEvaluationController extends AbstractController
             'questions' => $questions,
             'userEvaluation' => $userEvaluation,
             'endTime' => $endTime,
+            'examDraft' => $examDraft,
         ]);
     }
 

@@ -1,0 +1,141 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Plagiarism Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Plagiarism Dashboard</h1>
+    <p class="text-gray-500">Evaluation: <b>{{ evaluation.title }}</b> ({{ evaluation.type }})</p>
+  </div>
+
+  <form method="post" action="{{ path('admin_plagiarism_run', {id: evaluation.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('plagiarism_run_' ~ evaluation.id) }}">
+    <button type="submit" class="btn-primary btn-sm">Run Pro Plagiarism</button>
+  </form>
+</div>
+
+{# ✅ Toujours afficher Submissions, même s’il n’y a aucun run #}
+<div class="card p-5 mb-6">
+  <h2 class="font-semibold mb-3">Submissions (Integrity / IA / Web)</h2>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-2 text-left">Student</th>
+          <th class="px-4 py-2 text-left">Paste</th>
+          <th class="px-4 py-2 text-left">Tab</th>
+          <th class="px-4 py-2 text-left">IA</th>
+          <th class="px-4 py-2 text-left">Web</th>
+          <th class="px-4 py-2 text-left">Last check</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for a in submissions %}
+        <tr class="border-t">
+          <td class="px-4 py-2">User #{{ a.student.id ?? '-' }}</td>
+          <td class="px-4 py-2">{{ a.pasteCount ?? 0 }}</td>
+          <td class="px-4 py-2">{{ a.tabSwitchCount ?? 0 }}</td>
+          <td class="px-4 py-2">{{ a.aiSuspicionPercent ?? '-' }}%</td>
+          <td class="px-4 py-2">{{ a.webPlagiarismPercent ?? '-' }}%</td>
+          <td class="px-4 py-2">
+            {{ a.lastPlagiarismCheckAt ? a.lastPlagiarismCheckAt|date('d/m/Y H:i') : '-' }}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-6 text-gray-500 text-center">No submissions.</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ✅ Runs + pairs (optionnel) #}
+{% if latestRun %}
+  <div class="card p-4 mb-6">
+    <div class="text-sm text-gray-600">
+      Last run: <b>{{ latestRun.createdAt|date('d/m/Y H:i') }}</b> •
+      Submissions: <b>{{ latestRun.submissionsCount }}</b> •
+      Pairs saved: <b>{{ latestRun.pairsCount }}</b>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card p-5 lg:col-span-1">
+      <h2 class="font-semibold mb-3">Top suspicious students</h2>
+      <div class="space-y-2 text-sm">
+        {% for userId, score in leaderboard|slice(0, 10) %}
+          <div class="flex justify-between border-b py-2">
+            <span>User #{{ userId }}</span>
+            <span class="font-semibold">{{ score }}%</span>
+          </div>
+        {% else %}
+          <div class="text-gray-500">No data.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card p-5 lg:col-span-2">
+      <h2 class="font-semibold mb-3">Top pairs</h2>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="px-4 py-2 text-left">A</th>
+              <th class="px-4 py-2 text-left">B</th>
+              <th class="px-4 py-2 text-left">Semantic</th>
+              <th class="px-4 py-2 text-left">Lexical</th>
+              <th class="px-4 py-2 text-left">Struct</th>
+              <th class="px-4 py-2 text-left">Final</th>
+              <th class="px-4 py-2 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for p in pairs|slice(0, 50) %}
+            <tr class="border-t">
+              <td class="px-4 py-2">User #{{ p.answerA.student.id }}</td>
+              <td class="px-4 py-2">User #{{ p.answerB.student.id }}</td>
+              <td class="px-4 py-2">{{ (p.semantic * 100)|round }}%</td>
+              <td class="px-4 py-2">{{ (p.lexical * 100)|round }}%</td>
+              <td class="px-4 py-2">{{ (p.structure * 100)|round }}%</td>
+              <td class="px-4 py-2 font-semibold">{{ p.plagiarismPercent }}%</td>
+              <td class="px-4 py-2">
+                {% if p.status == 'HIGH' %}
+                  <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">HIGH</span>
+                {% elseif p.status == 'SUSPECT' %}
+                  <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full">SUSPECT</span>
+                {% else %}
+                  <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">OK</span>
+                {% endif %}
+              </td>
+            </tr>
+
+            {% set hl = p.highlights is iterable ? p.highlights.common_phrases : [] %}
+            {% if hl and hl|length > 0 %}
+              <tr class="bg-gray-50">
+                <td class="px-4 py-2" colspan="7">
+                  <div class="text-xs text-gray-600">
+                    <b>Common phrases:</b>
+                    {{ hl|join(' • ') }}
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          {% else %}
+            <tr><td colspan="7" class="px-4 py-8 text-gray-500 text-center">No suspicious pairs.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="card p-6 text-gray-600">
+    No plagiarism runs yet. Click <b>Run Pro Plagiarism</b>.
+  </div>
+{% endif %}
+{% endblock %}

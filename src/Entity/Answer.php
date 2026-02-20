@@ -33,17 +33,35 @@ class Answer
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    // ✅ Plagiarism results (garder)
+    #[ORM\Column(nullable: true)]
+    private ?int $webPlagiarismPercent = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $aiSuspicionPercent = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $webSources = null;
+
+    #[ORM\Column(nullable: true)]
+private ?int $pasteCount = 0;
+
+#[ORM\Column(nullable: true)]
+private ?int $tabSwitchCount = 0;
+
+#[ORM\Column(nullable: true)]
+private ?\DateTimeImmutable $lastIntegrityEventAt = null;
+
+#[ORM\Column(nullable: true)]
+private ?\DateTimeImmutable $lastPlagiarismCheckAt = null;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    /* ===================== */
-    /* GETTERS / SETTERS     */
-    /* ===================== */
-
     public function getId(): ?int { return $this->id; }
+
     public function getContent(): string { return $this->content; }
     public function setContent(string $content): static { $this->content = $content; return $this; }
 
@@ -62,7 +80,34 @@ class Answer
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 
     public function isChoice(): bool { return $this->role === 'CHOICE'; }
-
     public function isSubmission(): bool { return $this->role === 'SUBMISSION'; }
-    public function isCorrectAnswer(): bool { return $this->isCorrect === true; }
+
+    public function getWebPlagiarismPercent(): ?int { return $this->webPlagiarismPercent; }
+    public function setWebPlagiarismPercent(?int $p): static { $this->webPlagiarismPercent = $p; return $this; }
+
+    public function getAiSuspicionPercent(): ?int { return $this->aiSuspicionPercent; }
+    public function setAiSuspicionPercent(?int $p): static { $this->aiSuspicionPercent = $p; return $this; }
+
+    public function getWebSources(): ?array { return $this->webSources; }
+    public function setWebSources(?array $s): static { $this->webSources = $s; return $this; }
+
+
+    public function getPasteCount(): ?int { return $this->pasteCount; }
+public function setPasteCount(?int $pasteCount): static { $this->pasteCount = $pasteCount; return $this; }
+public function incPasteCount(): static { $this->pasteCount = ($this->pasteCount ?? 0) + 1; $this->touchIntegrity(); return $this; }
+
+public function getTabSwitchCount(): ?int { return $this->tabSwitchCount; }
+public function setTabSwitchCount(?int $tabSwitchCount): static { $this->tabSwitchCount = $tabSwitchCount; return $this; }
+public function incTabSwitchCount(): static { $this->tabSwitchCount = ($this->tabSwitchCount ?? 0) + 1; $this->touchIntegrity(); return $this; }
+
+public function getLastIntegrityEventAt(): ?\DateTimeImmutable { return $this->lastIntegrityEventAt; }
+public function setLastIntegrityEventAt(?\DateTimeImmutable $dt): static { $this->lastIntegrityEventAt = $dt; return $this; }
+
+public function getLastPlagiarismCheckAt(): ?\DateTimeImmutable { return $this->lastPlagiarismCheckAt; }
+public function setLastPlagiarismCheckAt(?\DateTimeImmutable $dt): static { $this->lastPlagiarismCheckAt = $dt; return $this; }
+
+private function touchIntegrity(): void
+{
+    $this->lastIntegrityEventAt = new \DateTimeImmutable();
+}
 }

@@ -11,19 +11,80 @@
 
   {% if evaluation.type == 'EXAM' %}
 
-   {% if evaluation.pdfPath %}
-  <div class="mb-4 border rounded overflow-hidden">
-<iframe src="{{ asset(evaluation.pdfPath) ~ '?v=' ~ random() }}" width="100%" height="600"></iframe>
-  </div>
-{% else %}
-  <div class="p-4 bg-yellow-50 border rounded text-yellow-800">
-    Aucun PDF n’a été ajouté pour cet examen.
-  </div>
-{% endif %}
+    {% if evaluation.pdfPath %}
+      <div class="mb-4 border rounded overflow-hidden">
+        <iframe src="{{ asset(evaluation.pdfPath) ~ '?v=' ~ random() }}" width="100%" height="600"></iframe>
+      </div>
+    {% else %}
+      <div class="p-4 bg-yellow-50 border rounded text-yellow-800">
+        Aucun PDF n’a été ajouté pour cet examen.
+      </div>
+    {% endif %}
 
+    <div id="plagiarism-alert" class="hidden p-3 rounded bg-red-100 text-red-700 text-sm mb-3">
+      ⚠️ Copier-coller détecté. Votre réponse est en cours d’analyse pour plagiat.
+      <span id="plagiarism-score"></span>
+    </div>
 
-    <textarea name="exam_response" class="w-full border p-3 mt-4" rows="10" required
-              placeholder="Écrivez votre réponse ici..."></textarea>
+    <textarea id="exam_response" name="exam_response" class="w-full border p-3 mt-2" rows="10" required
+              placeholder="Écrivez votre réponse ici...">{{ examDraft.content ?? '' }}</textarea>
+
+    {% if examDraft %}
+      <script>
+      (function() {
+        const answerId = {{ examDraft.id }};
+        const alertBox = document.getElementById('plagiarism-alert');
+        const scoreEl = document.getElementById('plagiarism-score');
+
+        let cooldown = false;
+
+        async function sendIntegrity(type) {
+          if (cooldown && type === 'paste') return;
+          if (type === 'paste') {
+            cooldown = true;
+            setTimeout(() => cooldown = false, 8000);
+          }
+
+          // ✅ IMPORTANT: envoyer le contenu actuel du textarea
+          const content = document.getElementById('exam_response')?.value ?? '';
+
+          try {
+            const res = await fetch(`/exam/answer/${answerId}/integrity`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ type, content })
+            });
+
+            const data = await res.json().catch(() => null);
+            if (!data || !data.ok) return;
+
+            if (type === 'paste') {
+              alertBox.classList.remove('hidden');
+
+              const web = data.webPlagiarismPercent ?? null;
+              const ai = data.aiSuspicionPercent ?? null;
+
+              let msg = '';
+              if (web !== null) msg += ` Web: ${web}%`;
+              if (ai !== null) msg += ` • IA: ${ai}%`;
+              scoreEl.textContent = msg ? `(${msg.trim()})` : '';
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+       document.addEventListener('paste', function() {
+  alertBox.classList.remove('hidden');
+  setTimeout(() => sendIntegrity('paste'), 120);
+});
+
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) sendIntegrity('tab_switch');
+        });
+      })();
+      </script>
+    {% endif %}
 
   {% else %}
 
