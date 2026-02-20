@@ -1,8 +1,6 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
     lesson_upload_public_base: "/uploads/lessons"
@@ -13,22 +11,18 @@ parameters:
     # ✅ Windows (change si ton chemin diffère)
     libreoffice_soffice_path: 'C:\Program Files\LibreOffice\program\soffice.exe'
 
-    # ✅ OpenAI (AJOUT)
+    # ✅ (Optionnel) tu peux le garder, mais on ne l’utilise plus pour OpenAiQuizGenerator
     openai_api_key: '%env(OPENAI_API_KEY)%'
 
-     
     plagiarismsearch_api_key: '%env(PLAGIARISMSEARCH_API_KEY)%'
     plagiarismsearch_endpoint: '%env(resolve:PLAGIARISMSEARCH_ENDPOINT)%'
 
 
 services:
-    # default configuration for services in *this* file
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autowire: true
+        autoconfigure: true
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
         exclude:
@@ -36,18 +30,19 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # ✅ OpenAIEmbeddingsClient (AJOUT)
-    App\Service\OpenAIEmbeddingsClient:
+    # ✅ OpenAIEmbeddingsClient (si tu le réactives un jour)
+    # App\Service\OpenAIEmbeddingsClient:
+    #     arguments:
+    #         $openaiApiKey: '%env(OPENAI_API_KEY)%'
+    #         $model: 'text-embedding-3-small'
+
+    # ✅ PlagiarismSearchClient (si tu le réactives)
+    # App\Service\PlagiarismSearchClient:
+    #     arguments:
+    #         $apiKey: '%plagiarismsearch_api_key%'
+    #         $endpoint: '%plagiarismsearch_endpoint%'
+
+    # ✅ OpenAiQuizGenerator (FINAL ✅)
+    App\Service\OpenAiQuizGenerator:
         arguments:
-            $openaiApiKey: '%openai_api_key%'
-            $model: 'text-embedding-3-small'
-
-             
-
-    App\Service\PlagiarismSearchClient:
-        arguments:
-            $apiKey: '%plagiarismsearch_api_key%'
-            $endpoint: '%plagiarismsearch_endpoint%'
-
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+            $openAiApiKey: '%env(OPENAI_API_KEY)%'

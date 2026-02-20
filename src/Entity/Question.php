@@ -36,6 +36,10 @@ class Question
     )]
     private Collection $answers;
 
+
+    #[ORM\Column(type: 'text', nullable: true)]
+private ?string $explanation = null;
+
     public function __construct()
     {
         $this->answers = new ArrayCollection();
@@ -54,6 +58,9 @@ class Question
 
     public function getEvaluation(): ?Evaluation { return $this->evaluation; }
     public function setEvaluation(?Evaluation $evaluation): static { $this->evaluation = $evaluation; return $this; }
+
+    public function getExplanation(): ?string { return $this->explanation; }
+public function setExplanation(?string $explanation): static { $this->explanation = $explanation; return $this; }
 
     /** @return Collection<int, Answer> */
     public function getAnswers(): Collection { return $this->answers; }

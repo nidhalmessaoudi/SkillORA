@@ -112,18 +112,40 @@
 
           {% if selectedEvaluation %}
             {% if selectedEvaluation.type == 'QUIZ' %}
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
 
-                {# ✅ Create question but return here (back) #}
+                <form method="post"
+                      action="{{ path('admin_eval_ai_generate_quiz', {id: selectedEvaluation.id}) }}"
+                      class="flex items-center gap-2"
+                      onsubmit="document.getElementById('ai-generate-btn').disabled=true; document.getElementById('ai-generate-btn').innerText='Génération...';">
+                  <input type="hidden" name="_token" value="{{ csrf_token('ai_gen_quiz_' ~ selectedEvaluation.id) }}">
+                  <input type="hidden" name="selectedType" value="{{ selectedType }}">
+
+                  <input name="topic"
+                         value="Symfony framework"
+                         class="w-40 border rounded-lg px-2 py-1 text-xs"
+                         placeholder="Topic ex: Symfony">
+
+                  <input name="count"
+                         type="number"
+                         value="5"
+                         min="1"
+                         max="20"
+                         class="w-16 border rounded-lg px-2 py-1 text-xs">
+
+                  <button id="ai-generate-btn" class="btn-primary btn-sm" type="submit">
+                    Générer IA
+                  </button>
+                </form>
+
                 <a href="{{ path('admin_question_new', {
                   evaluationId: selectedEvaluation.id,
                   back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
                 }) }}"
                    class="btn-secondary btn-sm">
-                  Edit Questions
+                  Add Questions
                 </a>
 
-                {# ✅ Answers page filtered by evaluation #}
                 <a href="{{ path('admin_answer_index', {
                   evaluationId: selectedEvaluation.id,
                   back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
@@ -140,6 +162,7 @@
               </a>
             {% endif %}
           {% endif %}
+
         </div>
       </div>
 
@@ -170,8 +193,6 @@
                   </div>
 
                   <div class="mt-3 flex justify-end gap-2">
-
-                    {# ✅ View Answers => goes to answers page (filtered by evaluation) #}
                     {% if q.type == 'MCQ' %}
                       <a class="btn-sm"
                          href="{{ path('admin_answer_index', {
@@ -200,7 +221,6 @@
                       <input type="hidden" name="_token" value="{{ csrf_token('delete_question_' ~ q.id) }}">
                       <button type="submit" class="btn-sm text-red-600 hover:text-red-800">Delete</button>
                     </form>
-
                   </div>
                 </div>
               {% else %}
