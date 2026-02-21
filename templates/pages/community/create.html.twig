@@ -3,471 +3,451 @@
 {% block title %}Create Post - Community | SkillHarbor{% endblock %}
 
 {% block body %}
-<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
-    {# Header #}
-    <div class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-navy-800">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-display font-bold text-slate-900 dark:text-white">Create a Post</h1>
-                    <p class="text-slate-500 dark:text-slate-400 mt-1">Share your question or start a discussion</p>
-                </div>
-                <a href="{{ path('community_index') }}" class="btn-ghost">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </a>
-            </div>
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('community_index') }}" class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Community
+            </a>
+            <h1 class="text-4xl font-display font-bold text-slate-900 dark:text-white">Create New Post</h1>
+            <p class="text-slate-600 dark:text-slate-400 mt-2">Share your knowledge or ask the community</p>
         </div>
-    </div>
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="mb-6 p-4 rounded-lg flex items-center gap-3 {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' }}">
-                    <i data-lucide="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5"></i>
-                    {{ message }}
+                <div class="mb-6 p-4 rounded-2xl border-2 shadow-lg {% if label == 'success' %}bg-gradient-to-r from-success-50 to-emerald-50 dark:from-success-900/20 dark:to-emerald-900/20 border-success-400 dark:border-success-600{% else %}bg-gradient-to-r from-danger-50 to-red-50 dark:from-danger-900/20 dark:to-red-900/20 border-danger-400 dark:border-danger-600{% endif %}">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full {% if label == 'success' %}bg-success-500{% else %}bg-danger-500{% endif %}">
+                            {% if label == 'success' %}
+                                <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                            {% else %}
+                                <i data-lucide="x" class="w-4 h-4 text-white"></i>
+                            {% endif %}
+                        </div>
+                        <p class="flex-1 font-semibold {% if label == 'success' %}text-success-800 dark:text-success-300{% else %}text-danger-800 dark:text-danger-300{% endif %}">
+                            {{ message }}
+                        </p>
+                        <button onclick="this.parentElement.parentElement.remove()" class="shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                            <i data-lucide="x" class="w-4 h-4 {% if label == 'success' %}text-success-600{% else %}text-danger-600{% endif %}"></i>
+                        </button>
+                    </div>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        <div class="grid lg:grid-cols-3 gap-8">
-            {# Main Form #}
-            <div class="lg:col-span-2">
-                <form id="createPostForm" action="{{ path('community_create') }}" method="post" class="space-y-6" novalidate>
-                    {# Post Type #}
-                    <div class="card p-6">
-                        <label class="block text-sm font-medium text-slate-900 dark:text-white mb-4">
-                            Post Type <span class="text-red-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="question" class="peer sr-only" checked>
-                                <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700">
-                                    <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2 text-emerald-600 dark:text-emerald-400"></i>
-                                    <p class="font-medium text-slate-900 dark:text-white">Question</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Get help from others</p>
-                                </div>
-                            </label>
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="discussion" class="peer sr-only">
-                                <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-violet-500 peer-checked:bg-violet-50 dark:peer-checked:bg-violet-900/20 hover:border-violet-300 dark:hover:border-violet-700">
-                                    <i data-lucide="message-circle" class="w-8 h-8 mx-auto mb-2 text-violet-600 dark:text-violet-400"></i>
-                                    <p class="font-medium text-slate-900 dark:text-white">Discussion</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Start a conversation</p>
-                                </div>
-                            </label>
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="type" value="article" class="peer sr-only">
-                                <div class="p-4 rounded-2xl border-2 border-slate-200 dark:border-navy-700 text-center transition-all peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/20 hover:border-harbor-300 dark:hover:border-harbor-700">
-                                    <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2 text-harbor-600 dark:text-harbor-400"></i>
-                                    <p class="font-medium text-slate-900 dark:text-white">Article</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Share knowledge</p>
-                                </div>
-                            </label>
+        {# Create Form #}
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {# Post Type #}
+            <div class="card p-6">
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Post Type</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="post-type-radio">
+                        <input type="radio" name="type" value="question" checked class="peer sr-only">
+                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                            <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="font-semibold text-sm">Question</span>
                         </div>
-                    </div>
-
-                    {# Title & Topic #}
-                    <div class="card p-6 space-y-6">
-                        {# Title #}
-                        <div>
-                            <label for="title" class="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                                Title <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="title" 
-                                name="title" 
-                                class="input" 
-                                placeholder="What's your question or topic?"
-                                value="{{ app.request.get('title')|e }}"
-                                required
-                                minlength="10"
-                                maxlength="255"
-                            >
-                            <div class="error-message hidden mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                <span class="error-text"></span>
-                            </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                                <span id="titleCounter">0</span>/255 characters. Be specific and clear (minimum 10 characters).
-                            </p>
+                    </label>
+                    <label class="post-type-radio">
+                        <input type="radio" name="type" value="discussion" class="peer sr-only">
+                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                            <i data-lucide="message-circle" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="font-semibold text-sm">Discussion</span>
                         </div>
-
-                        {# Topic #}
-                        <div>
-                            <label for="topic" class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Topic</label>
-                            <select id="topic" name="topic" class="input">
-                                <option value="">Select a topic (optional)...</option>
-                                <option value="Web Development" {{ app.request.get('topic') == 'Web Development' ? 'selected' : '' }}>Web Development</option>
-                                <option value="Data Science" {{ app.request.get('topic') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
-                                <option value="Mobile Development" {{ app.request.get('topic') == 'Mobile Development' ? 'selected' : '' }}>Mobile Development</option>
-                                <option value="UI/UX Design" {{ app.request.get('topic') == 'UI/UX Design' ? 'selected' : '' }}>UI/UX Design</option>
-                                <option value="DevOps" {{ app.request.get('topic') == 'DevOps' ? 'selected' : '' }}>DevOps & Cloud</option>
-                                <option value="Career" {{ app.request.get('topic') == 'Career' ? 'selected' : '' }}>Career & Growth</option>
-                                <option value="General" {{ app.request.get('topic') == 'General' ? 'selected' : '' }}>General Discussion</option>
-                            </select>
+                    </label>
+                    <label class="post-type-radio">
+                        <input type="radio" name="type" value="article" class="peer sr-only">
+                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                            <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="font-semibold text-sm">Article</span>
                         </div>
-                    </div>
-
-                    {# Content #}
-                    <div class="card p-6">
-                        <label for="content" class="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                            Content <span class="text-red-500">*</span>
-                        </label>
-
-                        {# Formatting Toolbar #}
-                        <div class="flex items-center gap-1 p-2 bg-slate-50 dark:bg-navy-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-navy-700">
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Bold">
-                                <i data-lucide="bold" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Italic">
-                                <i data-lucide="italic" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Code">
-                                <i data-lucide="code" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <div class="w-px h-5 bg-slate-300 dark:bg-navy-600 mx-1"></div>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Link">
-                                <i data-lucide="link" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Image">
-                                <i data-lucide="image" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <div class="w-px h-5 bg-slate-300 dark:bg-navy-600 mx-1"></div>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Bullet List">
-                                <i data-lucide="list" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Numbered List">
-                                <i data-lucide="list-ordered" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                            <button type="button" class="p-2 rounded hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors" title="Quote">
-                                <i data-lucide="quote" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
-                            </button>
-                        </div>
-
-                        <textarea 
-                            id="content" 
-                            name="content" 
-                            class="input rounded-t-none min-h-[250px]" 
-                            placeholder="Describe your question or topic in detail..."
-                            required
-                            minlength="30"
-                        >{{ app.request.get('content')|e }}</textarea>
-
-                        <div class="error-message hidden mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                            <span class="error-text"></span>
-                        </div>
-
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                            <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
-                            <span id="contentCounter">0</span> characters. Minimum 30 characters required. Markdown formatting is supported.
-                        </p>
-                    </div>
-
-                    {# Tags #}
-                    <div class="card p-6">
-                        <label for="tags" class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Tags</label>
-                        <input 
-                            type="text" 
-                            id="tags" 
-                            name="tags" 
-                            class="input" 
-                            placeholder="Add up to 5 tags (e.g., react, hooks, javascript)"
-                            value="{{ app.request.get('tags')|e }}"
-                            maxlength="200"
-                        >
-                        <div class="error-message hidden mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                            <span class="error-text"></span>
-                        </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Separate tags with commas. Maximum 5 tags.</p>
-
-                        {# Popular Tags #}
-                        <div class="mt-4">
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Popular tags:</p>
-                            <div class="flex flex-wrap gap-2">
-                                {% set popularTags = ['javascript', 'react', 'python', 'css', 'typescript', 'node', 'sql'] %}
-                                {% for tag in popularTags %}
-                                <button type="button" data-tag="{{ tag }}" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                                    {{ tag }}
-                                </button>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    {# Submit #}
-                    <div class="flex items-center justify-between">
-                        <button type="button" class="btn-ghost">
-                            Save as Draft
-                        </button>
-                        <div class="flex items-center gap-3">
-                            <a href="{{ path('community_index') }}" class="btn-outline">Cancel</a>
-                            <button type="submit" class="btn-primary">
-                                <i data-lucide="send" class="w-4 h-4 mr-2"></i>
-                                Publish Post
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            {# Sidebar Tips #}
-            <div class="space-y-6">
-                {# Writing Tips #}
-                <div class="card p-6">
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="lightbulb" class="w-5 h-5 text-amber-500"></i>
-                        Writing Tips
-                    </h3>
-                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li class="flex items-start gap-2">
-                            <span class="text-emerald-500 mt-1">•</span>
-                            <span>Make your title specific and clear</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-emerald-500 mt-1">•</span>
-                            <span>Include relevant code snippets</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-emerald-500 mt-1">•</span>
-                            <span>Describe what you've already tried</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-emerald-500 mt-1">•</span>
-                            <span>Use appropriate tags for visibility</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-emerald-500 mt-1">•</span>
-                            <span>Be respectful and patient</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {# Code Formatting #}
-                <div class="card p-6">
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="code" class="w-5 h-5 text-harbor-500"></i>
-                        Code Formatting
-                    </h3>
-                    <div class="space-y-4 text-sm">
-                        <div>
-                            <p class="text-slate-500 dark:text-slate-400 mb-2">Inline code:</p>
-                            <code class="bg-slate-100 dark:bg-navy-800 px-2 py-1 rounded text-slate-700 dark:text-slate-300">`code`</code>
-                        </div>
-                        <div>
-                            <p class="text-slate-500 dark:text-slate-400 mb-2">Code block:</p>
-                            <pre class="bg-slate-100 dark:bg-navy-800 p-3 rounded text-xs text-slate-700 dark:text-slate-300">```javascript
-const x = 1;
-```</pre>
-                        </div>
-                    </div>
-                </div>
-
-                {# XP Reward #}
-                <div class="card p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/50">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="zap" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-slate-900 dark:text-white">Earn XP!</p>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">+50 XP for each helpful post</p>
-                        </div>
-                    </div>
+                    </label>
                 </div>
             </div>
-        </div>
+
+            {# Title #}
+            <div class="card p-6">
+                <label for="title" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                    Title <span class="text-danger-500">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    placeholder="What's your question or topic?"
+                    maxlength="255"
+                    required
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                >
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    <span id="title-count">0</span>/255 characters. Be specific and clear (minimum 5 characters).
+                </p>
+            </div>
+
+            {# Topic #}
+            <div class="card p-6">
+                <label for="topic" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Topic</label>
+                <select 
+                    name="topic" 
+                    id="topic"
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                >
+                    <option value="">Select a topic (optional)...</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="Python">Python</option>
+                    <option value="React">React</option>
+                    <option value="PHP">PHP</option>
+                    <option value="CSS">CSS</option>
+                    <option value="Node.js">Node.js</option>
+                    <option value="Database">Database</option>
+                    <option value="Career">Career</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            {# Rich Text Content Editor #}
+            <div class="card p-6">
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                    Content <span class="text-danger-500">*</span>
+                </label>
+
+                {# Formatting Toolbar #}
+<div class="flex items-center gap-2 p-3 bg-slate-100 dark:bg-navy-900 rounded-t-xl border-2 border-b-0 border-slate-200 dark:border-navy-800">
+    <button type="button" data-format="bold" class="toolbar-btn format-btn" title="Bold (Ctrl+B)">
+        <i data-lucide="bold" class="w-4 h-4"></i>
+    </button>
+    <button type="button" data-format="italic" class="toolbar-btn format-btn" title="Italic (Ctrl+I)">
+        <i data-lucide="italic" class="w-4 h-4"></i>
+    </button>
+    <button type="button" data-format="code" class="toolbar-btn format-btn" title="Inline Code">
+        <i data-lucide="code" class="w-4 h-4"></i>
+    </button>
+    <div class="w-px h-6 bg-slate-300 dark:bg-navy-700"></div>
+    <button type="button" data-format="link" class="toolbar-btn format-btn" title="Insert Link">
+        <i data-lucide="link" class="w-4 h-4"></i>
+    </button>
+    <button type="button" id="image-btn" class="toolbar-btn" title="Upload Image">
+        <i data-lucide="image" class="w-4 h-4"></i>
+    </button>
+    <div class="w-px h-6 bg-slate-300 dark:bg-navy-700"></div>
+    <button type="button" data-format="ul" class="toolbar-btn format-btn" title="Bullet List">
+        <i data-lucide="list" class="w-4 h-4"></i>
+    </button>
+    <button type="button" data-format="ol" class="toolbar-btn format-btn" title="Numbered List">
+        <i data-lucide="list-ordered" class="w-4 h-4"></i>
+    </button>
+    <button type="button" data-format="quote" class="toolbar-btn format-btn" title="Quote">
+        <i data-lucide="quote" class="w-4 h-4"></i>
+    </button>
+    <button type="button" data-format="codeblock" class="toolbar-btn format-btn" title="Code Block">
+        <i data-lucide="code-2" class="w-4 h-4"></i>
+    </button>
+</div>
+
+{# Hidden file input for images #}
+<input type="file" id="image-upload" accept="image/*" class="hidden">
+
+                {# Content Textarea #}
+                <textarea 
+                    id="content" 
+                    name="content" 
+                    rows="12"
+                    placeholder="Describe your question or topic in detail...
+
+You can use formatting:
+- **bold** or *italic*
+- `code`
+- [link text](url)
+- Lists, quotes, and code blocks"
+                    required
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-t-0 border-slate-200 dark:border-navy-800 rounded-b-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-mono text-sm"
+                ></textarea>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    <span id="content-count">0</span> characters. Minimum 10 characters required. Markdown formatting is supported.
+                </p>
+
+                {# Preview Panel #}
+                <div id="preview-panel" class="hidden mt-4 p-4 bg-slate-50 dark:bg-navy-900 rounded-xl border-2 border-slate-200 dark:border-navy-800">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-900 dark:text-white">Preview</span>
+                        <button type="button" onclick="togglePreview()" class="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Hide</button>
+                    </div>
+                    <div id="preview-content" class="prose dark:prose-invert max-w-none"></div>
+                </div>
+                <button type="button" onclick="togglePreview()" class="mt-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                    <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                    Toggle Preview
+                </button>
+            </div>
+
+            {# Tags #}
+            <div class="card p-6">
+                <label for="tags" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Tags</label>
+                <input 
+                    type="text" 
+                    id="tags" 
+                    name="tags" 
+                    placeholder="e.g., javascript, react, debugging (comma-separated)"
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                >
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Add up to 5 tags to help others find your post</p>
+            </div>
+
+            {# Submit Buttons #}
+            <div class="flex items-center justify-between gap-4">
+                <a href="{{ path('community_index') }}" class="btn-outline">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Publish Post
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+<style>
+.toolbar-btn {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    color: rgb(71 85 105);
+    transition: all 0.2s;
+}
+.dark .toolbar-btn {
+    color: rgb(148 163 184);
+}
+.toolbar-btn:hover {
+    background-color: rgb(226 232 240);
+    color: rgb(15 23 42);
+}
+.dark .toolbar-btn:hover {
+    background-color: rgb(30 41 59);
+    color: rgb(248 250 252);
+}
+</style>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     lucide.createIcons();
 
-    // Form validation
-    const form = document.getElementById('createPostForm');
-    const titleInput = document.getElementById('title');
-    const contentInput = document.getElementById('content');
-    const tagsInput = document.getElementById('tags');
-    const titleCounter = document.getElementById('titleCounter');
-    const contentCounter = document.getElementById('contentCounter');
-
     // Character counters
-    titleInput.addEventListener('input', function() {
-        titleCounter.textContent = this.value.length;
-        validateField(this);
-    });
+    const titleInput = document.getElementById('title');
+    const contentTextarea = document.getElementById('content');
+    const titleCount = document.getElementById('title-count');
+    const contentCount = document.getElementById('content-count');
 
-    contentInput.addEventListener('input', function() {
-        contentCounter.textContent = this.value.length;
-        validateField(this);
-    });
-
-    // Validate individual field
-    function validateField(field) {
-        const errorContainer = field.parentElement.querySelector('.error-message');
-        const errorText = errorContainer?.querySelector('.error-text');
-        
-        if (!errorContainer) return true;
-
-        let isValid = true;
-        let errorMessage = '';
-
-        // Check if required
-        if (field.hasAttribute('required') && field.value.trim() === '') {
-            isValid = false;
-            errorMessage = 'This field is required';
-        }
-        // Check minlength
-        else if (field.hasAttribute('minlength')) {
-            const minLength = parseInt(field.getAttribute('minlength'));
-            if (field.value.trim().length < minLength) {
-                isValid = false;
-                errorMessage = `Minimum ${minLength} characters required (current: ${field.value.trim().length})`;
-            }
-        }
-        // Check maxlength
-        else if (field.hasAttribute('maxlength')) {
-            const maxLength = parseInt(field.getAttribute('maxlength'));
-            if (field.value.length > maxLength) {
-                isValid = false;
-                errorMessage = `Maximum ${maxLength} characters allowed`;
-            }
-        }
-
-        // Special validation for tags
-        if (field.id === 'tags' && field.value.trim()) {
-            const tags = field.value.split(',').map(t => t.trim()).filter(Boolean);
-            if (tags.length > 5) {
-                isValid = false;
-                errorMessage = 'Maximum 5 tags allowed';
-            }
-        }
-
-        // Show/hide error
-        if (isValid) {
-            errorContainer.classList.add('hidden');
-            field.classList.remove('border-red-500', 'dark:border-red-500');
-            field.classList.add('border-slate-300', 'dark:border-navy-700');
-        } else {
-            errorContainer.classList.remove('hidden');
-            errorText.textContent = errorMessage;
-            field.classList.add('border-red-500', 'dark:border-red-500');
-            field.classList.remove('border-slate-300', 'dark:border-navy-700');
-            lucide.createIcons();
-        }
-
-        return isValid;
+    if (titleInput && titleCount) {
+        titleInput.addEventListener('input', () => {
+            titleCount.textContent = titleInput.value.length;
+        });
     }
 
-    // Validate all fields on blur
-    [titleInput, contentInput, tagsInput].forEach(input => {
-        input.addEventListener('blur', function() {
-            validateField(this);
+    if (contentTextarea && contentCount) {
+        contentTextarea.addEventListener('input', () => {
+            contentCount.textContent = contentTextarea.value.length;
         });
-    });
+    }
 
-    // Form submission validation
-    form.addEventListener('submit', function(e) {
-        let isFormValid = true;
+    // Text formatting functions
+    function formatText(type) {
+        const textarea = document.getElementById('content');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        let replacement = '';
 
-        // Validate all required fields
-        [titleInput, contentInput].forEach(field => {
-            if (!validateField(field)) {
-                isFormValid = false;
-            }
-        });
-
-        // Validate tags if present
-        if (tagsInput.value.trim()) {
-            if (!validateField(tagsInput)) {
-                isFormValid = false;
-            }
+        switch(type) {
+            case 'bold':
+                replacement = `**${selectedText || 'bold text'}**`;
+                break;
+            case 'italic':
+                replacement = `*${selectedText || 'italic text'}*`;
+                break;
+            case 'code':
+                replacement = `\`${selectedText || 'code'}\``;
+                break;
+            case 'link':
+                const url = prompt('Enter URL:');
+                if (url) {
+                    replacement = `[${selectedText || 'link text'}](${url})`;
+                }
+                break;
+            case 'ul':
+                replacement = `\n- ${selectedText || 'list item'}\n- \n- `;
+                break;
+            case 'ol':
+                replacement = `\n1. ${selectedText || 'list item'}\n2. \n3. `;
+                break;
+            case 'quote':
+                replacement = `\n> ${selectedText || 'quote'}`;
+                break;
+            case 'codeblock':
+                replacement = `\n\`\`\`\n${selectedText || 'code here'}\n\`\`\`\n`;
+                break;
         }
 
-        if (!isFormValid) {
-            e.preventDefault();
+        if (replacement) {
+            textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+            textarea.focus();
             
-            // Scroll to first error
-            const firstError = form.querySelector('.error-message:not(.hidden)');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (contentCount) {
+                contentCount.textContent = textarea.value.length;
+            }
+        }
+    }
+
+    // Attach format button listeners
+    document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const format = btn.getAttribute('data-format');
+            formatText(format);
+        });
+    });
+
+    // Image button listener
+    const imageBtn = document.getElementById('image-btn');
+    const imageUpload = document.getElementById('image-upload');
+    
+    if (imageBtn && imageUpload) {
+        imageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            imageUpload.click();
+        });
+
+        imageUpload.addEventListener('change', handleImageUpload);
+    }
+
+    // Image upload handler
+    async function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            event.target.value = '';
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB');
+            event.target.value = '';
+            return;
+        }
+
+        // Show loading
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
+        loadingDiv.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div><span>Uploading...</span>';
+        document.body.appendChild(loadingDiv);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch('/community/upload-image', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            loadingDiv.remove();
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error(`Upload failed: HTTP ${response.status}`);
             }
 
-            // Show toast notification
-            showToast('Please fix the errors before submitting', 'error');
-        }
-    });
+            const data = await response.json();
 
-    // Toast notification
-    function showToast(message, type = 'error') {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
-            type === 'error' 
-                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' 
-                : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-        }`;
-        
-        toast.innerHTML = `
-            <i data-lucide="${type === 'error' ? 'alert-circle' : 'check-circle'}" class="w-5 h-5"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(toast);
-        lucide.createIcons();
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 4000);
+            if (data.ok && data.url) {
+                const textarea = document.getElementById('content');
+                const cursorPos = textarea.selectionStart;
+                const imageMarkdown = `\n![Image](${data.url})\n`;
+                
+                textarea.value = textarea.value.substring(0, cursorPos) + imageMarkdown + textarea.value.substring(cursorPos);
+                textarea.focus();
+                
+                if (contentCount) {
+                    contentCount.textContent = textarea.value.length;
+                }
+
+                // Success notification
+                const successDiv = document.createElement('div');
+                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
+                successDiv.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Image uploaded!</span>';
+                document.body.appendChild(successDiv);
+                lucide.createIcons();
+                setTimeout(() => successDiv.remove(), 3000);
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            if (loadingDiv.parentNode) loadingDiv.remove();
+            
+            console.error('Upload error:', error);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
+            errorDiv.innerHTML = `<i data-lucide="x-circle" class="w-5 h-5"></i><span>${error.message}</span>`;
+            document.body.appendChild(errorDiv);
+            lucide.createIcons();
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        event.target.value = '';
     }
 
-    // Popular tag click handler
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('button[data-tag]');
-        if (!btn) return;
-        
-        const tag = btn.getAttribute('data-tag');
-        const existing = tagsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-        
-        if (existing.includes(tag)) {
-            showToast('Tag already added', 'error');
-            return;
-        }
-        
-        if (existing.length >= 5) {
-            showToast('Maximum 5 tags allowed', 'error');
-            return;
-        }
-        
-        existing.push(tag);
-        tagsInput.value = existing.join(', ');
-        validateField(tagsInput);
-    });
+    // Preview toggle
+    function togglePreview() {
+        const panel = document.getElementById('preview-panel');
+        const content = document.getElementById('content').value;
+        const previewContent = document.getElementById('preview-content');
 
-    // Initialize counters
-    titleCounter.textContent = titleInput.value.length;
-    contentCounter.textContent = contentInput.value.length;
+        if (panel && panel.classList.contains('hidden')) {
+            if (previewContent && typeof marked !== 'undefined') {
+                previewContent.innerHTML = marked.parse(content);
+            }
+            panel.classList.remove('hidden');
+            lucide.createIcons();
+        } else if (panel) {
+            panel.classList.add('hidden');
+        }
+    }
+
+    // Keyboard shortcuts
+    if (contentTextarea) {
+        contentTextarea.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'b':
+                        e.preventDefault();
+                        formatText('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        formatText('italic');
+                        break;
+                }
+            }
+        });
+    }
 </script>
-
-<style>
-@keyframes slide-in {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.animate-slide-in {
-    animation: slide-in 0.3s ease-out;
-}
-</style>
 {% endblock %}
