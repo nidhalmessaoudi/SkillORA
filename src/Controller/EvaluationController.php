@@ -6,7 +6,8 @@ use App\Entity\Evaluation;
 use App\Entity\Question;
 use App\Form\EvaluationType;
 use App\Repository\EvaluationRepository;
-use App\Service\OpenAiQuizGenerator;
+
+use App\Service\OllamaQuizGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -173,7 +174,7 @@ class EvaluationController extends AbstractController
     public function aiGenerateQuiz(
         Evaluation $evaluation,
         Request $request,
-        OpenAiQuizGenerator $generator
+        OllamaQuizGenerator $generator
     ): Response {
         if (strtoupper((string) $evaluation->getType()) !== 'QUIZ') {
             throw $this->createNotFoundException('Not a QUIZ evaluation');
@@ -193,6 +194,8 @@ class EvaluationController extends AbstractController
             return $this->redirectToRoute('evaluation_index', [
                 'type' => $request->request->get('selectedType') ?: null,
                 'evaluationId' => $evaluation->getId(),
+                'topic' => $topic,
+    'count' => $count,
             ]);
         }
 

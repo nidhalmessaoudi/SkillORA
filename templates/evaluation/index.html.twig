@@ -121,10 +121,10 @@
                   <input type="hidden" name="_token" value="{{ csrf_token('ai_gen_quiz_' ~ selectedEvaluation.id) }}">
                   <input type="hidden" name="selectedType" value="{{ selectedType }}">
 
-                  <input name="topic"
-                         value="Symfony framework"
-                         class="w-40 border rounded-lg px-2 py-1 text-xs"
-                         placeholder="Topic ex: Symfony">
+                <input name="topic"
+       value="{{ app.request.get('topic') ?? 'General knowledge' }}"
+       class="w-40 border rounded-lg px-2 py-1 text-xs"
+       placeholder="Topic (e.g. Python, Probability, Java)">
 
                   <input name="count"
                          type="number"

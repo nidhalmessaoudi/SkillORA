@@ -83,25 +83,11 @@ Règles:
 Retourne UNIQUEMENT un JSON conforme au schéma.
 TXT;
 
-        $response = $this->callWithRetry(function () use ($client, $prompt, $schema) {
-            return $client->responses()->create([
-                'model' => 'gpt-4.1-mini',
-                'input' => $prompt,
-
-                // ✅ Limite sortie pour éviter TPM rate limit
-                'max_output_tokens' => 600,
-
-                'text' => [
-                    'format' => [
-                        'type' => 'json_schema',
-                        'name' => 'quiz_mcq',
-                        'schema' => $schema,
-                        // si ton SDK le supporte, tu peux ajouter strict:
-                        // 'strict' => true,
-                    ],
-                ],
-            ]);
-        });
+       $response = $client->responses()->create([
+    'model' => 'gpt-4.1-mini',
+    'input' => 'Dis juste OK',
+    'max_output_tokens' => 20,
+]);
 
         $arr = method_exists($response, 'toArray') ? $response->toArray() : (array) $response;
 
