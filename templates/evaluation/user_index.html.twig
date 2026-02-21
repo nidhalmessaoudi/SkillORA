@@ -68,8 +68,7 @@ body.dark-mode #assessments-wrap .hero,
   {# =======================
      HERO
      ======================= #}
-  <div class="hero relative overflow-hidden rounded-3xl p-10 md:p-14 mb-10 shadow-sm
-              dark:shadow-none"
+  <div class="hero relative overflow-hidden rounded-3xl p-10 md:p-14 mb-10 shadow-sm dark:shadow-none"
        style="background: linear-gradient(135deg, rgba(37,99,235,.95) 0%, rgba(96,165,250,.65) 45%, rgba(255,255,255,.85) 100%);">
     <div class="flex items-center justify-center mb-4">
       <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium backdrop-blur">
@@ -152,14 +151,14 @@ body.dark-mode #assessments-wrap .hero,
   {# =======================
      LIST
      ======================= #}
-  {% if evaluations is empty %}
+  {% if pagination is empty %}
     <div class="surface p-6 rounded-2xl border bg-white text-gray-600
                 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200">
       No assessments available at the moment.
     </div>
   {% else %}
     <div class="space-y-4">
-      {% for evaluation in evaluations %}
+      {% for evaluation in pagination %}
         {% set userEvaluation = evaluation.userEvaluations|filter(ue => ue.user == app.user)|first %}
         {% set done = userEvaluation is not empty and userEvaluation.submittedAt is not null %}
         {% set typeKey = evaluation.type|upper == 'EXAM' ? 'exam' : 'quiz' %}
@@ -250,6 +249,10 @@ body.dark-mode #assessments-wrap .hero,
           </div>
         </div>
       {% endfor %}
+    </div>
+
+    <div class="mt-8 flex justify-center">
+      {{ knp_pagination_render(pagination, 'pagination/tailwind.html.twig') }}
     </div>
   {% endif %}
 

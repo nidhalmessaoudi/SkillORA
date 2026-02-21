@@ -21,6 +21,15 @@
       </div>
     {% endif %}
 
+    <button type="button"
+      id="tts-exam"
+      class="mb-3 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
+      data-evaluation-id="{{ evaluation.id }}"
+      data-exam-text="{% for q in questions %}Question {{ loop.index }}: {{ q.content|e('html_attr') }}. {% endfor %}">
+      🔊 Listen to full exam (4 max)
+    </button>
+    <span id="tts-exam-remaining" class="text-xs text-gray-500 ml-2"></span>
+
     <div id="plagiarism-alert" class="hidden p-3 rounded bg-red-100 text-red-700 text-sm mb-3">
       ⚠️ Copier-coller détecté. Votre réponse est en cours d’analyse pour plagiat.
       <span id="plagiarism-score"></span>
@@ -29,68 +38,27 @@
     <textarea id="exam_response" name="exam_response" class="w-full border p-3 mt-2" rows="10" required
               placeholder="Écrivez votre réponse ici...">{{ examDraft.content ?? '' }}</textarea>
 
-    {% if examDraft %}
-      <script>
-      (function() {
-        const answerId = {{ examDraft.id }};
-        const alertBox = document.getElementById('plagiarism-alert');
-        const scoreEl = document.getElementById('plagiarism-score');
-
-        let cooldown = false;
-
-        async function sendIntegrity(type) {
-          if (cooldown && type === 'paste') return;
-          if (type === 'paste') {
-            cooldown = true;
-            setTimeout(() => cooldown = false, 8000);
-          }
-
-          // ✅ IMPORTANT: envoyer le contenu actuel du textarea
-          const content = document.getElementById('exam_response')?.value ?? '';
-
-          try {
-            const res = await fetch(`/exam/answer/${answerId}/integrity`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ type, content })
-            });
-
-            const data = await res.json().catch(() => null);
-            if (!data || !data.ok) return;
-
-            if (type === 'paste') {
-              alertBox.classList.remove('hidden');
-
-              const web = data.webPlagiarismPercent ?? null;
-              const ai = data.aiSuspicionPercent ?? null;
-
-              let msg = '';
-              if (web !== null) msg += ` Web: ${web}%`;
-              if (ai !== null) msg += ` • IA: ${ai}%`;
-              scoreEl.textContent = msg ? `(${msg.trim()})` : '';
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-
-       document.addEventListener('paste', function() {
-  alertBox.classList.remove('hidden');
-  setTimeout(() => sendIntegrity('paste'), 120);
-});
-
-        document.addEventListener('visibilitychange', function() {
-          if (document.hidden) sendIntegrity('tab_switch');
-        });
-      })();
-      </script>
-    {% endif %}
-
   {% else %}
 
     {% for question in questions %}
       <div class="mb-4 p-4 border rounded">
         <p class="font-semibold">{{ question.content }}</p>
+
+        <button type="button"
+          class="tts-question mt-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
+          data-question-id="{{ question.id }}"
+          data-question-text="{{ question.content|e('html_attr') }}"
+          data-options-text="{{ question.answers
+            |filter(a => a.role == 'CHOICE')
+            |map(a => a.content)
+            |map((c, i) => 'Option ' ~ (i+1) ~ ': ' ~ c)
+            |join('. ')
+            |e('html_attr')
+          }}">
+          🔊 Listen (2 max)
+        </button>
+
+        <span class="tts-remaining text-xs text-gray-500 ml-2" data-question-id="{{ question.id }}"></span>
 
         {% for ans in question.answers %}
           {% if ans.role == 'CHOICE' %}
@@ -108,6 +76,7 @@
   <button class="btn-primary mt-4">Soumettre</button>
 </form>
 
+{# ---------------- Timer ---------------- #}
 <script>
 const endTime = new Date("{{ endTime|date('Y-m-d H:i:s') }}").getTime();
 const timer = document.getElementById("timer");
@@ -126,6 +95,128 @@ const interval = setInterval(() => {
   const seconds = Math.floor((distance % (1000*60)) / 1000);
   timer.innerText = minutes + "m " + seconds + "s";
 }, 1000);
+</script>
+
+{# ---------------- TTS (FREE) ---------------- #}
+<script>
+(function () {
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      alert("Your browser doesn't support Text-to-Speech (speechSynthesis). Try Chrome/Edge.");
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 1;
+    utter.pitch = 1;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
+
+  async function postJson(url, payload) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload || {})
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    return {res, data};
+  }
+
+  async function getJson(url) {
+    const res = await fetch(url, { method: 'GET' });
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    return {res, data};
+  }
+
+  // ---- INIT: load remaining counts ----
+  document.querySelectorAll('.tts-question').forEach(async (btn) => {
+    const qid = btn.dataset.questionId;
+    const remainingEl = document.querySelector(`.tts-remaining[data-question-id="${qid}"]`);
+
+    const {res, data} = await getJson(`/tts/question/${qid}/status`);
+    if (!res.ok || !data || data.ok !== true) return;
+
+    if (remainingEl) remainingEl.textContent = `Remaining: ${data.remaining}/${data.max}`;
+    if (data.remaining <= 0) {
+      btn.disabled = true;
+      btn.classList.add('opacity-50','cursor-not-allowed');
+    }
+  });
+
+  const examBtnInit = document.getElementById('tts-exam');
+  if (examBtnInit) {
+    (async () => {
+      const eid = examBtnInit.dataset.evaluationId;
+      const remainingEl = document.getElementById('tts-exam-remaining');
+
+      const {res, data} = await getJson(`/tts/evaluation/${eid}/status`);
+      if (!res.ok || !data || data.ok !== true) return;
+
+      if (remainingEl) remainingEl.textContent = `Remaining: ${data.remaining}/${data.max}`;
+      if (data.remaining <= 0) {
+        examBtnInit.disabled = true;
+        examBtnInit.classList.add('opacity-50','cursor-not-allowed');
+      }
+    })();
+  }
+
+  // ---- QUIZ click ----
+  document.querySelectorAll('.tts-question').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const qid = btn.dataset.questionId;
+      const qText = btn.dataset.questionText || '';
+      const opts = btn.dataset.optionsText || '';
+
+      const {res, data} = await postJson(`/tts/question/${qid}/play`, {});
+      const remainingEl = document.querySelector(`.tts-remaining[data-question-id="${qid}"]`);
+
+      if (!res.ok || !data || data.ok !== true) {
+        if (remainingEl) remainingEl.textContent = 'No attempts left.';
+        btn.disabled = true;
+        btn.classList.add('opacity-50','cursor-not-allowed');
+        return;
+      }
+
+      if (remainingEl) remainingEl.textContent = `Remaining: ${data.remaining}/${data.max}`;
+      speak(`Question: ${qText}. ${opts}`);
+
+      if (data.remaining <= 0) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50','cursor-not-allowed');
+      }
+    });
+  });
+
+  // ---- EXAM click ----
+  const examBtn = document.getElementById('tts-exam');
+  if (examBtn) {
+    examBtn.addEventListener('click', async () => {
+      const eid = examBtn.dataset.evaluationId;
+      const examText = examBtn.dataset.examText || '';
+      const remainingEl = document.getElementById('tts-exam-remaining');
+
+      const {res, data} = await postJson(`/tts/evaluation/${eid}/play`, {});
+      if (!res.ok || !data || data.ok !== true) {
+        if (remainingEl) remainingEl.textContent = 'No attempts left.';
+        examBtn.disabled = true;
+        examBtn.classList.add('opacity-50','cursor-not-allowed');
+        return;
+      }
+
+      if (remainingEl) remainingEl.textContent = `Remaining: ${data.remaining}/${data.max}`;
+      speak(`Exam. ${examText}`);
+
+      if (data.remaining <= 0) {
+        examBtn.disabled = true;
+        examBtn.classList.add('opacity-50','cursor-not-allowed');
+      }
+    });
+  }
+})();
 </script>
 
 {% endblock %}

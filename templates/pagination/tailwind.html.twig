@@ -1,0 +1,48 @@
+{% if pageCount > 1 %}
+  <nav class="inline-flex items-center gap-2">
+    {# Previous #}
+    {% if previous is defined %}
+      <a class="px-4 py-2 rounded-xl border bg-white text-gray-700 hover:bg-gray-100 transition
+                dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+         rel="prev"
+         href="{{ path(route, query|merge({(pageParameterName): previous})) }}">
+        ← Prev
+      </a>
+    {% else %}
+      <span class="px-4 py-2 rounded-xl border bg-gray-100 text-gray-400
+                   dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500">
+        ← Prev
+      </span>
+    {% endif %}
+
+    {# Pages #}
+    {% for page in pagesInRange %}
+      {% if page == current %}
+        <span class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold">
+          {{ page }}
+        </span>
+      {% else %}
+        <a class="px-4 py-2 rounded-xl border bg-white text-gray-700 hover:bg-gray-100 transition
+                  dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+           href="{{ path(route, query|merge({(pageParameterName): page})) }}">
+          {{ page }}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {# Next #}
+    {% if next is defined %}
+      <a class="px-4 py-2 rounded-xl border bg-white text-gray-700 hover:bg-gray-100 transition
+                dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+         rel="next"
+         href="{{ path(route, query|merge({(pageParameterName): next})) }}">
+        Next →
+      </a>
+    {% else %}
+      <span class="px-4 py-2 rounded-xl border bg-gray-100 text-gray-400
+                   dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500">
+        Next →
+      </span>
+    {% endif %}
+  </nav>
+{% endif %}

@@ -8,6 +8,7 @@ use App\Entity\UserEvaluation;
 use App\Entity\Question;
 use App\Service\AnswerPlagiarismOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,12 +20,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UserEvaluationController extends AbstractController
 {
     #[Route('/', name: 'user_evaluation_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): Response
-    {
-        $evaluations = $em->getRepository(Evaluation::class)->findAll();
+    public function index(
+        EntityManagerInterface $em,
+        Request $request,
+        PaginatorInterface $paginator
+    ): Response {
+        $qb = $em->getRepository(Evaluation::class)->createQueryBuilder('e')
+            ->leftJoin('e.userEvaluations', 'ue')
+            ->addSelect('ue')
+            ->orderBy('e.createdAt', 'DESC');
+
+        $pagination = $paginator->paginate(
+            $qb,
+            $request->query->getInt('page', 1),
+            6
+        );
 
         return $this->render('evaluation/user_index.html.twig', [
-            'evaluations' => $evaluations,
+            'pagination' => $pagination,
         ]);
     }
 
@@ -55,7 +68,6 @@ class UserEvaluationController extends AbstractController
         $user = $this->getUser();
         if (!$user) throw $this->createAccessDeniedException();
 
-        // 1) get/create UserEvaluation
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
             'evaluation' => $evaluation,
@@ -70,7 +82,6 @@ class UserEvaluationController extends AbstractController
             $em->flush();
         }
 
-        // already submitted
         if ($userEvaluation->getSubmittedAt()) {
             if ($evaluation->getType() === 'EXAM') {
                 return $this->redirectToRoute('user_evaluation_index');
@@ -78,7 +89,6 @@ class UserEvaluationController extends AbstractController
             return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
         }
 
-        // 2) timer
         $startedAt = $userEvaluation->getStartedAt();
         $endTime = (clone $startedAt)->modify("+{$evaluation->getDuration()} minutes");
 
@@ -94,7 +104,6 @@ class UserEvaluationController extends AbstractController
                 return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
             }
 
-            // EXAM
             $userEvaluation->setScore(null);
             $userEvaluation->setIsCorrected(false);
             $em->flush();
@@ -105,7 +114,6 @@ class UserEvaluationController extends AbstractController
 
         $questions = $evaluation->getQuestions();
 
-        // ✅ EXAM: create/find draft Answer to get an ID for integrity events
         $examDraft = null;
         if ($evaluation->getType() === 'EXAM') {
             $firstQuestion = $questions->first() ?: null;
@@ -134,22 +142,16 @@ class UserEvaluationController extends AbstractController
                 $examDraft->setContent('');
                 $examDraft->setIsCorrect(null);
                 $em->persist($examDraft);
-                $em->flush(); // ✅ to have ID
+                $em->flush();
             }
         }
 
-        // 3) submit
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('take_evaluation_'.$evaluation->getId(), (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Invalid CSRF');
             }
 
-            // ======================
-            // QUIZ
-            // ======================
             if ($evaluation->getType() === 'QUIZ') {
-
-                // ✅ Nettoyer anciennes submissions QUIZ uniquement
                 $oldSubmissions = $em->createQueryBuilder()
                     ->select('a')
                     ->from(Answer::class, 'a')
@@ -213,16 +215,12 @@ class UserEvaluationController extends AbstractController
                 return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
             }
 
-            // ======================
-            // EXAM
-            // ======================
             $examResponse = trim((string) $request->request->get('exam_response', ''));
 
             if (!$examDraft) {
                 throw new \RuntimeException('Exam draft not found');
             }
 
-            // ✅ update the SAME draft (keeps pasteCount, tabSwitchCount, etc.)
             $examDraft->setContent($examResponse);
             $em->persist($examDraft);
 
@@ -232,7 +230,6 @@ class UserEvaluationController extends AbstractController
 
             $em->flush();
 
-            // ✅ Analyze final text
             $orchestrator->analyzeAndSave($examDraft);
 
             $this->addFlash('success', 'Submission successful. Your exam is being analyzed for plagiarism.');
