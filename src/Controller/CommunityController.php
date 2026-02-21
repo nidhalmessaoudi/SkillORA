@@ -32,7 +32,7 @@ class CommunityController extends AbstractController
     private const REPLY_MIN_LENGTH = 1;
     private const REPLY_MAX_LENGTH = 5000;
     private const DESCRIPTION_MAX_LENGTH = 1000;
-    
+
     private const ALLOWED_POST_TYPES = ['question', 'discussion', 'article'];
 
     public function __construct(EntityManagerInterface $em)
@@ -92,27 +92,27 @@ class CommunityController extends AbstractController
 
             case 'top':
                 $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
-                   ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
-                   ->groupBy('p.id')
-                   ->orderBy('reactionCount', 'DESC')
-                   ->addOrderBy('p.createdAt', 'DESC');
+                    ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
+                    ->groupBy('p.id')
+                    ->orderBy('reactionCount', 'DESC')
+                    ->addOrderBy('p.createdAt', 'DESC');
                 break;
 
             case 'unanswered':
                 $qb->leftJoin('p.replies', 'rep')
-                   ->addSelect('COUNT(rep.id) as HIDDEN replyCount')
-                   ->groupBy('p.id')
-                   ->having('replyCount = 0')
-                   ->orderBy('p.createdAt', 'DESC');
+                    ->addSelect('COUNT(rep.id) as HIDDEN replyCount')
+                    ->groupBy('p.id')
+                    ->having('replyCount = 0')
+                    ->orderBy('p.createdAt', 'DESC');
                 break;
 
             case 'hot':
             default:
                 $qb->leftJoin(Reaction::class, 'r', 'WITH', 'r.post = p.id')
-                   ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
-                   ->groupBy('p.id')
-                   ->orderBy('reactionCount', 'DESC')
-                   ->addOrderBy('p.createdAt', 'DESC');
+                    ->addSelect('COUNT(r.id) as HIDDEN reactionCount')
+                    ->groupBy('p.id')
+                    ->orderBy('reactionCount', 'DESC')
+                    ->addOrderBy('p.createdAt', 'DESC');
                 break;
         }
 
@@ -162,12 +162,12 @@ class CommunityController extends AbstractController
                 ->groupBy('r.type');
 
             $counts = $qb->getQuery()->getResult();
-            
+
             $reactionCounts = [];
             $total = 0;
             foreach ($counts as $row) {
-                $reactionCounts[$row['type']] = (int)$row['count'];
-                $total += (int)$row['count'];
+                $reactionCounts[$row['type']] = (int) $row['count'];
+                $total += (int) $row['count'];
             }
 
             $data[$post->getId()] = [
@@ -268,8 +268,9 @@ class CommunityController extends AbstractController
 
                     // Process tags
                     foreach ($tagNames as $tagName) {
-                        if ($tagName === '') continue;
-                        
+                        if ($tagName === '')
+                            continue;
+
                         $existing = $this->em->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
                         if ($existing) {
                             $post->addTag($existing);
@@ -307,7 +308,7 @@ class CommunityController extends AbstractController
         }
 
         $file = $request->files->get('image');
-        
+
         if (!$file) {
             return $this->json(['ok' => false, 'error' => 'No file uploaded'], 400);
         }
@@ -330,7 +331,7 @@ class CommunityController extends AbstractController
 
             // Move file to public/uploads/community directory
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/community';
-            
+
             // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
@@ -385,7 +386,7 @@ class CommunityController extends AbstractController
                 $replyReaction = $reactionRepo->findOneBy(['user' => $currentUser, 'reply' => $reply]);
                 $userReaction = $replyReaction ? $replyReaction->getType() : null;
             }
-            
+
             $replyReactionData[$reply->getId()] = [
                 'userReaction' => $userReaction,
                 'counts' => $this->getReactionCounts(null, $reply),
@@ -413,10 +414,10 @@ class CommunityController extends AbstractController
         }
 
         $results = $qb->getQuery()->getResult();
-        
+
         $counts = [];
         foreach ($results as $row) {
-            $counts[$row['type']] = (int)$row['count'];
+            $counts[$row['type']] = (int) $row['count'];
         }
 
         return $counts;
@@ -535,7 +536,7 @@ class CommunityController extends AbstractController
         }
 
         $content = trim((string) $request->request->get('content', ''));
-        
+
         $errors = [];
 
         // Validate Reply Content
@@ -822,7 +823,7 @@ class CommunityController extends AbstractController
     {
         // Convert to lowercase for case-insensitive matching
         $lowerText = strtolower($text);
-        
+
         // Common spam patterns
         $spamPatterns = [
             '/\b(buy now|click here|limited time|act now)\b/i',
@@ -850,5 +851,71 @@ class CommunityController extends AbstractController
         }
 
         return false;
+    }
+
+    #[Route('/community/reply/{id}/reply', name: 'community_reply_to_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function replyToReply(Request $request, Reply $parentReply): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        $content = trim((string) $request->request->get('content', ''));
+
+        // Validation
+        if ($content === '') {
+            return $this->json(['ok' => false, 'error' => 'Reply cannot be empty'], 400);
+        }
+
+        if (strlen($content) < self::REPLY_MIN_LENGTH) {
+            return $this->json(['ok' => false, 'error' => sprintf('Reply must be at least %d character.', self::REPLY_MIN_LENGTH)], 400);
+        }
+
+        if (strlen($content) > self::REPLY_MAX_LENGTH) {
+            return $this->json(['ok' => false, 'error' => sprintf('Reply cannot exceed %d characters.', self::REPLY_MAX_LENGTH)], 400);
+        }
+
+        // Sanitize
+        $content = strip_tags($content, '<p><br><strong><em><ul><ol><li><code><pre><blockquote>');
+
+        // Check for spam
+        if ($this->containsSpam($content)) {
+            return $this->json(['ok' => false, 'error' => 'Your reply contains spam-like content.'], 400);
+        }
+
+        // Limit nesting depth (optional - prevent infinite nesting)
+        $maxDepth = 5;
+        if ($parentReply->getDepth() >= $maxDepth) {
+            return $this->json(['ok' => false, 'error' => 'Maximum reply depth reached'], 400);
+        }
+
+        try {
+            $reply = new Reply();
+            $reply->setPost($parentReply->getPost());
+            $reply->setParent($parentReply);
+            $reply->setContent($content);
+            $reply->setAuthor($user);
+
+            $this->em->persist($reply);
+            $this->em->flush();
+
+            return $this->json([
+                'ok' => true,
+                'reply' => [
+                    'id' => $reply->getId(),
+                    'content' => $content,
+                    'author' => [
+                        'fullName' => $user->getFullName(),
+                        'avatar' => $user->getAvatar()
+                    ],
+                    'createdAt' => $reply->getCreatedAt()->format('M j, Y, H:i'),
+                    'depth' => $reply->getDepth()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['ok' => false, 'error' => 'Failed to post reply'], 500);
+        }
     }
 }
