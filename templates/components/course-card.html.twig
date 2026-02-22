@@ -1,0 +1,67 @@
+{# Course Card Component (Entity-based) #}
+<article class="course-card group">
+  {# Thumbnail #}
+  <a href="{{ path('course_show', {courseId: course.id}) }}" class="block relative overflow-hidden">
+    {% set thumb = course.thumbnail ?: '/images/placeholders/course.jpg' %}
+
+    <img
+      src="{{ thumb }}"
+      alt="{{ course.title }}"
+      class="course-card-thumbnail group-hover:scale-105 transition-transform duration-500"
+      loading="lazy"
+    >
+
+    {# Quick action (UI only) #}
+    <button
+      type="button"
+      class="absolute top-3 right-3 w-8 h-8 bg-white/90 dark:bg-navy-900/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-navy-800"
+      aria-label="Add to wishlist"
+      title="Wishlist (UI only)"
+    >
+      <i data-lucide="heart" class="w-4 h-4 text-navy-600 dark:text-navy-400"></i>
+    </button>
+  </a>
+
+  {# Content #}
+  <div class="course-card-content">
+    {# Category + Updated date #}
+    <div class="flex items-center gap-2 mb-2">
+      {% if course.category %}
+        <span class="chip text-[11px] py-1">{{ course.category }}</span>
+      {% endif %}
+      <span class="text-caption text-navy-400">
+        Updated {{ course.updatedAt ? course.updatedAt|date('M Y') : '' }}
+      </span>
+    </div>
+
+    {# Title #}
+    <a href="{{ path('course_show', {courseId: course.id}) }}">
+      <h3 class="font-display font-semibold text-navy-900 dark:text-white mb-2 line-clamp-2 group-hover:text-harbor-600 dark:group-hover:text-harbor-400 transition-colors">
+        {{ course.title }}
+      </h3>
+    </a>
+
+    {# Description preview #}
+    {% if course.description %}
+      <p class="text-body-sm text-navy-500 dark:text-navy-400 line-clamp-2">
+        {{ course.description }}
+      </p>
+    {% else %}
+      <p class="text-body-sm text-navy-400 dark:text-navy-500 italic">
+        No description yet.
+      </p>
+    {% endif %}
+
+    {# Footer #}
+    <div class="flex items-center justify-between gap-3 pt-4 mt-4 border-t border-navy-100 dark:border-navy-800">
+      <span class="text-caption text-navy-400">
+        {{ course.sections|length }} sections
+      </span>
+
+      <span class="inline-flex items-center gap-2 text-body-sm text-harbor-600 dark:text-harbor-400 font-semibold">
+        View course
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </span>
+    </div>
+  </div>
+</article>

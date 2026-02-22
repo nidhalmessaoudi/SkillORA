@@ -1,0 +1,389 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Profile Settings - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 dark:bg-navy-950 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2 text-navy-600 dark:text-navy-400 hover:text-harbor-600 dark:hover:text-harbor-400 mb-4">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                Back to Home
+            </a>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white">
+                        Profile Settings
+                    </h1>
+                    <p class="text-body-md text-navy-500 dark:text-navy-400 mt-1">
+                        Complete your profile to get personalized recommendations
+                    </p>
+                </div>
+                {% if not user.profileCompleted %}
+                <div class="hidden md:flex items-center gap-3 px-4 py-2 bg-warning-100 dark:bg-warning-900/30 border border-warning-200 dark:border-warning-800 rounded-xl">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-warning-600 dark:text-warning-400"></i>
+                    <span class="text-body-sm font-medium text-warning-700 dark:text-warning-400">
+                        Profile incomplete
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Success/Error Messages #}
+        {% for message in app.flashes('success') %}
+            <div class="mb-6 p-4 rounded-2xl bg-success-100 dark:bg-success-900/30 border border-success-200 dark:border-success-800">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-success-600 dark:text-success-400"></i>
+                    <p class="text-body-sm text-success-700 dark:text-success-400">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if error %}
+            <div class="mb-6 p-4 rounded-2xl bg-danger-100 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-danger-600 dark:text-danger-400"></i>
+                    <p class="text-body-sm text-danger-700 dark:text-danger-400">{{ error }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {# Main Content #}
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {# Sidebar Navigation #}
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-navy-900 rounded-2xl border border-navy-200 dark:border-navy-800 p-2">
+                    <nav class="space-y-1">
+                        <a href="#personal" onclick="switchTab('personal')" id="tab-personal" class="tab-link active flex items-center gap-3 px-4 py-3 rounded-xl text-body-sm font-medium transition-all">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                            Personal Info
+                        </a>
+                        <a href="#contact" onclick="switchTab('contact')" id="tab-contact" class="tab-link flex items-center gap-3 px-4 py-3 rounded-xl text-body-sm font-medium transition-all">
+                            <i data-lucide="phone" class="w-5 h-5"></i>
+                            Contact Details
+                        </a>
+                        <a href="#education" onclick="switchTab('education')" id="tab-education" class="tab-link flex items-center gap-3 px-4 py-3 rounded-xl text-body-sm font-medium transition-all">
+                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                            Education
+                        </a>
+                        <a href="#account" onclick="switchTab('account')" id="tab-account" class="tab-link flex items-center gap-3 px-4 py-3 rounded-xl text-body-sm font-medium transition-all">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                            Account
+                        </a>
+                    </nav>
+                </div>
+
+                {# Profile Completion Card #}
+                <div class="mt-6 bg-gradient-to-br from-harbor-500 to-harbor-600 rounded-2xl p-6 text-white">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                            <i data-lucide="trophy" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-body-lg">Profile Strength</div>
+                            <div class="text-body-sm text-white/80">{{ user.profileCompleted ? '100%' : '45%' }} Complete</div>
+                        </div>
+                    </div>
+                    <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div class="h-full bg-white rounded-full transition-all" style="width: {{ user.profileCompleted ? '100' : '45' }}%"></div>
+                    </div>
+                    {% if not user.profileCompleted %}
+                    <p class="mt-4 text-body-sm text-white/90">
+                        Complete your profile to unlock personalized course recommendations!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Content Area #}
+            <div class="lg:col-span-3">
+                <form method="post" action="{{ path('user_profile_settings') }}" enctype="multipart/form-data" class="bg-white dark:bg-navy-900 rounded-2xl border border-navy-200 dark:border-navy-800">
+                    {# Personal Info Tab #}
+                    <div id="content-personal" class="tab-content">
+                        <div class="p-6 border-b border-navy-200 dark:border-navy-800">
+                            <h2 class="font-display font-bold text-xl text-navy-900 dark:text-white">
+                                Personal Information
+                            </h2>
+                            <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-1">
+                                Tell us about yourself
+                            </p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            {# Profile Picture #}
+                            <div>
+                                <label class="input-label">Profile Picture</label>
+                                <div class="flex items-center gap-6">
+                                    <div id="avatar-preview" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                                        {% if user.avatar %}
+                                            <img src="/uploads/avatars/{{ user.avatar }}" alt="Profile" class="w-full h-full object-cover">
+                                        {% else %}
+                                            {{ user.firstName|slice(0,1)|upper }}{{ user.lastName|slice(0,1)|upper }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" id="avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+                                        <button type="button" onclick="document.getElementById('avatar-input').click()" class="btn-outline btn-sm">
+                                            <i data-lucide="upload" class="w-4 h-4"></i>
+                                            Upload Photo
+                                        </button>
+                                        <p class="text-caption text-navy-400 mt-2">
+                                            JPG, PNG or GIF. Max 2MB.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Gender #}
+                            <div>
+                                <label for="gender" class="input-label">Gender</label>
+                                <select id="gender" name="gender" class="input">
+                                    <option value="">Select gender</option>
+                                    <option value="male" {{ user.gender == 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ user.gender == 'female' ? 'selected' : '' }}>Female</option>
+                                    <option value="other" {{ user.gender == 'other' ? 'selected' : '' }}>Other</option>
+                                    <option value="prefer-not-to-say" {{ user.gender == 'prefer-not-to-say' ? 'selected' : '' }}>Prefer not to say</option>
+                                </select>
+                            </div>
+
+                            {# Date of Birth #}
+                            <div>
+                                <label for="date_of_birth" class="input-label">Date of Birth</label>
+                                <input type="date" id="date_of_birth" name="date_of_birth" value="{{ user.dateOfBirth ? user.dateOfBirth|date('Y-m-d') : '' }}" class="input">
+                                {% if user.age %}
+                                <p class="text-caption text-navy-400 mt-2">
+                                    Age: {{ user.age }} years old
+                                </p>
+                                {% endif %}
+                            </div>
+
+                            {# Bio #}
+                            <div>
+                                <label for="bio" class="input-label">Bio</label>
+                                <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself, your interests, and your learning goals..." class="input">{{ user.bio }}</textarea>
+                                <p class="text-caption text-navy-400 mt-2">
+                                    Brief description for your profile. Max 500 characters.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Contact Details Tab #}
+                    <div id="content-contact" class="tab-content hidden">
+                        <div class="p-6 border-b border-navy-200 dark:border-navy-800">
+                            <h2 class="font-display font-bold text-xl text-navy-900 dark:text-white">
+                                Contact Details
+                            </h2>
+                            <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-1">
+                                How can we reach you?
+                            </p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            {# Phone #}
+                            <div>
+                                <label for="phone" class="input-label">Phone Number</label>
+                                <div class="flex gap-3">
+                                    <select id="country-code" name="country_code" class="input w-32">
+                                        <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
+                                        <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
+                                        <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
+                                        <option value="+49" data-flag="🇩🇪">🇩🇪 +49</option>
+                                        <option value="+39" data-flag="🇮🇹">🇮🇹 +39</option>
+                                        <option value="+34" data-flag="🇪🇸">🇪🇸 +34</option>
+                                        <option value="+216" data-flag="🇹🇳" selected>🇹🇳 +216</option>
+                                        <option value="+213" data-flag="🇩🇿">🇩🇿 +213</option>
+                                        <option value="+212" data-flag="🇲🇦">🇲🇦 +212</option>
+                                        <option value="+20" data-flag="🇪🇬">🇪🇬 +20</option>
+                                        <option value="+971" data-flag="🇦🇪">🇦🇪 +971</option>
+                                        <option value="+966" data-flag="🇸🇦">🇸🇦 +966</option>
+                                        <option value="+91" data-flag="🇮🇳">🇮🇳 +91</option>
+                                        <option value="+86" data-flag="🇨🇳">🇨🇳 +86</option>
+                                        <option value="+81" data-flag="🇯🇵">🇯🇵 +81</option>
+                                        <option value="+82" data-flag="🇰🇷">🇰🇷 +82</option>
+                                        <option value="+61" data-flag="🇦🇺">🇦🇺 +61</option>
+                                        <option value="+55" data-flag="🇧🇷">🇧🇷 +55</option>
+                                        <option value="+52" data-flag="🇲🇽">🇲🇽 +52</option>
+                                        <option value="+7" data-flag="🇷🇺">🇷🇺 +7</option>
+                                    </select>
+                                    <div class="relative flex-1">
+                                        <input type="tel" id="phone" name="phone" value="{{ user.phone }}" placeholder="12 345 678" class="input">
+                                    </div>
+                                </div>
+                                <p class="text-caption text-navy-400 mt-2">
+                                    Select your country code and enter your phone number
+                                </p>
+                            </div>
+
+                            {# Country #}
+                            <div>
+                                <label for="country" class="input-label">Country</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                        <i data-lucide="map-pin" class="w-5 h-5 text-navy-400"></i>
+                                    </div>
+                                    <input type="text" id="country" name="country" value="{{ user.country }}" placeholder="United States" class="input pl-12">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Education Tab #}
+                    <div id="content-education" class="tab-content hidden">
+                        <div class="p-6 border-b border-navy-200 dark:border-navy-800">
+                            <h2 class="font-display font-bold text-xl text-navy-900 dark:text-white">
+                                Education Background
+                            </h2>
+                            <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-1">
+                                Your academic information
+                            </p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            {# Field of Study #}
+                            <div>
+                                <label for="field_of_study" class="input-label">Field of Study</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                        <i data-lucide="book-open" class="w-5 h-5 text-navy-400"></i>
+                                    </div>
+                                    <input type="text" id="field_of_study" name="field_of_study" value="{{ user.fieldOfStudy }}" placeholder="Computer Science, Business, etc." class="input pl-12">
+                                </div>
+                            </div>
+
+                            {# University #}
+                            <div>
+                                <label for="university" class="input-label">University/Institution</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                        <i data-lucide="school" class="w-5 h-5 text-navy-400"></i>
+                                    </div>
+                                    <input type="text" id="university" name="university" value="{{ user.university }}" placeholder="Harvard University" class="input pl-12">
+                                </div>
+                                <p class="text-caption text-navy-400 mt-2">
+                                    Optional - Leave blank if not applicable
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Account Tab #}
+                    <div id="content-account" class="tab-content hidden">
+                        <div class="p-6 border-b border-navy-200 dark:border-navy-800">
+                            <h2 class="font-display font-bold text-xl text-navy-900 dark:text-white">
+                                Account Settings
+                            </h2>
+                            <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-1">
+                                View your account details
+                            </p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="input-label">Email</label>
+                                    <div class="text-body-md text-navy-900 dark:text-white">{{ user.email }}</div>
+                                </div>
+                                <div>
+                                    <label class="input-label">Account Type</label>
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-400 rounded-lg text-body-sm font-medium">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                        {{ user.role|capitalize }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="input-label">Member Since</label>
+                                <div class="text-body-md text-navy-900 dark:text-white">{{ user.createdAt|date('F j, Y') }}</div>
+                            </div>
+
+                            <div class="pt-6 border-t border-navy-200 dark:border-navy-800">
+                                <a href="{{ path('user_profile_edit') }}" class="btn-outline">
+                                    <i data-lucide="key" class="w-4 h-4"></i>
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Footer Actions #}
+                    <div class="p-6 border-t border-navy-200 dark:border-navy-800 flex items-center justify-between">
+                        <a href="{{ path('app_home') }}" class="text-body-sm text-navy-600 dark:text-navy-400 hover:text-harbor-600 dark:hover:text-harbor-400">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-primary">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Preview avatar image
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Check file size (2MB max)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size must be less than 2MB');
+                input.value = '';
+                return;
+            }
+
+            // Check file type
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file (JPG, PNG, or GIF)');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatar-preview');
+                preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="w-full h-full object-cover">';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        // Remove active class from all tab links
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.classList.remove('active', 'bg-harbor-100', 'dark:bg-harbor-900/30', 'text-harbor-700', 'dark:text-harbor-400');
+            link.classList.add('text-navy-600', 'dark:text-navy-400', 'hover:bg-navy-100', 'dark:hover:bg-navy-800');
+        });
+
+        // Show selected tab content
+        document.getElementById('content-' + tabName).classList.remove('hidden');
+
+        // Add active class to selected tab link
+        const activeTab = document.getElementById('tab-' + tabName);
+        activeTab.classList.add('active', 'bg-harbor-100', 'dark:bg-harbor-900/30', 'text-harbor-700', 'dark:text-harbor-400');
+        activeTab.classList.remove('text-navy-600', 'dark:text-navy-400', 'hover:bg-navy-100', 'dark:hover:bg-navy-800');
+
+        // Prevent default link behavior
+        event.preventDefault();
+    }
+
+    // Initialize icons after tab switch
+    document.querySelectorAll('.tab-link').forEach(link => {
+        link.addEventListener('click', () => {
+            setTimeout(() => lucide.createIcons(), 100);
+        });
+    });
+</script>
+{% endblock %}

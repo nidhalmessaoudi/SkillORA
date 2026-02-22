@@ -1,0 +1,85 @@
+================================================================
+PHP UPLOAD LIMIT FIX - 3D Models Now Upload!
+================================================================
+
+PROBLEM:
+--------
+Your 3D model file is 5.9MB but PHP upload limit was only 2MB.
+
+Error message:
+"The file exceeds your upload_max_filesize ini directive (limit is 2048 KiB)"
+
+SOLUTION APPLIED:
+-----------------
+Updated PHP configuration file (php.ini):
+
+Before:
+  upload_max_filesize = 2M
+  post_max_size = 8M
+
+After:
+  upload_max_filesize = 50M  ✅
+  post_max_size = 50M        ✅
+
+File location: C:\tools\php85\php.ini
+Backup created: C:\tools\php85\php.ini.backup
+
+IMPORTANT - RESTART YOUR SERVER:
+---------------------------------
+The PHP settings are now updated, but you MUST restart your
+server for changes to take effect!
+
+1. Stop your current server (Ctrl+C)
+2. Start again: symfony serve
+   (or: php -S localhost:8000 -t public)
+
+NEW LIMITS:
+-----------
+✅ upload_max_filesize: 50M (was 2M)
+✅ post_max_size: 50M (was 8M)
+✅ memory_limit: 128M (unchanged)
+
+Your file: 5.9MB ✅ Now within limit!
+
+VERIFY SETTINGS:
+----------------
+After restarting server, visit:
+http://localhost:8000/test-upload.php
+
+Should show:
+  upload_max_filesize: 50M
+  post_max_size: 50M
+
+NOW TEST UPLOAD:
+----------------
+1. STOP your server (Ctrl+C)
+2. START server again: symfony serve
+3. Visit: http://localhost:8000/admin/events/new
+4. Upload your 3D model
+5. Should work now! ✅
+
+ALTERNATIVE QUICK TEST:
+-----------------------
+Visit: http://localhost:8000/test-upload.php
+- Select your .glb file
+- Click "Test Upload"
+- Should see: ✅ SUCCESS!
+
+IF STILL DOESN'T WORK:
+----------------------
+1. Make sure you RESTARTED the server
+2. Check settings with:
+   php -r "echo ini_get('upload_max_filesize');"
+   Should show: 50M
+
+3. If shows 2M, server wasn't restarted
+4. Try closing ALL terminal windows and starting fresh
+
+RESTORING OLD SETTINGS:
+-----------------------
+If you want to revert:
+copy C:\tools\php85\php.ini.backup C:\tools\php85\php.ini
+
+================================================================
+STATUS: FIXED - Just restart your server!
+================================================================

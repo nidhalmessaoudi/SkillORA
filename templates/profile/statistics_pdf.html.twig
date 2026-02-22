@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Evaluation Statistics</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 14px; }
+    h1 { font-size: 20px; margin-bottom: 6px; }
+    .muted { color: #666; font-size: 12px; margin-bottom: 14px; }
+    .box { border: 1px solid #ddd; padding: 12px; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <h1>Evaluation Statistics for {{ evaluation.title|default('Evaluation #' ~ evaluation.id) }}</h1>
+
+  <div class="muted">
+    Student: {{ user.username|default(user.email|default('—')) }}<br>
+    Evaluation: {{ evaluation.title|default('—') }}<br>
+    Generated at: {{ "now"|date("Y-m-d H:i") }}
+  </div>
+
+  {# `getEvaluationStatsForUser` returns a numeric summary array: totalQuestions, correctAnswers, accuracy #}
+  {% set totalQuestions = stats.totalQuestions|default(0) %}
+  {% set correctAnswers = stats.correctAnswers|default(0) %}
+  {% set accuracy = stats.accuracy|default(0) %}
+
+  <div class="box">
+    <strong>Summary</strong><br><br>
+    Total Questions: <strong>{{ totalQuestions }}</strong><br>
+    Correct Answers: <strong>{{ correctAnswers }}</strong><br>
+    Accuracy: <strong>{{ accuracy|number_format(2) }}%</strong>
+  </div>
+
+  <h2>Results</h2>
+  <p>Detailed per-answer results are not available for this report.</p>
+
+</body>
+</html>

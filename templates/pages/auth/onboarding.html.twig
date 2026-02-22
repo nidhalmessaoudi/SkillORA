@@ -1,0 +1,307 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Complete Your Profile - SkillHarbor{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex bg-white dark:bg-navy-950">
+    {# Left Panel - Form #}
+    <div class="w-full lg:w-1/2 flex flex-col">
+        {# Header #}
+        <div class="flex items-center justify-between p-6">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2.5 group">
+                <div class="w-9 h-9 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-xl flex items-center justify-center">
+                    <i data-lucide="anchor" class="w-4.5 h-4.5 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillHarbor</span>
+            </a>
+            <button onclick="toggleTheme()" class="btn-ghost btn-icon">
+                <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+            </button>
+        </div>
+
+        {# Form Container #}
+        <div class="flex-1 flex items-center justify-center px-6 lg:px-12 py-8 overflow-y-auto">
+            <div class="w-full max-w-lg">
+                {# Progress #}
+                <div class="flex items-center justify-between text-body-sm mb-2">
+                    <span class="font-medium text-navy-600 dark:text-navy-300">Profile setup</span>
+                    <span class="text-navy-400">Step 2 of 2</span>
+                </div>
+                <div class="progress mb-8">
+                    <div class="progress-bar" style="width: 50%"></div>
+                </div>
+
+                {# Student Onboarding #}
+                <div id="student-form-container">
+                    <div class="mb-8">
+                        <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-2">
+                            Personalize your learning
+                        </h1>
+                        <p class="text-body-md text-navy-500 dark:text-navy-400">
+                            Help us recommend the best courses for you.
+                        </p>
+                    </div>
+
+                    <form id="student-form">
+                        <div class="space-y-6">
+                            {# Interests #}
+                            <div>
+                                <label class="input-label">What do you want to learn?</label>
+                                <div class="flex flex-wrap gap-2">
+                                    {% set interests = [
+                                        {name: 'Web Development', icon: 'code-2'},
+                                        {name: 'Data Science', icon: 'bar-chart-3'},
+                                        {name: 'Design', icon: 'palette'},
+                                        {name: 'Mobile Dev', icon: 'smartphone'},
+                                        {name: 'Business', icon: 'briefcase'},
+                                        {name: 'AI & ML', icon: 'brain'},
+                                        {name: 'Marketing', icon: 'megaphone'},
+                                        {name: 'Cloud', icon: 'cloud'}
+                                    ] %}
+                                    {% for interest in interests %}
+                                    <label class="cursor-pointer">
+                                        <input type="checkbox" name="interests[]" value="{{ interest.name|lower|replace({' ': '-'}) }}" class="peer hidden">
+                                        <span class="chip peer-checked:chip-active">
+                                            <i data-lucide="{{ interest.icon }}" class="w-4 h-4"></i>
+                                            {{ interest.name }}
+                                        </span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {# Experience Level #}
+                            <div>
+                                <label class="input-label">What's your experience level?</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="level" value="beginner" class="peer hidden" checked>
+                                        <div class="card p-4 text-center peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/30 transition-all">
+                                            <i data-lucide="sprout" class="w-6 h-6 mx-auto mb-2 text-success-500"></i>
+                                            <div class="font-semibold text-body-sm text-navy-900 dark:text-white">Beginner</div>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="level" value="intermediate" class="peer hidden">
+                                        <div class="card p-4 text-center peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/30 transition-all">
+                                            <i data-lucide="trending-up" class="w-6 h-6 mx-auto mb-2 text-warning-500"></i>
+                                            <div class="font-semibold text-body-sm text-navy-900 dark:text-white">Intermediate</div>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="level" value="advanced" class="peer hidden">
+                                        <div class="card p-4 text-center peer-checked:border-harbor-500 peer-checked:bg-harbor-50 dark:peer-checked:bg-harbor-900/30 transition-all">
+                                            <i data-lucide="rocket" class="w-6 h-6 mx-auto mb-2 text-harbor-500"></i>
+                                            <div class="font-semibold text-body-sm text-navy-900 dark:text-white">Advanced</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {# Weekly Goal #}
+                            <div>
+                                <label class="input-label">Weekly learning goal</label>
+                                <div class="card p-5">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-body-sm text-navy-500">1 hr</span>
+                                        <span class="font-display font-bold text-xl text-harbor-600 dark:text-harbor-400" id="hours-display">5 hours</span>
+                                        <span class="text-body-sm text-navy-500">10+ hrs</span>
+                                    </div>
+                                    <input type="range" id="weekly-hours" name="weekly-hours" min="1" max="10" value="5" class="w-full accent-harbor-600">
+                                </div>
+                            </div>
+
+                            {# Actions #}
+                            <div class="flex items-center gap-4 pt-2">
+                                <button type="submit" class="btn-primary flex-1">
+                                    Finish setup
+                                </button>
+                                <a href="{{ path('app_home') }}" class="btn-ghost">
+                                    Skip for now
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {# Instructor Onboarding (hidden by default) #}
+                <div id="instructor-form-container" class="hidden">
+                    <div class="mb-8">
+                        <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-2">
+                            Set up your instructor profile
+                        </h1>
+                        <p class="text-body-md text-navy-500 dark:text-navy-400">
+                            Tell students about your expertise.
+                        </p>
+                    </div>
+
+                    <form id="instructor-form">
+                        <div class="space-y-5">
+                            {# Expertise #}
+                            <div>
+                                <label class="input-label">Areas of expertise</label>
+                                <div class="flex flex-wrap gap-2">
+                                    {% set expertise = [
+                                        {name: 'Web Development', icon: 'code-2'},
+                                        {name: 'Data Science', icon: 'bar-chart-3'},
+                                        {name: 'Design', icon: 'palette'},
+                                        {name: 'Business', icon: 'briefcase'},
+                                        {name: 'AI & ML', icon: 'brain'}
+                                    ] %}
+                                    {% for item in expertise %}
+                                    <label class="cursor-pointer">
+                                        <input type="checkbox" name="expertise[]" value="{{ item.name|lower|replace({' ': '-'}) }}" class="peer hidden">
+                                        <span class="chip peer-checked:chip-active">
+                                            <i data-lucide="{{ item.icon }}" class="w-4 h-4"></i>
+                                            {{ item.name }}
+                                        </span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {# Bio #}
+                            <div>
+                                <label for="bio" class="input-label">Short bio <span class="font-normal text-navy-400">(optional)</span></label>
+                                <textarea id="bio" name="bio" rows="3" placeholder="Tell students about your background..." class="input resize-none"></textarea>
+                            </div>
+
+                            {# Social Link #}
+                            <div>
+                                <label for="social" class="input-label">LinkedIn or website <span class="font-normal text-navy-400">(optional)</span></label>
+                                <input type="url" id="social" name="social" placeholder="https://linkedin.com/in/yourprofile" class="input">
+                            </div>
+
+                            {# Actions #}
+                            <div class="flex items-center gap-4 pt-2">
+                                <button type="submit" class="btn-primary flex-1">
+                                    Finish setup
+                                </button>
+                                <a href="{{ path('app_home') }}" class="btn-ghost">
+                                    Skip for now
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Right Panel - Brand #}
+    <div class="hidden lg:block lg:w-1/2 bg-gradient-to-br from-harbor-600 to-harbor-500 relative">
+        <div class="absolute inset-0">
+            <div class="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 left-20 w-80 h-80 bg-harbor-400/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative h-full flex flex-col justify-center p-12 lg:p-16">
+            <div class="max-w-md" id="right-panel">
+                {# Student Panel #}
+                <div id="student-panel">
+                    <h2 class="font-display font-bold text-3xl lg:text-4xl text-white mb-4">
+                        Your personalized learning path
+                    </h2>
+                    <p class="text-lg text-white/80 mb-10">
+                        Based on your preferences, we'll recommend the best courses to help you achieve your goals.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="target" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Personalized recommendations</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="map" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Structured learning paths</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="calendar-check" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Weekly progress tracking</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Instructor Panel (hidden by default) #}
+                <div id="instructor-panel" class="hidden">
+                    <h2 class="font-display font-bold text-3xl lg:text-4xl text-white mb-4">
+                        Share your knowledge
+                    </h2>
+                    <p class="text-lg text-white/80 mb-10">
+                        Join our community of expert instructors and help millions of learners achieve their goals.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="users" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Reach millions of learners</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Earn from your expertise</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i data-lucide="video" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-white/90">Professional creation tools</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    // Weekly hours slider
+    const slider = document.getElementById('weekly-hours');
+    const display = document.getElementById('hours-display');
+
+    if (slider) {
+        slider.addEventListener('input', function() {
+            const v = this.value;
+            display.textContent = v >= 10 ? '10+ hours' : v + (v === '1' ? ' hour' : ' hours');
+        });
+    }
+
+    // Check URL for role
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('role') === 'instructor') {
+        document.getElementById('student-form-container').classList.add('hidden');
+        document.getElementById('instructor-form-container').classList.remove('hidden');
+        document.getElementById('student-panel').classList.add('hidden');
+        document.getElementById('instructor-panel').classList.remove('hidden');
+    }
+
+    // Form submissions
+    document.getElementById('student-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        window.location.href = '{{ path("app_home") }}';
+    });
+
+    document.getElementById('instructor-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        window.location.href = '{{ path("app_home") }}';
+    });
+</script>
+{% endblock %}

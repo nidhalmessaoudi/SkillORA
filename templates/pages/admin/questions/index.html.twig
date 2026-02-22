@@ -1,0 +1,202 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Questions - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8 flex items-center justify-between">
+  <div>
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+      Questions
+    </h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">
+      Grouped by Evaluation (QUIZ / EXAM).
+    </p>
+  </div>
+
+  <a href="{{ path('admin_question_new') }}" class="btn-primary btn-sm">
+    <i data-lucide="plus" class="w-4 h-4"></i>
+    New Question
+  </a>
+</div>
+
+{# ================= QUIZ ================= #}
+<div class="card mb-8">
+  <div class="p-6 border-b border-navy-100 dark:border-navy-800 flex items-center justify-between">
+    <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+      QUIZ Evaluations ({{ grouped.QUIZ|length }})
+    </h2>
+    <span class="badge bg-harbor-100 text-harbor-700">QUIZ</span>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-navy-50 dark:bg-navy-900/50">
+        <tr>
+          <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Evaluation
+          </th>
+          <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Questions
+          </th>
+          <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+        {% for evalId, block in grouped.QUIZ %}
+          <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+            <td class="px-6 py-4 align-top">
+              <div class="text-body-sm font-medium text-navy-900 dark:text-white">
+                #{{ evalId }} — {{ block.evaluation.title }}
+              </div>
+              <div class="text-caption text-navy-500">
+                Type: {{ block.evaluation.type }}
+              </div>
+            </td>
+
+            <td class="px-6 py-4 align-top">
+              <div class="text-body-sm text-navy-600 dark:text-navy-300">
+                Total: <b>{{ block.items|length }}</b>
+              </div>
+
+              <div class="mt-2 text-caption text-navy-500 space-y-2">
+                {% for q in block.items %}
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="pr-2">
+                      • <b>#{{ q.id }}</b> —
+                      {{ q.content|striptags|slice(0, 90) }}{% if q.content|striptags|length > 90 %}…{% endif %}
+                      <span class="badge ml-2 {{ q.type == 'MCQ' ? 'bg-harbor-100 text-harbor-700' : 'bg-danger-100 text-danger-700' }}">
+                        {{ q.type }}
+                      </span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+
+            {# ✅ Actions pour CHAQUE question #}
+            <td class="px-6 py-4 align-top text-right">
+              <div class="flex flex-col items-end gap-2">
+                {% for q in block.items %}
+                  <div class="flex items-center justify-end gap-2">
+                    <span class="text-caption text-navy-500">#{{ q.id }}</span>
+
+                    <a href="{{ path('admin_question_show', {id: q.id}) }}"
+                       class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
+                      View
+                    </a>
+
+                    <a href="{{ path('admin_question_edit', {id: q.id}) }}"
+                       class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
+                      Edit
+                    </a>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="px-6 py-12 text-center text-navy-500">
+              No quiz evaluations found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ================= EXAM ================= #}
+<div class="card">
+  <div class="p-6 border-b border-navy-100 dark:border-navy-800 flex items-center justify-between">
+    <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+      EXAM Evaluations ({{ grouped.EXAM|length }})
+    </h2>
+    <span class="badge bg-danger-100 text-danger-700">EXAM</span>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-navy-50 dark:bg-navy-900/50">
+        <tr>
+          <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Evaluation
+          </th>
+          <th class="px-6 py-3 text-left text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Questions
+          </th>
+          <th class="px-6 py-3 text-right text-caption font-semibold text-navy-600 dark:text-navy-400 uppercase tracking-wider">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-navy-100 dark:divide-navy-800">
+        {% for evalId, block in grouped.EXAM %}
+          <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors">
+            <td class="px-6 py-4 align-top">
+              <div class="text-body-sm font-medium text-navy-900 dark:text-white">
+                #{{ evalId }} — {{ block.evaluation.title }}
+              </div>
+              <div class="text-caption text-navy-500">
+                Type: {{ block.evaluation.type }}
+              </div>
+            </td>
+
+            <td class="px-6 py-4 align-top">
+              <div class="text-body-sm text-navy-600 dark:text-navy-300">
+                Total: <b>{{ block.items|length }}</b>
+              </div>
+
+              <div class="mt-2 text-caption text-navy-500 space-y-2">
+                {% for q in block.items %}
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="pr-2">
+                      • <b>#{{ q.id }}</b> —
+                      {{ q.content|striptags|slice(0, 90) }}{% if q.content|striptags|length > 90 %}…{% endif %}
+                      <span class="badge ml-2 {{ q.type == 'MCQ' ? 'bg-harbor-100 text-harbor-700' : 'bg-danger-100 text-danger-700' }}">
+                        {{ q.type }}
+                      </span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+
+            {# ✅ Actions pour CHAQUE question #}
+            <td class="px-6 py-4 align-top text-right">
+              <div class="flex flex-col items-end gap-2">
+                {% for q in block.items %}
+                  <div class="flex items-center justify-end gap-2">
+                    <span class="text-caption text-navy-500">#{{ q.id }}</span>
+
+                    <a href="{{ path('admin_question_show', {id: q.id}) }}"
+                       class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
+                      View
+                    </a>
+
+                    <a href="{{ path('admin_question_edit', {id: q.id}) }}"
+                       class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
+                      Edit
+                    </a>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="px-6 py-12 text-center text-navy-500">
+              No exam evaluations found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

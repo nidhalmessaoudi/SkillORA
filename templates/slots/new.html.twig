@@ -1,0 +1,81 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Ajouter un créneau - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="container-wide py-10">
+    <div class="max-w-lg mx-auto bg-white dark:bg-navy-900 rounded-2xl shadow-lg p-8">
+        <h1 class="font-display font-bold text-2xl mb-6">Ajouter un créneau</h1>
+
+        {% set fd = form_data|default({}) %}
+        {% set er = errors|default({}) %}
+
+        <form method="post">
+            <div class="mb-4">
+                <label class="input-label" for="start_date">Date de début</label>
+                <input
+                    type="date"
+                    id="start_date"
+                    name="start_date"
+                    class="input w-full"
+                    value="{{ attribute(fd, 'start_date')|default('') }}"
+                >
+                {% set msg = attribute(er, 'start_date')|default(null) %}
+                {% if msg %}
+                    <div class="text-danger-500 text-xs mt-1">{{ msg }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label class="input-label" for="start_time">Heure de début</label>
+                <input
+                    type="time"
+                    id="start_time"
+                    name="start_time"
+                    class="input w-full"
+                    value="{{ attribute(fd, 'start_time')|default('') }}"
+                >
+                {% set msg = attribute(er, 'start_time')|default(null) %}
+                {% if msg %}
+                    <div class="text-danger-500 text-xs mt-1">{{ msg }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label class="input-label" for="end_date">Date de fin</label>
+                <input
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    class="input w-full"
+                    value="{{ attribute(fd, 'end_date')|default('') }}"
+                >
+                {% set msg = attribute(er, 'end_date')|default(null) %}
+                {% if msg %}
+                    <div class="text-danger-500 text-xs mt-1">{{ msg }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label class="input-label" for="end_time">Heure de fin</label>
+                <input
+                    type="time"
+                    id="end_time"
+                    name="end_time"
+                    class="input w-full"
+                    value="{{ attribute(fd, 'end_time')|default('') }}"
+                >
+                {% set msg = attribute(er, 'end_time')|default(null) %}
+                {% if msg %}
+                    <div class="text-danger-500 text-xs mt-1">{{ msg }}</div>
+                {% endif %}
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{{ path('slots_front') }}" class="btn-ghost">Annuler</a>
+                <button type="submit" class="btn-primary">Ajouter</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
