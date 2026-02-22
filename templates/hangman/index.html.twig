@@ -1,0 +1,50 @@
+{% extends 'layouts/user.html.twig' %}
+{% block title %}Hangman Games{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-extrabold">🎮 Hangman</h1>
+
+    <form method="post" action="{{ path('user_hangman_create') }}" class="flex gap-2">
+      <select name="topic" class="px-3 py-2 rounded-xl border">
+        <option value="symfony">Symfony</option>
+        <option value="python">Python</option>
+        <option value="programming">Programming</option>
+        <option value="database">Database</option>
+      </select>
+
+      <select name="level" class="px-3 py-2 rounded-xl border">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+
+      <button class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold">
+        🤖 New Game
+      </button>
+    </form>
+  </div>
+
+  {% if games is empty %}
+    <div class="p-6 rounded-2xl border bg-white">
+      No hangman game yet. Click “New Game”.
+    </div>
+  {% else %}
+    <div class="grid md:grid-cols-2 gap-4">
+      {% for g in games %}
+        <a href="{{ path('user_hangman_play', {id: g.id}) }}"
+           class="p-5 rounded-2xl border bg-white hover:shadow transition">
+          <div class="text-xl font-extrabold">{{ g.title }}</div>
+          <div class="text-sm text-gray-500 mt-1">
+            Topic: <b>{{ g.topic }}</b> • Level: <b>{{ g.level }}</b>
+          </div>
+          <div class="text-xs text-gray-400 mt-2">
+            Created: {{ g.createdAt|date('d/m/Y H:i') }}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

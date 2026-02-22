@@ -1,0 +1,200 @@
+{% extends 'layouts/user.html.twig' %}
+{% block title %}Word Game{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="rounded-3xl p-6 shadow bg-white">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-extrabold">🎮 {{ game.title }}</h1>
+        <p class="text-sm text-gray-500">Theme: <b>{{ game.theme }}</b></p>
+      </div>
+
+      <div class="text-right">
+        <div class="text-sm text-gray-500">Score</div>
+        <div id="score" class="text-3xl font-extrabold">{{ score }}</div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-gray-600">
+        Found: <span id="foundCount">{{ found|length }}</span> / {{ allWords|length }}
+      </div>
+
+      <button id="btnShuffle" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold">
+        🔁 Shuffle
+      </button>
+    </div>
+
+    <div class="mt-8 flex justify-center">
+      <div class="relative w-56 h-56 rounded-full bg-slate-900 flex items-center justify-center">
+        <div class="absolute inset-5 rounded-full bg-slate-800"></div>
+        <div id="wheel" class="relative w-full h-full"></div>
+        <div class="absolute bottom-6 text-white/80 text-xs">Tap letters to build word</div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="flex gap-2">
+        <input id="wordInput" readonly
+               class="flex-1 px-4 py-3 rounded-2xl border text-xl font-bold tracking-widest bg-gray-50"/>
+        <button id="btnBackspace" class="px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 font-bold">⌫</button>
+        <button id="btnClear" class="px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 font-bold">✕</button>
+      </div>
+
+      <button id="btnSubmit"
+              class="mt-3 w-full px-4 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold">
+        ✅ Submit
+      </button>
+
+      <div id="message" class="mt-3 text-center text-sm font-semibold"></div>
+
+      <div id="fabulous" class="hidden mt-6 text-center text-4xl font-extrabold text-emerald-600">
+        ✨ FABULOUS ✨
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <h2 class="font-bold mb-2">Words</h2>
+      <div class="grid grid-cols-2 gap-2">
+        {% for w in allWords %}
+          {% set isFound = (w.word in found) %}
+          <div class="p-3 rounded-xl border {{ isFound ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50' }}">
+            <div class="font-extrabold tracking-widest">
+              {% if isFound %}
+                {{ w.word }}
+              {% else %}
+                {% set len = w.word|length %}
+                {{ '_' ~ (len > 1 ? ' ' ~ ('_ ' ~ '') : '') }}
+                {# simple hide (tu peux améliorer plus tard) #}
+              {% endif %}
+            </div>
+            <div class="text-xs text-gray-500">+{{ w.points }} pts</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mt-8 border-t pt-4 flex items-center justify-between">
+      <a href="{{ path('user_games_index') }}" class="text-sm text-blue-600 font-semibold">← Back to games</a>
+      <form method="post" action="{{ path('user_games_create') }}" class="flex gap-2">
+        <select name="theme" class="px-3 py-2 rounded-xl border">
+          <option value="symfony">Symfony</option>
+          <option value="python">Python</option>
+          <option value="programming">Programming</option>
+          <option value="database">Database</option>
+        </select>
+        <select name="level" class="px-3 py-2 rounded-xl border">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+        </select>
+        <button class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold">🤖 New</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  const lettersOriginal = "{{ game.letters }}".split('');
+  let letters = [...lettersOriginal];
+
+  const wheel = document.getElementById('wheel');
+  const wordInput = document.getElementById('wordInput');
+  const msg = document.getElementById('message');
+  const fabulous = document.getElementById('fabulous');
+
+  const scoreEl = document.getElementById('score');
+  const foundCountEl = document.getElementById('foundCount');
+
+  function renderWheel() {
+    wheel.innerHTML = '';
+    const n = letters.length;
+    const radius = 85;
+    const center = 112;
+
+    letters.forEach((ch, i) => {
+      const angle = (2 * Math.PI * i) / n - Math.PI / 2;
+      const x = center + radius * Math.cos(angle);
+      const y = center + radius * Math.sin(angle);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = ch;
+      btn.className = "absolute w-12 h-12 rounded-full bg-white text-slate-900 font-extrabold text-xl shadow";
+      btn.style.left = (x - 24) + 'px';
+      btn.style.top = (y - 24) + 'px';
+      btn.addEventListener('click', () => {
+        wordInput.value += ch;
+        msg.textContent = '';
+      });
+      wheel.appendChild(btn);
+    });
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  document.getElementById('btnShuffle').addEventListener('click', () => {
+    letters = shuffle([...letters]);
+    renderWheel();
+  });
+
+  document.getElementById('btnBackspace').addEventListener('click', () => {
+    wordInput.value = wordInput.value.slice(0, -1);
+  });
+
+  document.getElementById('btnClear').addEventListener('click', () => {
+    wordInput.value = '';
+  });
+
+  async function postJson(url, payload){
+    const res = await fetch(url, {
+      method:'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload || {})
+    });
+    let data = null;
+    try { data = await res.json(); } catch(e){}
+    return {res, data};
+  }
+
+  document.getElementById('btnSubmit').addEventListener('click', async () => {
+    const word = (wordInput.value || '').trim();
+    if (!word) return;
+
+    const {res, data} = await postJson("{{ path('user_games_check', {id: game.id}) }}", {word});
+    if (!res.ok || !data || data.ok !== true) {
+      msg.className = "mt-3 text-center text-sm font-semibold text-red-600";
+      msg.textContent = data?.reason === 'already_found' ? 'Already found!' : 'Wrong word!';
+      return;
+    }
+
+    msg.className = "mt-3 text-center text-sm font-semibold text-emerald-600";
+    msg.textContent = `+${data.points} points!`;
+
+    scoreEl.textContent = data.score;
+    foundCountEl.textContent = data.foundCount;
+
+    fabulous.classList.remove('hidden');
+    setTimeout(()=> fabulous.classList.add('hidden'), 1500);
+
+    wordInput.value = '';
+
+    if (data.won) {
+      msg.textContent = "🏆 You won! FABULOUS!";
+    }
+
+    setTimeout(()=> window.location.reload(), 700);
+  });
+
+  renderWheel();
+})();
+</script>
+{% endblock %}
