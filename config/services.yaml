@@ -2,6 +2,8 @@ parameters:
     lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
     lesson_upload_public_base: "/uploads/lessons"
     huggingface_api_key: '%env(HUGGINGFACE_API_KEY)%'
+    groq_api_key: '%env(GROQ_API_KEY)%'
+    groq_model_id: '%env(GROQ_MODEL_ID)%'
 
 services:
     _defaults:
@@ -18,3 +20,8 @@ services:
     App\Service\ModerationService:
         arguments:
             $huggingFaceApiKey: '%huggingface_api_key%'
+
+    App\Service\AIGeneratorGroqService:
+        arguments:
+            $groqApiKey: '%groq_api_key%'
+            $groqModelId: '%groq_model_id%'

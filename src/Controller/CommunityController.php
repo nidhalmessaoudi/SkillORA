@@ -17,11 +17,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Service\ModerationService;
+use App\Service\AIGeneratorGroqService;
 
 class CommunityController extends AbstractController
 {
     private EntityManagerInterface $em;
     private ModerationService $moderationService;
+    private AIGeneratorGroqService $aiGenerator;
 
     // Validation constants
     private const TITLE_MIN_LENGTH = 5;
@@ -37,10 +39,54 @@ class CommunityController extends AbstractController
 
     private const ALLOWED_POST_TYPES = ['question', 'discussion', 'article'];
 
-    public function __construct(EntityManagerInterface $em, ModerationService $moderationService)
+    public function __construct(EntityManagerInterface $em, ModerationService $moderationService, AIGeneratorGroqService $aiGenerator)
     {
         $this->em = $em;
         $this->moderationService = $moderationService;
+        $this->aiGenerator = $aiGenerator;
+    }
+
+    // Add new route
+    #[Route('/community/ai-generate', name: 'community_ai_generate', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function aiGenerate(Request $request): JsonResponse
+    {
+        $prompt = trim((string) $request->request->get('prompt', ''));
+
+        if (empty($prompt)) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Please provide a topic or question.'
+            ], 400);
+        }
+
+        if (strlen($prompt) > 500) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Prompt is too long (max 500 characters).'
+            ], 400);
+        }
+
+        try {
+            $result = $this->aiGenerator->generatePost($prompt);
+
+            if (!$result['success']) {
+                return $this->json($result, 400);
+            }
+
+            return $this->json([
+                'success' => true,
+                'title' => $result['title'],
+                'content' => $result['content'],
+                'tags' => implode(', ', $result['tags']),
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to generate post. Please try again.'
+            ], 500);
+        }
     }
 
     #[Route('/community', name: 'community_index')]

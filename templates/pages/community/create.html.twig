@@ -15,6 +15,26 @@
             <p class="text-slate-600 dark:text-slate-400 mt-2">Share your knowledge or ask the community</p>
         </div>
 
+        {# ADD THIS AI GENERATE BUTTON #}
+            <div class="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-800 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900 dark:text-white">AI Post Generator</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Let AI help you write your post</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openAIModal()" class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg">
+                        <i data-lucide="wand-2" class="w-5 h-5 mr-2"></i>
+                        Generate with AI
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
@@ -210,6 +230,123 @@ You can use formatting:
             </div>
         </form>
     </div>
+    {# AI Generation Modal #}
+<div id="ai-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto" onclick="closeAIModal(event)">
+    <div class="min-h-screen px-4 py-8 flex items-center justify-center">
+        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-2xl relative" onclick="event.stopPropagation()">
+            {# Header #}
+            <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-navy-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white">AI Post Generator</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Describe what you want to write about</p>
+                    </div>
+                </div>
+                <button onclick="closeAIModal()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6 text-slate-600 dark:text-slate-400"></i>
+                </button>
+            </div>
+
+            {# Content #}
+            <div class="p-6">
+                {# Step 1: Prompt Input #}
+                <div id="ai-prompt-step">
+                    <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                        What do you want to write about?
+                    </label>
+                    <textarea 
+                        id="ai-prompt" 
+                        rows="4"
+                        placeholder="Example: How to optimize SQL queries for large databases"
+                        class="input mb-4"
+                    ></textarea>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="closeAIModal()" class="btn-outline flex-1">
+                            Cancel
+                        </button>
+                        <button onclick="generatePost()" class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white flex-1">
+                            <i data-lucide="wand-2" class="w-4 h-4 mr-2"></i>
+                            Generate
+                        </button>
+                    </div>
+                </div>
+
+                {# Step 2: Loading #}
+                <div id="ai-loading-step" class="hidden text-center py-12">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl mb-4 animate-pulse">
+                        <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">AI is writing your post...</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">This may take a few seconds</p>
+                    <div class="mt-6 flex items-center justify-center gap-2">
+                        <div class="w-3 h-3 bg-violet-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                        <div class="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                        <div class="w-3 h-3 bg-violet-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                    </div>
+                </div>
+
+                {# Step 3: Result #}
+                <div id="ai-result-step" class="hidden">
+                    <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            <span class="font-semibold">Post generated successfully!</span>
+                        </div>
+                        <p class="text-sm text-emerald-600 dark:text-emerald-500 mt-1">Review and edit the content below, then click "Use This Post"</p>
+                    </div>
+
+                    <div class="space-y-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Generated Title</label>
+                            <input type="text" id="ai-generated-title" readonly class="input bg-slate-50 dark:bg-navy-800">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Generated Content</label>
+                            <textarea id="ai-generated-content" rows="8" readonly class="input bg-slate-50 dark:bg-navy-800"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Suggested Tags</label>
+                            <input type="text" id="ai-generated-tags" readonly class="input bg-slate-50 dark:bg-navy-800">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="regeneratePost()" class="btn-outline flex-1">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                            Regenerate
+                        </button>
+                        <button onclick="useGeneratedPost()" class="btn-primary flex-1">
+                            <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                            Use This Post
+                        </button>
+                    </div>
+                </div>
+
+                {# Error Display #}
+                <div id="ai-error-step" class="hidden">
+                    <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-4">
+                        <div class="flex items-center gap-2 text-red-700 dark:text-red-400 mb-2">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                            <span class="font-semibold">Generation Failed</span>
+                        </div>
+                        <p id="ai-error-message" class="text-sm text-red-600 dark:text-red-500"></p>
+                    </div>
+                    <button onclick="showPromptStep()" class="btn-primary w-full">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </div>
 
 <style>
@@ -449,5 +586,139 @@ You can use formatting:
             }
         });
     }
+
+    // Keyboard shortcuts
+    if (contentTextarea) {
+        contentTextarea.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'b':
+                        e.preventDefault();
+                        formatText('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        formatText('italic');
+                        break;
+                }
+            }
+        });
+    }
+
+    // ========== AI GENERATION FUNCTIONS ==========
+
+    function openAIModal() {
+        document.getElementById('ai-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        showPromptStep();
+        lucide.createIcons();
+    }
+
+    function closeAIModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById('ai-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function showPromptStep() {
+        document.getElementById('ai-prompt-step').classList.remove('hidden');
+        document.getElementById('ai-loading-step').classList.add('hidden');
+        document.getElementById('ai-result-step').classList.add('hidden');
+        document.getElementById('ai-error-step').classList.add('hidden');
+        document.getElementById('ai-prompt').value = '';
+        lucide.createIcons();
+    }
+
+    async function generatePost() {
+        const prompt = document.getElementById('ai-prompt').value.trim();
+        
+        if (!prompt) {
+            alert('Please describe what you want to write about');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('ai-prompt-step').classList.add('hidden');
+        document.getElementById('ai-loading-step').classList.remove('hidden');
+        lucide.createIcons();
+
+        try {
+            const response = await fetch('/community/ai-generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({ prompt: prompt })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show result
+                document.getElementById('ai-generated-title').value = data.title;
+                document.getElementById('ai-generated-content').value = data.content;
+                document.getElementById('ai-generated-tags').value = data.tags;
+
+                document.getElementById('ai-loading-step').classList.add('hidden');
+                document.getElementById('ai-result-step').classList.remove('hidden');
+                lucide.createIcons();
+            } else {
+                // Show error
+                document.getElementById('ai-error-message').textContent = data.error || 'Failed to generate post';
+                document.getElementById('ai-loading-step').classList.add('hidden');
+                document.getElementById('ai-error-step').classList.remove('hidden');
+                lucide.createIcons();
+            }
+        } catch (error) {
+            console.error('AI generation error:', error);
+            document.getElementById('ai-error-message').textContent = 'Network error. Please try again.';
+            document.getElementById('ai-loading-step').classList.add('hidden');
+            document.getElementById('ai-error-step').classList.remove('hidden');
+            lucide.createIcons();
+        }
+    }
+
+    function regeneratePost() {
+        const prompt = document.getElementById('ai-prompt').value;
+        document.getElementById('ai-result-step').classList.add('hidden');
+        document.getElementById('ai-loading-step').classList.remove('hidden');
+        lucide.createIcons();
+        
+        // Call generate again with same prompt
+        setTimeout(() => generatePost(), 100);
+    }
+
+    function useGeneratedPost() {
+        // Fill the form with generated content
+        document.getElementById('title').value = document.getElementById('ai-generated-title').value;
+        document.getElementById('content').value = document.getElementById('ai-generated-content').value;
+        document.getElementById('tags').value = document.getElementById('ai-generated-tags').value;
+
+        // Update character counts
+        if (titleCount) titleCount.textContent = document.getElementById('title').value.length;
+        if (contentCount) contentCount.textContent = document.getElementById('content').value.length;
+
+        // Close modal
+        closeAIModal();
+
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
+        notification.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>AI content added! Review and publish.</span>';
+        document.body.appendChild(notification);
+        lucide.createIcons();
+        setTimeout(() => notification.remove(), 4000);
+    }
+
+    // ESC key to close AI modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAIModal();
+        }
+    });
 </script>
 {% endblock %}
