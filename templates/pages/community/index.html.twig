@@ -63,10 +63,10 @@
 
                 <div class="flex flex-wrap justify-center gap-4">
                     {% if app.user %}
-                        <button onclick="openCreatePostModal()" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold shadow-lg">
+                        <a href="{{ path('community_create') }}" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold">
                             <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
                             New Post
-                        </button>
+                        </a>
                     {% else %}
                         <a href="{{ path('auth_login') }}" class="btn bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold">
                             <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
@@ -155,7 +155,7 @@
                 <div class="space-y-4">
                     {% for post in posts %}
                         {% set postData = reactionData[post.id]|default({'userReaction': null, 'counts': {}, 'total': 0}) %}
-                    <article class="card p-6 hover:shadow-lg transition-all duration-300 cursor-pointer" onclick="openPostModal({{ post.id }})">
+                    <article class="card p-6 hover:shadow-lg transition-all duration-300">
                         <div class="flex gap-4">
                             {# Post Content #}
                             <div class="flex-1 min-w-0">
@@ -169,13 +169,13 @@
                                 </div>
 
                                 {# Title #}
-                                <div class="block mb-2">
-                                    <h2 class="text-lg font-display font-bold text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                                <a href="{{ path('community_post', {id: post.id}) }}" class="block mb-2 group">
+                                    <h2 class="text-lg font-display font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                         {{ post.title }}
                                     </h2>
-                                </div>
+                                </a>
 
-                                {# Preview Text #}
+                                {# Preview Text - Strip markdown #}
                                 <p class="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4">
                                     {{ post.content|striptags|slice(0, 250) }}{% if post.content|length > 250 %}...{% endif %}
                                 </p>
@@ -195,17 +195,44 @@
                                     <span class="text-slate-300 dark:text-slate-600">•</span>
                                     <span>{{ post.createdAt ? post.createdAt|date('M j, Y') : '' }}</span>
                                     <span class="text-slate-300 dark:text-slate-600">•</span>
-                                    <div class="flex items-center gap-1">
+                                    <a href="{{ path('community_post', {id: post.id}) }}" class="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                                         <i data-lucide="message-square" class="w-4 h-4"></i>
                                         {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
-                                    </div>
+                                    </a>
 
                                     {# Reactions Summary #}
-                                    {% if postData.total > 0 %}
-                                        <span class="text-slate-300 dark:text-slate-600">•</span>
-                                        <div class="flex items-center gap-1">
-                                            <span>{{ emojiMap[postData.userReaction] ?? '👍' }}</span>
-                                            <span>{{ postData.total }}</span>
+                                    {% if app.user %}
+                                        <div class="ml-auto flex items-center gap-2">
+                                            <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
+                                                {% if postData.userReaction %}
+                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
+                                                        <span class="reaction-emoji">{{ emojiMap[postData.userReaction] }}</span>
+                                                        <span class="reaction-count">{{ postData.total }}</span>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium">
+                                                        <span class="reaction-emoji">👍</span>
+                                                        {% if postData.total > 0 %}
+                                                            <span class="reaction-count">{{ postData.total }}</span>
+                                                        {% endif %}
+                                                    </button>
+                                                {% endif %}
+
+                                                {# Reaction Picker #}
+                                                <div class="reaction-picker hidden absolute bottom-full right-0 mb-2 bg-white dark:bg-navy-800 rounded-full shadow-xl border border-slate-200 dark:border-navy-700 p-2 flex items-center gap-1 z-10">
+                                                    {% for reactionType, emoji in emojiMap %}
+                                                        <button 
+                                                            class="reaction-btn hover:scale-125 transition-transform p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-700"
+                                                            data-url="{{ path('community_react_post', {'id': post.id}) }}"
+                                                            data-type="{{ reactionType }}"
+                                                            data-post-id="{{ post.id }}"
+                                                            title="{{ reactionType|capitalize }}"
+                                                        >
+                                                            <span class="text-2xl">{{ emoji }}</span>
+                                                        </button>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -233,10 +260,10 @@
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-2">Have a question?</h3>
                     <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Join the conversation!</p>
                     {% if app.user %}
-                        <button onclick="openCreatePostModal()" class="btn-primary w-full justify-center">
+                        <a href="{{ path('community_create') }}" class="btn-primary w-full justify-center">
                             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                             Create Post
-                        </button>
+                        </a>
                     {% else %}
                         <a href="{{ path('auth_login') }}" class="btn-primary w-full justify-center">
                             <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
@@ -279,164 +306,12 @@
         </div>
     </div>
 </div>
-
-{# POST DETAIL MODAL #}
-<div id="post-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto" onclick="closePostModal(event)">
-    <div class="min-h-screen px-4 py-8 flex items-start justify-center">
-        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in" onclick="event.stopPropagation()">
-            {# Close Button #}
-            <button onclick="closePostModal()" class="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors z-10">
-                <i data-lucide="x" class="w-6 h-6 text-slate-600 dark:text-slate-400"></i>
-            </button>
-
-            {# Modal Content - Loaded Dynamically #}
-            <div id="post-modal-content" class="p-8">
-                <div class="flex items-center justify-center py-12">
-                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{# CREATE POST MODAL #}
-<div id="create-post-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto" onclick="closeCreatePostModal(event)">
-    <div class="min-h-screen px-4 py-8 flex items-start justify-center">
-        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in" onclick="event.stopPropagation()">
-            {# Header #}
-            <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-navy-800">
-                <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white">Create Post</h2>
-                <button onclick="closeCreatePostModal()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
-                    <i data-lucide="x" class="w-6 h-6 text-slate-600 dark:text-slate-400"></i>
-                </button>
-            </div>
-
-            {# Create Form #}
-            <form action="{{ path('community_create') }}" method="post" class="p-6 space-y-6">
-                {# Post Type #}
-                <div>
-                    <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Post Type</label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <label>
-                            <input type="radio" name="type" value="question" checked class="peer sr-only">
-                            <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                                <i data-lucide="help-circle" class="w-6 h-6 mx-auto mb-2"></i>
-                                <span class="font-medium text-sm">Question</span>
-                            </div>
-                        </label>
-                        <label>
-                            <input type="radio" name="type" value="discussion" class="peer sr-only">
-                            <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                                <i data-lucide="message-circle" class="w-6 h-6 mx-auto mb-2"></i>
-                                <span class="font-medium text-sm">Discussion</span>
-                            </div>
-                        </label>
-                        <label>
-                            <input type="radio" name="type" value="article" class="peer sr-only">
-                            <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                                <i data-lucide="file-text" class="w-6 h-6 mx-auto mb-2"></i>
-                                <span class="font-medium text-sm">Article</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                {# Title #}
-                <div>
-                    <label for="title" class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Title *</label>
-                    <input type="text" id="title" name="title" required maxlength="255" placeholder="What's your question or topic?" class="input">
-                </div>
-
-                {# Topic #}
-                <div>
-                    <label for="topic" class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Topic</label>
-                    <select name="topic" id="topic" class="input">
-                        <option value="">Select a topic (optional)...</option>
-                        <option value="JavaScript">JavaScript</option>
-                        <option value="Python">Python</option>
-                        <option value="React">React</option>
-                        <option value="PHP">PHP</option>
-                        <option value="CSS">CSS</option>
-                        <option value="Database">Database</option>
-                    </select>
-                </div>
-
-                {# Content #}
-                <div>
-                    <label for="content" class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Content *</label>
-                    <textarea id="content" name="content" rows="6" required placeholder="Describe your question in detail..." class="input resize-none"></textarea>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Markdown formatting is supported</p>
-                </div>
-
-                {# Tags #}
-                <div>
-                    <label for="tags" class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Tags</label>
-                    <input type="text" id="tags" name="tags" placeholder="javascript, react, debugging" class="input">
-                </div>
-
-                {# Buttons #}
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="closeCreatePostModal()" class="btn-outline flex-1">Cancel</button>
-                    <button type="submit" class="btn-primary flex-1">
-                        <i data-lucide="send" class="w-4 h-4 mr-2"></i>
-                        Publish
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
 <script>
     lucide.createIcons();
-
-    // Open create post modal
-    function openCreatePostModal() {
-        document.getElementById('create-post-modal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        lucide.createIcons();
-    }
-
-    // Close create post modal
-    function closeCreatePostModal(event) {
-        if (event && event.target !== event.currentTarget) return;
-        document.getElementById('create-post-modal').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    // Open post modal
-    async function openPostModal(postId) {
-        const modal = document.getElementById('post-modal');
-        const content = document.getElementById('post-modal-content');
-        
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        try {
-            const response = await fetch(`/community/${postId}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            const html = await response.text();
-            content.innerHTML = html;
-            lucide.createIcons();
-        } catch (error) {
-            console.error('Error loading post:', error);
-            content.innerHTML = '<div class="p-8 text-center text-red-600">Failed to load post</div>';
-        }
-    }
-
-    // Close post modal
-    function closePostModal(event) {
-        if (event && event.target !== event.currentTarget && !event.target.closest('[data-close-modal]')) return;
-        document.getElementById('post-modal').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
 
     // Reaction emoji mapping
     const reactionEmojis = {
@@ -448,29 +323,118 @@
         'angry': '😡'
     };
 
-    // ESC key to close modals
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closePostModal();
-            closeCreatePostModal();
+    // Show/hide reaction picker
+    document.querySelectorAll('.reaction-trigger').forEach(trigger => {
+        const picker = trigger.querySelector('.reaction-picker');
+        const currentBtn = trigger.querySelector('.reaction-current-btn');
+        
+        if (!picker || !currentBtn) return;
+        
+        let hideTimeout;
+
+        const showPicker = () => {
+            clearTimeout(hideTimeout);
+            picker.classList.remove('hidden');
+        };
+
+        const hidePicker = () => {
+            hideTimeout = setTimeout(() => {
+                picker.classList.add('hidden');
+            }, 200);
+        };
+
+        trigger.addEventListener('mouseenter', showPicker);
+        trigger.addEventListener('mouseleave', hidePicker);
+        
+        currentBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (picker.classList.contains('hidden')) {
+                showPicker();
+            } else {
+                hidePicker();
+            }
+        });
+    });
+
+    // Handle reaction clicks
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.reaction-btn');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const url = btn.dataset.url;
+        const type = btn.dataset.type;
+        const postId = btn.dataset.postId;
+
+        btn.disabled = true;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({ type: type })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.ok) {
+                console.error('Reaction failed');
+                return;
+            }
+
+            const trigger = document.querySelector(`.reaction-trigger[data-post-id="${postId}"]`);
+            if (!trigger) return;
+
+            const currentBtn = trigger.querySelector('.reaction-current-btn');
+            const emojiSpan = currentBtn.querySelector('.reaction-emoji');
+            let countSpan = currentBtn.querySelector('.reaction-count');
+            const picker = trigger.querySelector('.reaction-picker');
+
+            if (data.userReaction) {
+                emojiSpan.textContent = reactionEmojis[data.userReaction];
+                
+                if (!countSpan) {
+                    countSpan = document.createElement('span');
+                    countSpan.className = 'reaction-count';
+                    currentBtn.appendChild(countSpan);
+                }
+                countSpan.textContent = data.total;
+
+                currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium';
+            } else {
+                emojiSpan.textContent = '👍';
+                
+                if (countSpan) {
+                    if (data.total > 0) {
+                        countSpan.textContent = data.total;
+                    } else {
+                        countSpan.remove();
+                    }
+                }
+
+                currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium';
+            }
+
+            picker.classList.add('hidden');
+        })
+        .catch(err => {
+            console.error('Reaction error', err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+    });
+
+    // Close picker on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.reaction-trigger')) {
+            document.querySelectorAll('.reaction-picker').forEach(picker => {
+                picker.classList.add('hidden');
+            });
         }
     });
 </script>
-
-<style>
-@keyframes fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-in {
-    animation: fade-in 0.3s ease-out;
-}
-</style>
 {% endblock %}

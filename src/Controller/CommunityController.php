@@ -16,10 +16,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\ModerationService;
 
 class CommunityController extends AbstractController
 {
     private EntityManagerInterface $em;
+    private ModerationService $moderationService;
 
     // Validation constants
     private const TITLE_MIN_LENGTH = 5;
@@ -35,9 +37,10 @@ class CommunityController extends AbstractController
 
     private const ALLOWED_POST_TYPES = ['question', 'discussion', 'article'];
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, ModerationService $moderationService)
     {
         $this->em = $em;
+        $this->moderationService = $moderationService;
     }
 
     #[Route('/community', name: 'community_index')]
@@ -249,6 +252,12 @@ class CommunityController extends AbstractController
             // 7. Check for spam patterns (basic)
             if ($this->containsSpam($title) || $this->containsSpam($content)) {
                 $errors[] = 'Your post contains spam-like content. Please revise and try again.';
+            }
+
+            // 8. AI Content Moderation (OpenAI)
+            $moderationResult = $this->moderationService->moderatePost($title, $content);
+            if (!$moderationResult['safe']) {
+                $errors[] = $moderationResult['message'];
             }
 
             // Show all errors
@@ -473,6 +482,12 @@ class CommunityController extends AbstractController
             $content = strip_tags($content, '<p><br><strong><em><ul><ol><li><code><pre><blockquote>');
             $topic = strip_tags($topic);
 
+            // AI Content Moderation
+            $moderationResult = $this->moderationService->moderatePost($title, $content);
+            if (!$moderationResult['safe']) {
+                $errors[] = $moderationResult['message'];
+            }
+
             if (!empty($errors)) {
                 foreach ($errors as $error) {
                     $this->addFlash('danger', $error);
@@ -556,6 +571,12 @@ class CommunityController extends AbstractController
             $errors[] = 'Your reply contains spam-like content. Please revise and try again.';
         }
 
+        // AI Content Moderation
+        $moderationResult = $this->moderationService->moderateContent($content);
+        if (!$moderationResult['safe']) {
+            $errors[] = $moderationResult['message'];
+        }
+
         if (!empty($errors)) {
             foreach ($errors as $error) {
                 $this->addFlash('danger', $error);
@@ -611,6 +632,12 @@ class CommunityController extends AbstractController
 
         // Sanitize
         $content = strip_tags($content, '<p><br><strong><em><ul><ol><li><code><pre><blockquote>');
+
+        // AI Content Moderation
+        $moderationResult = $this->moderationService->moderateContent($content);
+        if (!$moderationResult['safe']) {
+            return $this->json(['ok' => false, 'error' => $moderationResult['message']], 400);
+        }
 
         try {
             $reply->setContent($content);
@@ -883,6 +910,12 @@ class CommunityController extends AbstractController
         // Check for spam
         if ($this->containsSpam($content)) {
             return $this->json(['ok' => false, 'error' => 'Your reply contains spam-like content.'], 400);
+        }
+
+        // AI Content Moderation
+        $moderationResult = $this->moderationService->moderateContent($content);
+        if (!$moderationResult['safe']) {
+            return $this->json(['ok' => false, 'error' => $moderationResult['message']], 400);
         }
 
         // Limit nesting depth (optional - prevent infinite nesting)
