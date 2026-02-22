@@ -4,258 +4,300 @@
 
 {% block body %}
 <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {# Header #}
         <div class="mb-8">
-            <a href="{{ path('community_index') }}" class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors mb-4">
+            <a href="{{ path('community_index') }}" class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors mb-6">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Back to Community
             </a>
-            <h1 class="text-4xl font-display font-bold text-slate-900 dark:text-white">Create New Post</h1>
-            <p class="text-slate-600 dark:text-slate-400 mt-2">Share your knowledge or ask the community</p>
-        </div>
-
-        {# ADD THIS AI GENERATE BUTTON #}
-            <div class="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-800 rounded-2xl">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-slate-900 dark:text-white">AI Post Generator</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Let AI help you write your post</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="openAIModal()" class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg">
-                        <i data-lucide="wand-2" class="w-5 h-5 mr-2"></i>
-                        Generate with AI
-                    </button>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-display font-bold text-slate-900 dark:text-white mb-2">Create New Post</h1>
+                    <p class="text-slate-600 dark:text-slate-400">Share your knowledge or ask the community</p>
                 </div>
+                
+                {# AI Generate Button - Compact Version #}
+                <button type="button" onclick="openAIModal()" class="hidden lg:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transition-all hover:scale-105">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    AI Generate
+                </button>
             </div>
         </div>
 
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="mb-6 p-4 rounded-2xl border-2 shadow-lg {% if label == 'success' %}bg-gradient-to-r from-success-50 to-emerald-50 dark:from-success-900/20 dark:to-emerald-900/20 border-success-400 dark:border-success-600{% else %}bg-gradient-to-r from-danger-50 to-red-50 dark:from-danger-900/20 dark:to-red-900/20 border-danger-400 dark:border-danger-600{% endif %}">
-                    <div class="flex items-start gap-3">
-                        <div class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full {% if label == 'success' %}bg-success-500{% else %}bg-danger-500{% endif %}">
-                            {% if label == 'success' %}
-                                <i data-lucide="check" class="w-4 h-4 text-white"></i>
-                            {% else %}
-                                <i data-lucide="x" class="w-4 h-4 text-white"></i>
-                            {% endif %}
-                        </div>
-                        <p class="flex-1 font-semibold {% if label == 'success' %}text-success-800 dark:text-success-300{% else %}text-danger-800 dark:text-danger-300{% endif %}">
-                            {{ message }}
-                        </p>
-                        <button onclick="this.parentElement.parentElement.remove()" class="shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                            <i data-lucide="x" class="w-4 h-4 {% if label == 'success' %}text-success-600{% else %}text-danger-600{% endif %}"></i>
+                <div class="mb-6 p-4 rounded-xl border {% if label == 'success' %}bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400{% else %}bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5 flex-shrink-0"></i>
+                        <p class="flex-1 font-medium">{{ message }}</p>
+                        <button onclick="this.parentElement.parentElement.remove()" class="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                            <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        {# Create Form #}
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
-            {# Post Type #}
-            <div class="card p-6">
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Post Type</label>
-                <div class="grid grid-cols-3 gap-3">
-                    <label class="post-type-radio">
-                        <input type="radio" name="type" value="question" checked class="peer sr-only">
-                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                            <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2"></i>
-                            <span class="font-semibold text-sm">Question</span>
+        <div class="grid lg:grid-cols-3 gap-8">
+            {# Main Form - 2 columns #}
+            <div class="lg:col-span-2 space-y-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6" id="post-form">
+                    {# Post Type #}
+                    <div class="card p-6">
+                        <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-4">Post Type</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <label>
+                                <input type="radio" name="type" value="question" checked class="peer sr-only">
+                                <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                                    <i data-lucide="help-circle" class="w-7 h-7 mx-auto mb-2"></i>
+                                    <span class="font-medium text-sm">Question</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input type="radio" name="type" value="discussion" class="peer sr-only">
+                                <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                                    <i data-lucide="message-circle" class="w-7 h-7 mx-auto mb-2"></i>
+                                    <span class="font-medium text-sm">Discussion</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input type="radio" name="type" value="article" class="peer sr-only">
+                                <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
+                                    <i data-lucide="file-text" class="w-7 h-7 mx-auto mb-2"></i>
+                                    <span class="font-medium text-sm">Article</span>
+                                </div>
+                            </label>
                         </div>
-                    </label>
-                    <label class="post-type-radio">
-                        <input type="radio" name="type" value="discussion" class="peer sr-only">
-                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                            <i data-lucide="message-circle" class="w-8 h-8 mx-auto mb-2"></i>
-                            <span class="font-semibold text-sm">Discussion</span>
+                    </div>
+
+                    {# Title #}
+                    <div class="card p-6">
+                        <label for="title" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                            Title <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="title" 
+                            name="title" 
+                            placeholder="What's your question or topic?"
+                            maxlength="255"
+                            required
+                            class="input"
+                        >
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                            <span id="title-count">0</span>/255 characters
+                        </p>
+                    </div>
+
+                    {# Content Editor #}
+                    <div class="card p-6">
+                        <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                            Content <span class="text-red-500">*</span>
+                        </label>
+
+                        {# Toolbar #}
+                        <div class="flex flex-wrap items-center gap-1 p-2 bg-slate-100 dark:bg-navy-900 rounded-t-xl border-2 border-b-0 border-slate-200 dark:border-navy-800">
+                            <button type="button" data-format="bold" class="toolbar-btn" title="Bold">
+                                <i data-lucide="bold" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" data-format="italic" class="toolbar-btn" title="Italic">
+                                <i data-lucide="italic" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" data-format="code" class="toolbar-btn" title="Code">
+                                <i data-lucide="code" class="w-4 h-4"></i>
+                            </button>
+                            <div class="w-px h-6 bg-slate-300 dark:bg-navy-700 mx-1"></div>
+                            <button type="button" data-format="link" class="toolbar-btn" title="Link">
+                                <i data-lucide="link" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" id="image-btn" class="toolbar-btn" title="Image">
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                            </button>
+                            <div class="w-px h-6 bg-slate-300 dark:bg-navy-700 mx-1"></div>
+                            <button type="button" data-format="ul" class="toolbar-btn" title="List">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" data-format="ol" class="toolbar-btn" title="Numbered List">
+                                <i data-lucide="list-ordered" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" data-format="quote" class="toolbar-btn" title="Quote">
+                                <i data-lucide="quote" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" data-format="codeblock" class="toolbar-btn" title="Code Block">
+                                <i data-lucide="code-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
-                    </label>
-                    <label class="post-type-radio">
-                        <input type="radio" name="type" value="article" class="peer sr-only">
-                        <div class="peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-2 border-slate-200 dark:border-navy-800 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 dark:hover:border-navy-700 transition-all">
-                            <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2"></i>
-                            <span class="font-semibold text-sm">Article</span>
+
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+
+                        <textarea 
+                            id="content" 
+                            name="content" 
+                            rows="14"
+                            placeholder="Write your content here...
+
+Markdown supported:
+- **bold** *italic* `code`
+- [link](url)
+- Lists, quotes, code blocks"
+                            required
+                            class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-t-0 border-slate-200 dark:border-navy-800 rounded-b-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-mono text-sm"
+                        ></textarea>
+                        
+                        <div class="flex items-center justify-between mt-3">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                <span id="content-count">0</span> characters
+                            </p>
+                            <button type="button" onclick="togglePreview()" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                Preview
+                            </button>
                         </div>
-                    </label>
+
+                        {# Preview #}
+                        <div id="preview-panel" class="hidden mt-4 p-4 bg-slate-50 dark:bg-navy-900 rounded-xl border-2 border-slate-200 dark:border-navy-800">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm font-semibold text-slate-900 dark:text-white">Preview</span>
+                                <button type="button" onclick="togglePreview()" class="text-sm text-slate-500 hover:text-slate-700">Hide</button>
+                            </div>
+                            <div id="preview-content" class="prose dark:prose-invert max-w-none text-sm"></div>
+                        </div>
+                    </div>
+
+                    {# Topic & Tags - Side by Side #}
+                    <div class="grid sm:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <label for="topic" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Topic</label>
+                            <select name="topic" id="topic" class="input">
+                                <option value="">Select topic...</option>
+                                <option value="JavaScript">JavaScript</option>
+                                <option value="Python">Python</option>
+                                <option value="React">React</option>
+                                <option value="PHP">PHP</option>
+                                <option value="CSS">CSS</option>
+                                <option value="Database">Database</option>
+                                <option value="Career">Career</option>
+                                <option value="DevOps">DevOps</option>
+                            </select>
+                        </div>
+
+                        <div class="card p-6">
+                            <label for="tags" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Tags</label>
+                            <input 
+                                type="text" 
+                                id="tags" 
+                                name="tags" 
+                                placeholder="javascript, react, debugging"
+                                class="input"
+                            >
+                        </div>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="flex gap-3">
+                        <a href="{{ path('community_index') }}" class="btn-outline flex-1 sm:flex-none">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-primary flex-1">
+                            <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                            Publish Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {# Sidebar - 1 column #}
+            <div class="lg:col-span-1 space-y-6">
+                {# AI Generate Card #}
+                <div class="card p-6 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-800 sticky top-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-slate-900 dark:text-white text-sm">AI Assistant</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400">Generate with AI</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Let AI help you write your post. Describe what you want and get a complete draft instantly.
+                    </p>
+                    
+                    <button type="button" onclick="openAIModal()" class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white w-full justify-center shadow-md">
+                        <i data-lucide="wand-2" class="w-4 h-4 mr-2"></i>
+                        Generate Post
+                    </button>
+                </div>
+
+                {# Tips Card #}
+                <div class="card p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-amber-500"></i>
+                        <h3 class="font-semibold text-slate-900 dark:text-white">Writing Tips</h3>
+                    </div>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>Be specific in your title</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>Include relevant details</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>Use code blocks for code</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                            <span>Add relevant tags</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {# Markdown Guide #}
+                <div class="card p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="book-open" class="w-5 h-5 text-blue-500"></i>
+                        <h3 class="font-semibold text-slate-900 dark:text-white">Markdown</h3>
+                    </div>
+                    <div class="space-y-2 text-xs font-mono text-slate-600 dark:text-slate-400">
+                        <div><span class="text-emerald-600">**bold**</span> → <strong>bold</strong></div>
+                        <div><span class="text-emerald-600">*italic*</span> → <em>italic</em></div>
+                        <div><span class="text-emerald-600">`code`</span> → <code class="bg-slate-200 dark:bg-navy-800 px-1 rounded">code</code></div>
+                        <div><span class="text-emerald-600">[link](url)</span> → link</div>
+                    </div>
                 </div>
             </div>
-
-            {# Title #}
-            <div class="card p-6">
-                <label for="title" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                    Title <span class="text-danger-500">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    id="title" 
-                    name="title" 
-                    placeholder="What's your question or topic?"
-                    maxlength="255"
-                    required
-                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                >
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                    <span id="title-count">0</span>/255 characters. Be specific and clear (minimum 5 characters).
-                </p>
-            </div>
-
-            {# Topic #}
-            <div class="card p-6">
-                <label for="topic" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Topic</label>
-                <select 
-                    name="topic" 
-                    id="topic"
-                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                >
-                    <option value="">Select a topic (optional)...</option>
-                    <option value="JavaScript">JavaScript</option>
-                    <option value="Python">Python</option>
-                    <option value="React">React</option>
-                    <option value="PHP">PHP</option>
-                    <option value="CSS">CSS</option>
-                    <option value="Node.js">Node.js</option>
-                    <option value="Database">Database</option>
-                    <option value="Career">Career</option>
-                    <option value="DevOps">DevOps</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            {# Rich Text Content Editor #}
-            <div class="card p-6">
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                    Content <span class="text-danger-500">*</span>
-                </label>
-
-                {# Formatting Toolbar #}
-<div class="flex items-center gap-2 p-3 bg-slate-100 dark:bg-navy-900 rounded-t-xl border-2 border-b-0 border-slate-200 dark:border-navy-800">
-    <button type="button" data-format="bold" class="toolbar-btn format-btn" title="Bold (Ctrl+B)">
-        <i data-lucide="bold" class="w-4 h-4"></i>
-    </button>
-    <button type="button" data-format="italic" class="toolbar-btn format-btn" title="Italic (Ctrl+I)">
-        <i data-lucide="italic" class="w-4 h-4"></i>
-    </button>
-    <button type="button" data-format="code" class="toolbar-btn format-btn" title="Inline Code">
-        <i data-lucide="code" class="w-4 h-4"></i>
-    </button>
-    <div class="w-px h-6 bg-slate-300 dark:bg-navy-700"></div>
-    <button type="button" data-format="link" class="toolbar-btn format-btn" title="Insert Link">
-        <i data-lucide="link" class="w-4 h-4"></i>
-    </button>
-    <button type="button" id="image-btn" class="toolbar-btn" title="Upload Image">
-        <i data-lucide="image" class="w-4 h-4"></i>
-    </button>
-    <div class="w-px h-6 bg-slate-300 dark:bg-navy-700"></div>
-    <button type="button" data-format="ul" class="toolbar-btn format-btn" title="Bullet List">
-        <i data-lucide="list" class="w-4 h-4"></i>
-    </button>
-    <button type="button" data-format="ol" class="toolbar-btn format-btn" title="Numbered List">
-        <i data-lucide="list-ordered" class="w-4 h-4"></i>
-    </button>
-    <button type="button" data-format="quote" class="toolbar-btn format-btn" title="Quote">
-        <i data-lucide="quote" class="w-4 h-4"></i>
-    </button>
-    <button type="button" data-format="codeblock" class="toolbar-btn format-btn" title="Code Block">
-        <i data-lucide="code-2" class="w-4 h-4"></i>
-    </button>
+        </div>
+    </div>
 </div>
 
-{# Hidden file input for images #}
-<input type="file" id="image-upload" accept="image/*" class="hidden">
-
-                {# Content Textarea #}
-                <textarea 
-                    id="content" 
-                    name="content" 
-                    rows="12"
-                    placeholder="Describe your question or topic in detail...
-
-You can use formatting:
-- **bold** or *italic*
-- `code`
-- [link text](url)
-- Lists, quotes, and code blocks"
-                    required
-                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-t-0 border-slate-200 dark:border-navy-800 rounded-b-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-mono text-sm"
-                ></textarea>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                    <span id="content-count">0</span> characters. Minimum 10 characters required. Markdown formatting is supported.
-                </p>
-
-                {# Preview Panel #}
-                <div id="preview-panel" class="hidden mt-4 p-4 bg-slate-50 dark:bg-navy-900 rounded-xl border-2 border-slate-200 dark:border-navy-800">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm font-semibold text-slate-900 dark:text-white">Preview</span>
-                        <button type="button" onclick="togglePreview()" class="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Hide</button>
-                    </div>
-                    <div id="preview-content" class="prose dark:prose-invert max-w-none"></div>
-                </div>
-                <button type="button" onclick="togglePreview()" class="mt-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
-                    <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
-                    Toggle Preview
-                </button>
-            </div>
-
-            {# Tags #}
-            <div class="card p-6">
-                <label for="tags" class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Tags</label>
-                <input 
-                    type="text" 
-                    id="tags" 
-                    name="tags" 
-                    placeholder="e.g., javascript, react, debugging (comma-separated)"
-                    class="w-full px-4 py-3 bg-slate-50 dark:bg-navy-900 border-2 border-slate-200 dark:border-navy-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                >
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Add up to 5 tags to help others find your post</p>
-            </div>
-
-            {# Submit Buttons #}
-            <div class="flex items-center justify-between gap-4">
-                <a href="{{ path('community_index') }}" class="btn-outline">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                    Cancel
-                </a>
-                <button type="submit" class="btn-primary">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    Publish Post
-                </button>
-            </div>
-        </form>
-    </div>
-    {# AI Generation Modal #}
-<div id="ai-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto" onclick="closeAIModal(event)">
-    <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-2xl relative" onclick="event.stopPropagation()">
+{# AI Modal - Streamlined #}
+<div id="ai-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onclick="closeAIModal(event)">
+    <div class="min-h-screen p-4 flex items-center justify-center">
+        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-2xl" onclick="event.stopPropagation()">
             {# Header #}
             <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-navy-800">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
                         <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white">AI Post Generator</h2>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Describe what you want to write about</p>
-                    </div>
+                    <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">AI Post Generator</h2>
                 </div>
                 <button onclick="closeAIModal()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
-                    <i data-lucide="x" class="w-6 h-6 text-slate-600 dark:text-slate-400"></i>
+                    <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
                 </button>
             </div>
 
-            {# Content #}
             <div class="p-6">
-                {# Step 1: Prompt Input #}
+                {# Prompt Input #}
                 <div id="ai-prompt-step">
                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                        What do you want to write about?
+                        What would you like to write about?
                     </label>
                     <textarea 
                         id="ai-prompt" 
@@ -263,11 +305,8 @@ You can use formatting:
                         placeholder="Example: How to optimize SQL queries for large databases"
                         class="input mb-4"
                     ></textarea>
-                    
                     <div class="flex gap-3">
-                        <button onclick="closeAIModal()" class="btn-outline flex-1">
-                            Cancel
-                        </button>
+                        <button onclick="closeAIModal()" class="btn-outline flex-1">Cancel</button>
                         <button onclick="generatePost()" class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white flex-1">
                             <i data-lucide="wand-2" class="w-4 h-4 mr-2"></i>
                             Generate
@@ -275,43 +314,35 @@ You can use formatting:
                     </div>
                 </div>
 
-                {# Step 2: Loading #}
+                {# Loading #}
                 <div id="ai-loading-step" class="hidden text-center py-12">
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl mb-4 animate-pulse">
                         <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">AI is writing your post...</h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">This may take a few seconds</p>
-                    <div class="mt-6 flex items-center justify-center gap-2">
-                        <div class="w-3 h-3 bg-violet-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                        <div class="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                        <div class="w-3 h-3 bg-violet-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">Generating your post...</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">This may take a moment</p>
                 </div>
 
-                {# Step 3: Result #}
+                {# Result #}
                 <div id="ai-result-step" class="hidden">
-                    <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                        <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-                            <i data-lucide="check-circle" class="w-5 h-5"></i>
-                            <span class="font-semibold">Post generated successfully!</span>
+                    <div class="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-sm">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span class="font-medium">Generated successfully!</span>
                         </div>
-                        <p class="text-sm text-emerald-600 dark:text-emerald-500 mt-1">Review and edit the content below, then click "Use This Post"</p>
                     </div>
 
                     <div class="space-y-4 mb-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Generated Title</label>
+                            <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Title</label>
                             <input type="text" id="ai-generated-title" readonly class="input bg-slate-50 dark:bg-navy-800">
                         </div>
-
                         <div>
-                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Generated Content</label>
-                            <textarea id="ai-generated-content" rows="8" readonly class="input bg-slate-50 dark:bg-navy-800"></textarea>
+                            <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Content</label>
+                            <textarea id="ai-generated-content" rows="6" readonly class="input bg-slate-50 dark:bg-navy-800"></textarea>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Suggested Tags</label>
+                            <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Tags</label>
                             <input type="text" id="ai-generated-tags" readonly class="input bg-slate-50 dark:bg-navy-800">
                         </div>
                     </div>
@@ -328,7 +359,7 @@ You can use formatting:
                     </div>
                 </div>
 
-                {# Error Display #}
+                {# Error #}
                 <div id="ai-error-step" class="hidden">
                     <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-4">
                         <div class="flex items-center gap-2 text-red-700 dark:text-red-400 mb-2">
@@ -345,8 +376,6 @@ You can use formatting:
             </div>
         </div>
     </div>
-</div>
-
 </div>
 
 <style>
@@ -367,6 +396,12 @@ You can use formatting:
     background-color: rgb(30 41 59);
     color: rgb(248 250 252);
 }
+
+/* Prose styles */
+.prose { font-size: 0.875rem; line-height: 1.6; }
+.prose p { margin: 0.5em 0; }
+.prose code { background: rgb(226 232 240); padding: 0.15rem 0.3rem; border-radius: 0.25rem; font-size: 0.85em; }
+.dark .prose code { background: rgb(30 41 59); }
 </style>
 {% endblock %}
 
@@ -376,25 +411,14 @@ You can use formatting:
 <script>
     lucide.createIcons();
 
-    // Character counters
     const titleInput = document.getElementById('title');
     const contentTextarea = document.getElementById('content');
     const titleCount = document.getElementById('title-count');
     const contentCount = document.getElementById('content-count');
 
-    if (titleInput && titleCount) {
-        titleInput.addEventListener('input', () => {
-            titleCount.textContent = titleInput.value.length;
-        });
-    }
+    if (titleInput) titleInput.addEventListener('input', () => titleCount.textContent = titleInput.value.length);
+    if (contentTextarea) contentTextarea.addEventListener('input', () => contentCount.textContent = contentTextarea.value.length);
 
-    if (contentTextarea && contentCount) {
-        contentTextarea.addEventListener('input', () => {
-            contentCount.textContent = contentTextarea.value.length;
-        });
-    }
-
-    // Text formatting functions
     function formatText(type) {
         const textarea = document.getElementById('content');
         const start = textarea.selectionStart;
@@ -403,93 +427,45 @@ You can use formatting:
         let replacement = '';
 
         switch(type) {
-            case 'bold':
-                replacement = `**${selectedText || 'bold text'}**`;
-                break;
-            case 'italic':
-                replacement = `*${selectedText || 'italic text'}*`;
-                break;
-            case 'code':
-                replacement = `\`${selectedText || 'code'}\``;
-                break;
+            case 'bold': replacement = `**${selectedText || 'bold text'}**`; break;
+            case 'italic': replacement = `*${selectedText || 'italic text'}*`; break;
+            case 'code': replacement = `\`${selectedText || 'code'}\``; break;
             case 'link':
                 const url = prompt('Enter URL:');
-                if (url) {
-                    replacement = `[${selectedText || 'link text'}](${url})`;
-                }
+                if (url) replacement = `[${selectedText || 'link text'}](${url})`;
                 break;
-            case 'ul':
-                replacement = `\n- ${selectedText || 'list item'}\n- \n- `;
-                break;
-            case 'ol':
-                replacement = `\n1. ${selectedText || 'list item'}\n2. \n3. `;
-                break;
-            case 'quote':
-                replacement = `\n> ${selectedText || 'quote'}`;
-                break;
-            case 'codeblock':
-                replacement = `\n\`\`\`\n${selectedText || 'code here'}\n\`\`\`\n`;
-                break;
+            case 'ul': replacement = `\n- ${selectedText || 'list item'}\n- \n- `; break;
+            case 'ol': replacement = `\n1. ${selectedText || 'list item'}\n2. \n3. `; break;
+            case 'quote': replacement = `\n> ${selectedText || 'quote'}`; break;
+            case 'codeblock': replacement = `\n\`\`\`\n${selectedText || 'code here'}\n\`\`\`\n`; break;
         }
 
         if (replacement) {
             textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
             textarea.focus();
-            
-            if (contentCount) {
-                contentCount.textContent = textarea.value.length;
-            }
+            if (contentCount) contentCount.textContent = textarea.value.length;
         }
     }
 
-    // Attach format button listeners
-    document.querySelectorAll('.format-btn').forEach(btn => {
+    document.querySelectorAll('[data-format]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            const format = btn.getAttribute('data-format');
-            formatText(format);
+            formatText(btn.getAttribute('data-format'));
         });
     });
 
-    // Image button listener
     const imageBtn = document.getElementById('image-btn');
     const imageUpload = document.getElementById('image-upload');
-    
-    if (imageBtn && imageUpload) {
-        imageBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            imageUpload.click();
-        });
+    if (imageBtn) imageBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        imageUpload.click();
+    });
 
-        imageUpload.addEventListener('change', handleImageUpload);
-    }
-
-    // Image upload handler
-    async function handleImageUpload(event) {
+    if (imageUpload) imageUpload.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
-            event.target.value = '';
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image size must be less than 5MB');
-            event.target.value = '';
-            return;
-        }
-
-        // Show loading
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
-        loadingDiv.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div><span>Uploading...</span>';
-        document.body.appendChild(loadingDiv);
+        if (!file.type.startsWith('image/')) { alert('Please select an image'); return; }
+        if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); return; }
 
         const formData = new FormData();
         formData.append('image', file);
@@ -497,116 +473,38 @@ You can use formatting:
         try {
             const response = await fetch('/community/upload-image', {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData,
-                credentials: 'same-origin'
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
             });
 
-            loadingDiv.remove();
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', errorText);
-                throw new Error(`Upload failed: HTTP ${response.status}`);
-            }
-
             const data = await response.json();
-
             if (data.ok && data.url) {
                 const textarea = document.getElementById('content');
                 const cursorPos = textarea.selectionStart;
-                const imageMarkdown = `\n![Image](${data.url})\n`;
-                
-                textarea.value = textarea.value.substring(0, cursorPos) + imageMarkdown + textarea.value.substring(cursorPos);
-                textarea.focus();
-                
-                if (contentCount) {
-                    contentCount.textContent = textarea.value.length;
-                }
-
-                // Success notification
-                const successDiv = document.createElement('div');
-                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
-                successDiv.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Image uploaded!</span>';
-                document.body.appendChild(successDiv);
-                lucide.createIcons();
-                setTimeout(() => successDiv.remove(), 3000);
-            } else {
-                throw new Error(data.error || 'Upload failed');
+                textarea.value = textarea.value.substring(0, cursorPos) + `\n![Image](${data.url})\n` + textarea.value.substring(cursorPos);
+                if (contentCount) contentCount.textContent = textarea.value.length;
             }
         } catch (error) {
-            if (loadingDiv.parentNode) loadingDiv.remove();
-            
-            console.error('Upload error:', error);
-            
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
-            errorDiv.innerHTML = `<i data-lucide="x-circle" class="w-5 h-5"></i><span>${error.message}</span>`;
-            document.body.appendChild(errorDiv);
-            lucide.createIcons();
-            setTimeout(() => errorDiv.remove(), 5000);
+            alert('Upload failed');
         }
-
         event.target.value = '';
-    }
+    });
 
-    // Preview toggle
     function togglePreview() {
         const panel = document.getElementById('preview-panel');
         const content = document.getElementById('content').value;
         const previewContent = document.getElementById('preview-content');
 
-        if (panel && panel.classList.contains('hidden')) {
-            if (previewContent && typeof marked !== 'undefined') {
-                previewContent.innerHTML = marked.parse(content);
-            }
+        if (panel.classList.contains('hidden')) {
+            if (typeof marked !== 'undefined') previewContent.innerHTML = marked.parse(content);
             panel.classList.remove('hidden');
             lucide.createIcons();
-        } else if (panel) {
+        } else {
             panel.classList.add('hidden');
         }
     }
 
-    // Keyboard shortcuts
-    if (contentTextarea) {
-        contentTextarea.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'b':
-                        e.preventDefault();
-                        formatText('bold');
-                        break;
-                    case 'i':
-                        e.preventDefault();
-                        formatText('italic');
-                        break;
-                }
-            }
-        });
-    }
-
-    // Keyboard shortcuts
-    if (contentTextarea) {
-        contentTextarea.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'b':
-                        e.preventDefault();
-                        formatText('bold');
-                        break;
-                    case 'i':
-                        e.preventDefault();
-                        formatText('italic');
-                        break;
-                }
-            }
-        });
-    }
-
-    // ========== AI GENERATION FUNCTIONS ==========
-
+    // AI Functions
     function openAIModal() {
         document.getElementById('ai-modal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -631,13 +529,8 @@ You can use formatting:
 
     async function generatePost() {
         const prompt = document.getElementById('ai-prompt').value.trim();
-        
-        if (!prompt) {
-            alert('Please describe what you want to write about');
-            return;
-        }
+        if (!prompt) { alert('Please describe what you want to write about'); return; }
 
-        // Show loading
         document.getElementById('ai-prompt-step').classList.add('hidden');
         document.getElementById('ai-loading-step').classList.remove('hidden');
         lucide.createIcons();
@@ -645,34 +538,27 @@ You can use formatting:
         try {
             const response = await fetch('/community/ai-generate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({ prompt: prompt })
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams({ prompt })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Show result
                 document.getElementById('ai-generated-title').value = data.title;
                 document.getElementById('ai-generated-content').value = data.content;
                 document.getElementById('ai-generated-tags').value = data.tags;
-
                 document.getElementById('ai-loading-step').classList.add('hidden');
                 document.getElementById('ai-result-step').classList.remove('hidden');
                 lucide.createIcons();
             } else {
-                // Show error
-                document.getElementById('ai-error-message').textContent = data.error || 'Failed to generate post';
+                document.getElementById('ai-error-message').textContent = data.error || 'Failed to generate';
                 document.getElementById('ai-loading-step').classList.add('hidden');
                 document.getElementById('ai-error-step').classList.remove('hidden');
                 lucide.createIcons();
             }
         } catch (error) {
-            console.error('AI generation error:', error);
-            document.getElementById('ai-error-message').textContent = 'Network error. Please try again.';
+            document.getElementById('ai-error-message').textContent = 'Network error';
             document.getElementById('ai-loading-step').classList.add('hidden');
             document.getElementById('ai-error-step').classList.remove('hidden');
             lucide.createIcons();
@@ -680,45 +566,33 @@ You can use formatting:
     }
 
     function regeneratePost() {
-        const prompt = document.getElementById('ai-prompt').value;
         document.getElementById('ai-result-step').classList.add('hidden');
         document.getElementById('ai-loading-step').classList.remove('hidden');
         lucide.createIcons();
-        
-        // Call generate again with same prompt
         setTimeout(() => generatePost(), 100);
     }
 
     function useGeneratedPost() {
-        // Fill the form with generated content
         document.getElementById('title').value = document.getElementById('ai-generated-title').value;
         document.getElementById('content').value = document.getElementById('ai-generated-content').value;
         document.getElementById('tags').value = document.getElementById('ai-generated-tags').value;
 
-        // Update character counts
         if (titleCount) titleCount.textContent = document.getElementById('title').value.length;
         if (contentCount) contentCount.textContent = document.getElementById('content').value.length;
 
-        // Close modal
         closeAIModal();
-
-        // Scroll to form
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Show success notification
         const notification = document.createElement('div');
         notification.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2';
-        notification.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>AI content added! Review and publish.</span>';
+        notification.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>AI content added!</span>';
         document.body.appendChild(notification);
         lucide.createIcons();
-        setTimeout(() => notification.remove(), 4000);
+        setTimeout(() => notification.remove(), 3000);
     }
 
-    // ESC key to close AI modal
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeAIModal();
-        }
+        if (e.key === 'Escape') closeAIModal();
     });
 </script>
 {% endblock %}
