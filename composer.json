@@ -12,12 +12,9 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
-<<<<<<< HEAD
-=======
         "friendsofsymfony/ckeditor-bundle": "^2.8",
         "knpuniversity/oauth2-client-bundle": "^2.20",
         "league/oauth2-google": "^4.1",
->>>>>>> 496c29c (Integrating Rich Text Editor)
         "symfony/asset": "^6.4",
         "symfony/asset-mapper": "^6.4",
         "symfony/console": "^6.4",

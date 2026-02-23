@@ -1,0 +1,70 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Modifier créneau #{{ slot.id }} - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+        <a href="{{ path('admin_slots_show', {id: slot.id}) }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+        </a>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">Modifier créneau #{{ slot.id }}</h1>
+    </div>
+    <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Mettez à jour les informations du créneau.</p>
+</div>
+
+<form method="post" class="space-y-6">
+    <div class="card p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="input-label" for="start_date">Date de début</label>
+                {% if errors.start_date is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.start_date }}</p>
+                {% endif %}
+                <input id="start_date" name="start_date" type="date" class="input" value="{{ form_data.start_date|default('') }}">
+            </div>
+            <div>
+                <label class="input-label" for="start_time">Heure de début</label>
+                {% if errors.start_time is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.start_time }}</p>
+                {% endif %}
+                <input id="start_time" name="start_time" type="time" class="input" value="{{ form_data.start_time|default('') }}">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="input-label" for="end_date">Date de fin</label>
+                {% if errors.end_date is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.end_date }}</p>
+                {% endif %}
+                <input id="end_date" name="end_date" type="date" class="input" value="{{ form_data.end_date|default('') }}">
+            </div>
+            <div>
+                <label class="input-label" for="end_time">Heure de fin</label>
+                {% if errors.end_time is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.end_time }}</p>
+                {% endif %}
+                <input id="end_time" name="end_time" type="time" class="input" value="{{ form_data.end_time|default('') }}">
+            </div>
+        </div>
+
+        <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_booked" value="1" {{ form_data.is_booked ? 'checked' : '' }}
+                    class="w-5 h-5 rounded border-navy-300 dark:border-navy-600 text-harbor-600 focus:ring-harbor-500">
+                <span class="input-label mb-0">Marqué comme réservé</span>
+            </label>
+            <p class="text-body-sm text-navy-500 mt-1 ml-8">Cochez si ce créneau est déjà pris.</p>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Enregistrer
+        </button>
+        <a href="{{ path('admin_slots_show', {id: slot.id}) }}" class="btn-ghost btn-sm">Annuler</a>
+    </div>
+</form>
+{% endblock %}

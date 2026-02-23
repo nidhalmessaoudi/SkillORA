@@ -1,0 +1,122 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Question #{{ question.id }} - Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+  <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">
+    Question #{{ question.id }}
+  </h1>
+  <p class="text-body-md text-navy-600 dark:text-navy-400">
+    Question details and answers.
+  </p>
+</div>
+
+<div class="card p-6 space-y-6">
+
+  {# === Question content === #}
+  <div>
+    <h2 class="text-heading-md font-semibold text-navy-900 dark:text-white mb-2">
+      Content
+    </h2>
+    <div class="prose max-w-none text-navy-700 dark:text-navy-300">
+      {{ question.content|raw }}
+    </div>
+  </div>
+
+  {# === Meta info === #}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div>
+      <strong class="text-navy-600 dark:text-navy-400">Type:</strong>
+      <span class="badge ml-2
+        {{ question.type == 'MCQ'
+          ? 'bg-harbor-100 text-harbor-700'
+          : 'bg-danger-100 text-danger-700' }}">
+        {{ question.type }}
+      </span>
+    </div>
+
+    <div>
+      <strong class="text-navy-600 dark:text-navy-400">Score:</strong>
+      <span class="ml-2">{{ question.score }}</span>
+    </div>
+
+    <div>
+      <strong class="text-navy-600 dark:text-navy-400">Evaluation:</strong>
+      {% if question.evaluation %}
+        <span class="ml-2">
+          #{{ question.evaluation.id }} — {{ question.evaluation.title }}
+        </span>
+      {% else %}
+        <span class="ml-2 text-gray-400">—</span>
+      {% endif %}
+    </div>
+
+    <div>
+      <strong class="text-navy-600 dark:text-navy-400">Answers count:</strong>
+      <span class="ml-2">{{ question.answers|length }}</span>
+    </div>
+
+  </div>
+
+  {# === Answers (MCQ) === #}
+  {% if question.isMcq() %}
+    <div>
+      <h2 class="text-heading-md font-semibold text-navy-900 dark:text-white mb-3">
+        Choices
+      </h2>
+
+      {% if question.answers|length > 0 %}
+        <ul class="space-y-2">
+          {% for answer in question.answers %}
+            {% if answer.isChoice() %}
+              <li class="flex items-start gap-3 p-3 border rounded
+                {{ answer.isCorrectAnswer()
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-gray-50 border-gray-200' }}">
+                <span class="font-bold">
+                  {{ (['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])[loop.index0] }}.
+                </span>
+                <span>{{ answer.content }}</span>
+
+                {% if answer.isCorrectAnswer() %}
+                  <span class="ml-auto text-green-600 font-semibold">
+                    ✔ Correct
+                  </span>
+                {% endif %}
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-navy-500">No answers defined for this question.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {# === Actions === #}
+  <div class="flex items-center gap-3 pt-4 border-t">
+    <a href="{{ path('admin_question_edit', {id: question.id}) }}"
+       class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200">
+      Edit
+    </a>
+
+    <form method="post"
+          action="{{ path('admin_question_delete', {id: question.id}) }}"
+          onsubmit="return confirm('Delete this question?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete_question_' ~ question.id) }}">
+      <button type="submit"
+              class="btn-sm bg-danger-100 text-danger-600 hover:bg-danger-200">
+        Delete
+      </button>
+    </form>
+
+    <a href="{{ path('admin_question_index') }}"
+       class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200 ml-auto">
+      Back to list
+    </a>
+  </div>
+
+</div>
+{% endblock %}

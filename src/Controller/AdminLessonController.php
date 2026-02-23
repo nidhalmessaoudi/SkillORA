@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route("/admin/courses/{courseId}/sections/{sectionId}/lessons")]
@@ -25,14 +26,11 @@ class AdminLessonController extends AbstractController
         int $sectionId,
         EntityManagerInterface $em,
     ): array {
-<<<<<<< HEAD
-=======
         // Allow both ADMIN and PROFESSOR
         if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
             throw new AccessDeniedException('Access denied. Admin or Professor access required.');
         }
 
->>>>>>> 496c29c (Integrating Rich Text Editor)
         $course = $em->getRepository(Course::class)->find($courseId);
         if (!$course) {
             throw $this->createNotFoundException("Course not found");

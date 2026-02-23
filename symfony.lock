@@ -35,8 +35,6 @@
             "./migrations/.gitignore"
         ]
     },
-<<<<<<< HEAD
-=======
     "friendsofsymfony/ckeditor-bundle": {
         "version": "2.8",
         "recipe": {
@@ -55,7 +53,6 @@
             "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
         }
     },
->>>>>>> 496c29c (Integrating Rich Text Editor)
     "symfony/asset-mapper": {
         "version": "6.4",
         "recipe": {
@@ -198,7 +195,7 @@
             "ref": "c32cfd98f714894c4f128bb99aa2530c1227603c"
         },
         "files": [
-            "config/packages/validator.yaml"
+            "./config/packages/validator.yaml"
         ]
     },
     "symfony/web-profiler-bundle": {
