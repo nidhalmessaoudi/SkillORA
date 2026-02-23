@@ -15,6 +15,7 @@
         "friendsofsymfony/ckeditor-bundle": "^2.8",
         "knpuniversity/oauth2-client-bundle": "^2.20",
         "league/oauth2-google": "^4.1",
+        "smalot/pdfparser": "^2.12",
         "symfony/asset": "^6.4",
         "symfony/asset-mapper": "^6.4",
         "symfony/console": "^6.4",

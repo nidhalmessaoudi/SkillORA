@@ -83,6 +83,60 @@
           <div class="p-6">
             {% set t = lesson.type|default('text') %}
 
+            {% if t in ['text', 'pdf'] %}
+              <section
+                class="ai-summary-shell mb-6 rounded-2xl border border-navy-200 dark:border-navy-700 p-5 md:p-6"
+                id="lesson-ai-summary"
+                data-endpoint="{{ path('lesson_summary', {courseId: course.id, lessonId: lesson.id}) }}"
+                data-csrf-token="{{ csrf_token('lesson_summary_' ~ lesson.id) }}"
+              >
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 min-w-0">
+                  <div class="min-w-0">
+                    <p class="text-caption uppercase tracking-[0.18em] text-harbor-700 dark:text-harbor-300">AI Assistant</p>
+                    <h2 class="font-display text-xl md:text-2xl font-bold text-navy-900 dark:text-white mt-1">Lesson Summary</h2>
+                    <p class="text-body-sm text-navy-600 dark:text-navy-300 mt-1">
+                      Create a quick study digest from this {{ t == 'pdf' ? 'PDF document' : 'lesson text' }}.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    id="generate-summary-btn"
+                    class="ai-summary-btn inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shrink-0"
+                  >
+                    <span class="ai-orb" aria-hidden="true"></span>
+                    <span class="btn-label">Summarize with AI</span>
+                  </button>
+                </div>
+
+                <div id="summary-status" class="mt-4 hidden rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4">
+                  <div class="summary-loading flex items-center gap-3 text-navy-700 dark:text-navy-200 min-w-0">
+                    <span class="loading-ring" aria-hidden="true"></span>
+                    <span class="truncate md:whitespace-normal">Analyzing lesson content and preparing your summary...</span>
+                  </div>
+                </div>
+
+                <div id="summary-result" class="mt-4 hidden rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4 md:p-5 min-w-0 overflow-hidden">
+                  <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2 text-harbor-700 dark:text-harbor-300 min-w-0">
+                      <i data-lucide="sparkles" class="w-4 h-4 shrink-0"></i>
+                      <span class="text-caption uppercase tracking-[0.16em] font-semibold">Generated Summary</span>
+                    </div>
+                    <button
+                      type="button"
+                      id="summary-toggle-btn"
+                      class="hidden text-xs font-semibold px-3 py-1.5 rounded-lg border border-navy-200 dark:border-navy-700 text-navy-600 dark:text-navy-300 hover:bg-navy-50 dark:hover:bg-navy-800 transition-colors shrink-0"
+                    >
+                      Hide
+                    </button>
+                  </div>
+                  <div id="summary-body">
+                    <pre id="summary-text" class="summary-output text-body-sm text-navy-800 dark:text-navy-100"></pre>
+                  </div>
+                </div>
+              </section>
+            {% endif %}
+
             {% if t == 'video' %}
               {% if lesson.filePath %}
                 <video controls class="w-full rounded-2xl border border-navy-100 dark:border-navy-800">
@@ -122,6 +176,7 @@
                 </div>
               {% endif %}
             {% endif %}
+
           </div>
 
           {# Prev / Next navigation #}
@@ -201,5 +256,213 @@
     padding: .55rem .6rem;
     vertical-align: top;
   }
+  .ai-summary-shell{
+    background:
+      radial-gradient(110% 130% at 0% 0%, rgba(14, 165, 233, .10), transparent 60%),
+      linear-gradient(160deg, rgba(248, 252, 255, .96), rgba(255, 255, 255, .98));
+  }
+  .dark .ai-summary-shell{
+    background:
+      radial-gradient(110% 130% at 0% 0%, rgba(14, 165, 233, .16), transparent 60%),
+      linear-gradient(160deg, rgba(13, 25, 40, .95), rgba(11, 22, 36, .98));
+  }
+  .ai-summary-btn{
+    background: linear-gradient(120deg, #0ea5e9, #0284c7 48%, #10b981);
+    box-shadow: 0 8px 22px rgba(2, 132, 199, .28);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .ai-summary-btn:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(2, 132, 199, .34);
+    filter: saturate(1.08);
+  }
+  .ai-summary-btn:disabled{
+    opacity: .7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .ai-orb{
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 0 0 rgba(255,255,255,.8);
+    animation: orbPulse 1.8s infinite ease-out;
+  }
+  .loading-ring{
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 2px solid rgba(14, 165, 233, .25);
+    border-top-color: rgba(14, 165, 233, 1);
+    animation: spin 1s linear infinite;
+  }
+  .summary-output{
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    overflow-x: hidden;
+    padding-right: .1rem;
+    line-height: 1.7;
+    animation: fadeSlideIn .45s ease both;
+  }
+  @keyframes spin{
+    to{ transform: rotate(360deg); }
+  }
+  @keyframes orbPulse{
+    0%{ box-shadow: 0 0 0 0 rgba(255,255,255,.7); }
+    75%{ box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  }
+  @keyframes fadeSlideIn{
+    from{ opacity: 0; transform: translateY(8px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
 </style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  (function() {
+    const wrapper = document.getElementById('lesson-ai-summary');
+    if (!wrapper) return;
+
+    const endpoint = wrapper.dataset.endpoint;
+    const csrfToken = wrapper.dataset.csrfToken;
+    const button = document.getElementById('generate-summary-btn');
+    const buttonLabel = button ? button.querySelector('.btn-label') : null;
+    const statusBox = document.getElementById('summary-status');
+    const resultBox = document.getElementById('summary-result');
+    const summaryBody = document.getElementById('summary-body');
+    const summaryText = document.getElementById('summary-text');
+    const toggleBtn = document.getElementById('summary-toggle-btn');
+
+    if (!button || !statusBox || !resultBox || !summaryText || !summaryBody || !endpoint || !csrfToken) return;
+
+    let summaryExpanded = true;
+    let cooldownUntil = 0;
+    let cooldownInterval = null;
+
+    const syncToggle = () => {
+      if (!toggleBtn) return;
+      toggleBtn.textContent = summaryExpanded ? 'Hide' : 'Show';
+      summaryBody.classList.toggle('hidden', !summaryExpanded);
+    };
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        summaryExpanded = !summaryExpanded;
+        syncToggle();
+      });
+    }
+
+    const setLoading = (isLoading) => {
+      button.disabled = isLoading;
+      if (buttonLabel) {
+        buttonLabel.textContent = isLoading ? 'Generating...' : 'Summarize with AI';
+      }
+      statusBox.classList.toggle('hidden', !isLoading);
+    };
+
+    const startCooldown = (seconds) => {
+      cooldownUntil = Date.now() + (seconds * 1000);
+      button.disabled = true;
+
+      if (cooldownInterval) {
+        clearInterval(cooldownInterval);
+      }
+
+      const updateCooldownLabel = () => {
+        const remainingMs = cooldownUntil - Date.now();
+        if (remainingMs <= 0) {
+          if (cooldownInterval) {
+            clearInterval(cooldownInterval);
+            cooldownInterval = null;
+          }
+          button.disabled = false;
+          if (buttonLabel) {
+            buttonLabel.textContent = 'Summarize with AI';
+          }
+          return;
+        }
+
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        if (buttonLabel) {
+          buttonLabel.textContent = `Try again in ${remainingSec}s`;
+        }
+      };
+
+      updateCooldownLabel();
+      cooldownInterval = setInterval(updateCooldownLabel, 250);
+    };
+
+    button.addEventListener('click', async () => {
+      if (Date.now() < cooldownUntil) {
+        return;
+      }
+
+      setLoading(true);
+      resultBox.classList.add('hidden');
+      summaryText.textContent = '';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': csrfToken,
+          },
+          body: JSON.stringify({ _token: csrfToken }),
+        });
+
+        const rawResponse = await response.text();
+        let data = null;
+        try {
+          data = JSON.parse(rawResponse);
+        } catch (_parseError) {
+          throw new Error('Server returned an unexpected response format. Please refresh and try again.');
+        }
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.message || 'Failed to generate summary.');
+        }
+
+        summaryText.textContent = data.summary;
+        summaryExpanded = true;
+        syncToggle();
+        if (toggleBtn) {
+          toggleBtn.classList.remove('hidden');
+        }
+        resultBox.classList.remove('hidden');
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+
+        startCooldown(6);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to generate summary.';
+        summaryText.textContent = message;
+        summaryExpanded = true;
+        syncToggle();
+        if (toggleBtn) {
+          toggleBtn.classList.remove('hidden');
+        }
+        resultBox.classList.remove('hidden');
+
+        const cooldownSeconds = message.toLowerCase().includes('busy') ? 15 : 5;
+        startCooldown(cooldownSeconds);
+      } finally {
+        if (Date.now() >= cooldownUntil) {
+          setLoading(false);
+        } else {
+          statusBox.classList.add('hidden');
+        }
+      }
+    });
+  })();
+</script>
 {% endblock %}
