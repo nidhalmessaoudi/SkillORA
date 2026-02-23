@@ -64,11 +64,6 @@ class AdminController extends AbstractController
     #[Route('/user/{id}/ban', name: 'admin_user_ban', methods: ['POST'])]
     public function banUser(User $user): Response
     {
-        // Allow both ADMIN and PROFESSOR
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PROFESSOR')) {
-            throw new AccessDeniedException('Access denied. Admin or Professor access required.');
-        }
-        
         if ($user->isAdmin()) {
             $this->addFlash('error', 'Cannot ban an administrator.');
             return $this->redirectToRoute('admin_users');

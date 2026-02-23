@@ -1,0 +1,318 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Manage Posts - Admin | SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    {# Header Section #}
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-navy-900 dark:text-white">Community Posts</h1>
+            <p class="text-navy-600 dark:text-navy-400 mt-1">Monitor and manage all community discussions</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('community_index') }}" target="_blank" class="btn-outline btn-sm">
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+                View Community
+            </a>
+            <a href="{{ path('admin_reports_index') }}" class="btn-primary btn-sm relative">
+                <i data-lucide="flag" class="w-4 h-4"></i>
+                Reports
+                {% set totalReports = reportCounts|reduce((sum, count) => sum + count, 0) %}
+                {% if totalReports > 0 %}
+                    <span class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-coral-500 text-white text-xs font-bold animate-pulse">
+                        {{ totalReports }}
+                    </span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    {# Stats Cards - Fixed Icon Colors #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {# Total Posts #}
+        <div class="card p-6 hover:shadow-lg transition-all group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Total</span>
+            </div>
+            <p class="text-3xl font-bold text-navy-900 dark:text-white mb-1">{{ totalPosts }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Community Posts</p>
+        </div>
+        
+        {# Pending Reports - Fixed Icon Color #}
+        <div class="card p-6 hover:shadow-lg transition-all group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Flagged</span>
+            </div>
+            <p class="text-3xl font-bold text-navy-900 dark:text-white mb-1">{{ totalReports }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Pending Reports</p>
+        </div>
+
+        {# Active Discussions - Fixed Icon Color #}
+        <div class="card p-6 hover:shadow-lg transition-all group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <i data-lucide="message-circle" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Active</span>
+            </div>
+            {% set activePosts = posts|filter(p => p.replies|length > 0)|length %}
+            <p class="text-3xl font-bold text-navy-900 dark:text-white mb-1">{{ activePosts }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">With Replies</p>
+        </div>
+
+        {# Pagination Info - Fixed Icon Color #}
+        <div class="card p-6 hover:shadow-lg transition-all group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Pages</span>
+            </div>
+            <p class="text-3xl font-bold text-navy-900 dark:text-white mb-1">{{ currentPage }}/{{ totalPages }}</p>
+            <p class="text-sm text-navy-500 dark:text-navy-400">Current Page</p>
+        </div>
+    </div>
+
+    {# Posts Table - Fixed Hover Background #}
+    <div class="card overflow-hidden">
+        {# Table Header #}
+        <div class="px-6 py-4 border-b border-navy-200 dark:border-navy-800 bg-navy-50 dark:bg-navy-900/50">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-navy-900 dark:text-white">All Posts</h2>
+                <div class="text-sm text-navy-500 dark:text-navy-400">
+                    Showing {{ posts|length }} of {{ totalPosts }} posts
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-navy-50 dark:bg-navy-900/30 border-b border-navy-200 dark:border-navy-800">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Post Details</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Author</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Activity</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-navy-200 dark:divide-navy-800 bg-white dark:bg-navy-900">
+                    {% for post in posts %}
+                    <tr class="hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-colors">
+                        {# Post Details #}
+                        <td class="px-6 py-4">
+                            <div class="max-w-md">
+                                <button onclick="viewPost({{ post.id }})" class="font-semibold text-navy-900 dark:text-white hover:text-harbor-600 dark:hover:text-harbor-400 transition-colors text-left line-clamp-2 mb-2">
+                                    {{ post.title }}
+                                </button>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    {% set badgeClass = post.type == 'discussion' ? 'badge-primary' : (post.type == 'article' ? 'badge-success' : 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-2 py-1 rounded-full text-xs font-medium') %}
+                                    <span class="badge {{ badgeClass }} text-xs">{{ post.type|capitalize }}</span>
+                                    {% if post.topic %}
+                                        <span class="text-xs text-navy-500 dark:text-navy-400">{{ post.topic }}</span>
+                                    {% endif %}
+                                    <span class="text-xs text-navy-400 dark:text-navy-500">{{ post.createdAt|date('M j, Y') }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        {# Author #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-400 to-harbor-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
+                                    {{ post.author.username|default('U')|slice(0,1)|upper }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-navy-900 dark:text-white truncate">{{ post.author.username }}</p>
+                                    <p class="text-xs text-navy-500 dark:text-navy-400 truncate">{{ post.author.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+
+                        {# Activity #}
+                        <td class="px-6 py-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2 text-sm">
+                                    <i data-lucide="message-square" class="w-4 h-4 text-navy-400 dark:text-navy-500"></i>
+                                    <span class="text-navy-900 dark:text-white font-medium">{{ post.replies|length }}</span>
+                                    <span class="text-navy-500 dark:text-navy-400">replies</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        {# Status #}
+                        <td class="px-6 py-4">
+                            {% if reportCounts[post.id] is defined and reportCounts[post.id] > 0 %}
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 dark:text-red-400"></i>
+                                    <span class="text-sm font-semibold text-red-700 dark:text-red-400">{{ reportCounts[post.id] }} report{{ reportCounts[post.id] > 1 ? 's' : '' }}</span>
+                                </div>
+                            {% else %}
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                                    <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Clean</span>
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        {# Actions #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="viewPost({{ post.id }})" class="p-2 rounded-lg text-navy-600 dark:text-navy-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 hover:text-harbor-600 dark:hover:text-harbor-400 transition-all" title="View details">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deletePost({{ post.id }})" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Delete post">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-16">
+                            <div class="text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-navy-100 dark:bg-navy-800 flex items-center justify-center">
+                                    <i data-lucide="inbox" class="w-8 h-8 text-navy-400 dark:text-navy-500"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-2">No posts yet</h3>
+                                <p class="text-navy-500 dark:text-navy-400">Community posts will appear here once created.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Enhanced Pagination #}
+        {% if totalPages > 1 %}
+        <div class="px-6 py-4 border-t border-navy-200 dark:border-navy-800 bg-navy-50 dark:bg-navy-900/30">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-navy-600 dark:text-navy-400">
+                    Page <span class="font-semibold text-navy-900 dark:text-white">{{ currentPage }}</span> of <span class="font-semibold text-navy-900 dark:text-white">{{ totalPages }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if currentPage > 1 %}
+                        <a href="{{ path('admin_posts_index', {'page': 1}) }}" class="btn-outline btn-sm">
+                            <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+                        </a>
+                        <a href="{{ path('admin_posts_index', {'page': currentPage - 1}) }}" class="btn-outline btn-sm">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    {# Page numbers #}
+                    {% for i in 1..totalPages %}
+                        {% if i == currentPage %}
+                            <span class="px-4 py-2 rounded-xl bg-harbor-600 text-white font-semibold text-sm">{{ i }}</span>
+                        {% elseif i == 1 or i == totalPages or (i >= currentPage - 1 and i <= currentPage + 1) %}
+                            <a href="{{ path('admin_posts_index', {'page': i}) }}" class="px-4 py-2 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800 text-navy-700 dark:text-navy-300 font-medium text-sm transition-colors">{{ i }}</a>
+                        {% elseif i == currentPage - 2 or i == currentPage + 2 %}
+                            <span class="px-2 text-navy-400 dark:text-navy-500">...</span>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if currentPage < totalPages %}
+                        <a href="{{ path('admin_posts_index', {'page': currentPage + 1}) }}" class="btn-primary btn-sm">
+                            Next
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </a>
+                        <a href="{{ path('admin_posts_index', {'page': totalPages}) }}" class="btn-outline btn-sm">
+                            <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Post Detail Modal #}
+<div id="post-modal" class="hidden fixed inset-0 z-50 bg-navy-950/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="closePostModal()">
+    <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-strong w-full max-w-4xl max-h-[90vh] overflow-auto" onclick="event.stopPropagation()">
+        <div id="post-modal-content" class="p-8">
+            <div class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-harbor-600"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+
+    function viewPost(postId) {
+        const modal = document.getElementById('post-modal');
+        const content = document.getElementById('post-modal-content');
+        
+        modal.classList.remove('hidden');
+        
+        fetch(`/admin/posts/${postId}`)
+            .then(res => res.text())
+            .then(html => {
+                content.innerHTML = html;
+                lucide.createIcons();
+            })
+            .catch(err => {
+                console.error('Error loading post:', err);
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <i data-lucide="alert-circle" class="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4"></i>
+                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-2">Failed to load post</h3>
+                        <p class="text-navy-500 dark:text-navy-400">Please try again later.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            });
+    }
+
+    function closePostModal() {
+        document.getElementById('post-modal').classList.add('hidden');
+    }
+
+    function deletePost(postId) {
+        if (!confirm('Are you sure you want to delete this post? All replies and reactions will be permanently removed.')) {
+            return;
+        }
+
+        fetch(`/admin/posts/${postId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                // Show success message
+                alert('Post deleted successfully');
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert(data.error || 'Failed to delete post');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to delete post');
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePostModal();
+        }
+    });
+</script>
+{% endblock %}
