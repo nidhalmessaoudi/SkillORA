@@ -3,7 +3,6 @@
 {% block title %}{{ post.title }} - Community | SkillHarbor{% endblock %}
 
 {% block body %}
-{# Define reaction emoji mapping #}
 {% set emojiMap = {
     'like': '👍',
     'love': '❤️',
@@ -13,59 +12,76 @@
     'angry': '😡'
 } %}
 
-<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
-    {# Breadcrumb #}
-    <div class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-navy-800">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <nav class="flex items-center gap-2 text-sm">
-                <a href="{{ path('community_index') }}" class="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Community</a>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-
-                {% set crumbLabel = post.type ? post.type|capitalize : (post.topic ? post.topic : 'General') %}
-                <span class="text-slate-500 dark:text-slate-400">{{ crumbLabel }}</span>
-
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                <span class="text-slate-900 dark:text-white font-medium truncate max-w-xs">{{ post.title }}</span>
-            </nav>
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950">
+    {# Enhanced Header with Breadcrumb #}
+    <div class="bg-white/80 dark:bg-navy-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-navy-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <nav class="flex items-center gap-2 text-sm">
+                    <a href="{{ path('community_index') }}" class="flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Community</span>
+                    </a>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                    <span class="text-slate-900 dark:text-white font-medium">{{ post.type ? post.type|capitalize : 'Discussion' }}</span>
+                </nav>
+                
+                {# Quick Actions #}
+                <div class="flex items-center gap-2">
+                    <button class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="Bookmark">
+                        <i data-lucide="bookmark" class="w-5 h-5"></i>
+                    </button>
+                    <button class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="Share">
+                        <i data-lucide="share-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' }}">
-                    {{ message }}
+                <div class="mb-6 p-4 rounded-xl border-2 {{ label == 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400' }}">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5"></i>
+                        <p class="flex-1 font-medium">{{ message }}</p>
+                        <button onclick="this.parentElement.parentElement.remove()" class="p-1 rounded-lg hover:bg-black/5 transition-colors">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        {# Main Post #}
-        <article class="card p-8 mb-6">
-            <div class="flex gap-6">
-                {# Post Content #}
-                <div class="flex-1 min-w-0">
-                    {# Post Header #}
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            {% set headerLabel = post.type ? post.type|capitalize : (post.topic ? post.topic : 'General') %}
-                            {% set headerClass = post.type == 'discussion'
-                                ? 'badge-primary'
-                                : (post.type == 'article' ? 'badge-success' : 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400') %}
-                            <span class="badge {{ headerClass }}">{{ headerLabel }}</span>
+        <div class="grid lg:grid-cols-3 gap-8">
+            {# Main Content - 2 columns #}
+            <div class="lg:col-span-2 space-y-6">
+                {# Post Card #}
+                <article class="card p-8 shadow-lg">
+                    {# Post Badge & Actions #}
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            {% set postTypeClass = post.type == 'article' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : (post.type == 'discussion' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400') %}
+                            <span class="badge {{ postTypeClass }} text-sm font-semibold">
+                                <i data-lucide="{{ post.type == 'article' ? 'file-text' : (post.type == 'discussion' ? 'message-circle' : 'help-circle') }}" class="w-4 h-4 mr-1"></i>
+                                {{ post.type ? post.type|capitalize : 'Question' }}
+                            </span>
+                            {% if post.topic %}
+                                <span class="text-sm text-slate-500 dark:text-slate-400">in {{ post.topic }}</span>
+                            {% endif %}
                         </div>
 
-                        {# Post Actions (Edit/Delete) - Only show to post author #}
                         {% if app.user and app.user.id == post.author.id %}
                             <div class="flex items-center gap-2">
-                                <a href="{{ path('community_edit_post', {id: post.id}) }}" class="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1">
+                                <a href="{{ path('community_edit_post', {id: post.id}) }}" class="btn-outline-sm">
                                     <i data-lucide="edit-2" class="w-4 h-4"></i>
                                     Edit
                                 </a>
-                                <form method="post" action="{{ path('community_delete_post', {id: post.id}) }}" onsubmit="return confirm('Are you sure you want to delete this post? This cannot be undone.');" class="inline">
-                                    <button type="submit" class="text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1">
+                                <form method="post" action="{{ path('community_delete_post', {id: post.id}) }}" onsubmit="return confirm('Delete this post? This cannot be undone.');">
+                                    <button type="submit" class="btn-outline-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        Delete
                                     </button>
                                 </form>
                             </div>
@@ -73,421 +89,536 @@
                     </div>
 
                     {# Title #}
-                    <h1 class="text-2xl lg:text-3xl font-display font-bold text-slate-900 dark:text-white mb-6">
+                    <h1 class="text-3xl lg:text-4xl font-display font-bold text-slate-900 dark:text-white mb-6 leading-tight">
                         {{ post.title }}
                     </h1>
 
-                    {# Author Info #}
-                    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-navy-800">
+                    {# Author Card #}
+                    <div class="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200 dark:border-navy-800">
                         {% if post.author.avatar %}
-                            <img src="{{ post.author.avatar }}" alt="{{ post.author.fullName }}" class="w-12 h-12 rounded-full object-cover">
+                            <img src="{{ post.author.avatar }}" alt="{{ post.author.fullName }}" class="w-14 h-14 rounded-full object-cover ring-2 ring-slate-200 dark:ring-navy-800">
                         {% else %}
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl font-bold">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl font-bold ring-2 ring-slate-200 dark:ring-navy-800">
                                 {{ post.author.fullName|slice(0,1)|upper }}
                             </div>
                         {% endif %}
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-semibold text-slate-900 dark:text-white">{{ post.author.fullName }}</span>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-semibold text-slate-900 dark:text-white text-lg">{{ post.author.fullName }}</span>
                                 <span class="badge bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs">
+                                    <i data-lucide="award" class="w-3 h-3 mr-1"></i>
                                     Level 5
                                 </span>
                             </div>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">
-                                {{ post.createdAt ? post.createdAt|date('M j, Y') : '' }}
-                                • {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
-                            </p>
+                            <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                    {{ post.createdAt|date('M j, Y') }}
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    {# Post Body - MARKDOWN RENDERED #}
-                    <div class="prose prose-slate dark:prose-invert max-w-none mb-6" id="post-content">
-                        {# Content will be rendered by JavaScript #}
-                    </div>
+                    {# Post Content #}
+                    <div class="prose prose-slate dark:prose-invert max-w-none mb-8" id="post-content"></div>
 
                     {# Tags #}
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        {% if post.tags|length %}
+                    {% if post.tags|length %}
+                        <div class="flex flex-wrap gap-2 mb-6">
                             {% for tag in post.tags %}
-                                <a href="#" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                                <a href="#" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 transition-colors">
                                     #{{ tag.name }}
                                 </a>
                             {% endfor %}
-                        {% else %}
-                            <a href="#" class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400">#general</a>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
 
-                    {# Actions & Reactions #}
-                    <div class="pt-4 border-t border-slate-200 dark:border-navy-800">
-                        {# Reaction Button - Prominent and centered #}
-                        <div class="flex items-center justify-between mb-4">
+                    {# Reactions & Actions #}
+                    <div class="pt-6 border-t border-slate-200 dark:border-navy-800">
+                        <div class="flex items-center justify-between">
                             {% if app.user %}
-                            <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
-                                {% set totalReactions = 0 %}
-                                {% for count in postReactionCounts|default({}) %}
-                                    {% set totalReactions = totalReactions + count %}
-                                {% endfor %}
-                                
-                                {% if userPostReaction %}
-                                    <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold">
-                                        <span class="reaction-emoji text-2xl">{{ emojiMap[userPostReaction] }}</span>
-                                        <span class="text-base">{{ userPostReaction|capitalize }}</span>
-                                        {% if totalReactions > 1 %}
-                                            <span class="reaction-count text-sm opacity-75">+{{ totalReactions - 1 }}</span>
-                                        {% endif %}
-                                    </button>
-                                {% else %}
-                                    <button class="reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold">
-                                        <span class="reaction-emoji text-2xl">👍</span>
-                                        <span class="text-base">React</span>
-                                        {% if totalReactions > 0 %}
-                                            <span class="reaction-count text-sm opacity-75">{{ totalReactions }}</span>
-                                        {% endif %}
-                                    </button>
-                                {% endif %}
-
-                                {# Reaction Picker #}
-                                <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-3 flex items-center gap-2 z-20">
-                                    {% for reactionType, emoji in emojiMap %}
-                                        <button 
-                                            class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
-                                            data-url="{{ path('community_react_post', {'id': post.id}) }}"
-                                            data-type="{{ reactionType }}"
-                                            data-target="post"
-                                            data-id="{{ post.id }}"
-                                            title="{{ reactionType|capitalize }}"
-                                        >
-                                            <span class="text-3xl">{{ emoji }}</span>
-                                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                                {{ reactionType|capitalize }}
-                                            </span>
+                                <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
+                                    {% set totalReactions = postReactionCounts|default({})|length > 0 ? postReactionCounts|reduce((sum, count) => sum + count, 0) : 0 %}
+                                    
+                                    {% if userPostReaction %}
+                                        <button class="reaction-current-btn flex items-center gap-3 px-8 py-3 rounded-full bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 text-emerald-700 dark:text-emerald-400 hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold shadow-sm">
+                                            <span class="reaction-emoji text-3xl">{{ emojiMap[userPostReaction] }}</span>
+                                            <div class="flex flex-col items-start">
+                                                <span class="text-base">{{ userPostReaction|capitalize }}</span>
+                                                {% if totalReactions > 1 %}
+                                                    <span class="reaction-count text-xs opacity-75">You and {{ totalReactions - 1 }} others</span>
+                                                {% endif %}
+                                            </div>
                                         </button>
-                                    {% endfor %}
+                                    {% else %}
+                                        <button class="reaction-current-btn flex items-center gap-3 px-8 py-3 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold shadow-sm">
+                                            <span class="reaction-emoji text-3xl">👍</span>
+                                            <div class="flex flex-col items-start">
+                                                <span class="text-base">React</span>
+                                                {% if totalReactions > 0 %}
+                                                    <span class="reaction-count text-xs opacity-75">{{ totalReactions }} {{ totalReactions == 1 ? 'reaction' : 'reactions' }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </button>
+                                    {% endif %}
+
+                                    {# Reaction Picker #}
+                                    <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-navy-700 p-4 flex items-center gap-3 z-30">
+                                        {% for reactionType, emoji in emojiMap %}
+                                            <button 
+                                                class="reaction-btn group relative hover:scale-125 transition-transform duration-200 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
+                                                data-url="{{ path('community_react_post', {'id': post.id}) }}"
+                                                data-type="{{ reactionType }}"
+                                                data-target="post"
+                                                data-id="{{ post.id }}"
+                                            >
+                                                <span class="text-4xl">{{ emoji }}</span>
+                                                <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-medium">
+                                                    {{ reactionType|capitalize }}
+                                                </span>
+                                            </button>
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
                             {% else %}
-                                <a href="{{ path('auth_login') }}" class="flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold">
-                                    <span class="text-2xl">👍</span>
-                                    <span class="text-base">Sign in to React</span>
+                                <a href="{{ path('auth_login') }}" class="flex items-center gap-3 px-8 py-3 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold shadow-sm">
+                                    <span class="text-3xl">👍</span>
+                                    <span>Sign in to React</span>
                                 </a>
                             {% endif %}
 
-                            {# Actions on the right #}
-                            <div class="flex items-center gap-1">
-                                <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="Save post">
-                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
-                                </button>
-                                
+                            <div class="flex items-center gap-2">
                                 {% if app.user %}
-                                <button onclick="openReportModal()" class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Report post">
-                                    <i data-lucide="flag" class="w-4 h-4"></i>
-                                </button>
+                                    <button onclick="openReportModal()" class="p-3 rounded-full text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors" title="Report">
+                                        <i data-lucide="flag" class="w-5 h-5"></i>
+                                    </button>
                                 {% endif %}
-                                
-                                <button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" title="More options">
-                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                                </button>
                             </div>
                         </div>
 
-                        {# Show reaction breakdown #}
+                        {# Reaction Breakdown #}
                         {% if postReactionCounts|default({})|length > 0 %}
-                            {% set totalReactions = 0 %}
-                            {% for count in postReactionCounts %}
-                                {% set totalReactions = totalReactions + count %}
-                            {% endfor %}
-                            <div class="flex items-center flex-wrap gap-2 pt-3 border-t border-slate-200 dark:border-navy-800">
-                                <span class="text-sm font-medium text-slate-600 dark:text-slate-400 mr-1">{{ totalReactions }} {{ totalReactions == 1 ? 'reaction' : 'reactions' }}</span>
+                            <div class="flex items-center flex-wrap gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-navy-800">
                                 {% for type, count in postReactionCounts %}
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors cursor-default">
-                                        <span class="text-lg">{{ emojiMap[type] }}</span>
-                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ count }}</span>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors">
+                                        <span class="text-2xl">{{ emojiMap[type] }}</span>
+                                        <span class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ count }}</span>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
+                </article>
+
+                {# Reddit-Style Reply Section #}
+                <div class="space-y-6">
+                    {# Quick Reply Box - Appears First #}
+                    {% if app.user %}
+                        <div class="card p-6">
+                            {# Collapsed State - Minimal Input #}
+                            <div id="quick-reply-collapsed" class="cursor-pointer" onclick="expandReplyBox()">
+                                <div class="flex items-center gap-3">
+                                    {% if app.user.avatar %}
+                                        <img src="{{ app.user.avatar }}" alt="{{ app.user.fullName }}" class="w-10 h-10 rounded-full ring-2 ring-slate-200 dark:ring-navy-800">
+                                    {% else %}
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold">
+                                            {{ app.user.fullName|slice(0,1)|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="flex-1 px-4 py-3 bg-slate-50 dark:bg-navy-900 rounded-lg border-2 border-slate-200 dark:border-navy-800 hover:border-emerald-500 dark:hover:border-emerald-600 transition-colors">
+                                        <span class="text-slate-500 dark:text-slate-400 text-sm">What are your thoughts?</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Expanded State - Full Form #}
+                            <div id="quick-reply-expanded" class="hidden">
+                                <form action="{{ path('community_reply', {id: post.id}) }}" method="post" class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        {% if app.user.avatar %}
+                                            <img src="{{ app.user.avatar }}" alt="{{ app.user.fullName }}" class="w-10 h-10 rounded-full ring-2 ring-slate-200 dark:ring-navy-800 flex-shrink-0">
+                                        {% else %}
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                {{ app.user.fullName|slice(0,1)|upper }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="flex-1 space-y-3">
+                                            <textarea 
+                                                name="content" 
+                                                id="quick-reply-textarea" 
+                                                class="input min-h-[120px] font-mono text-sm" 
+                                                placeholder="Share your thoughts... (Markdown supported)"
+                                                required
+                                            ></textarea>
+
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="flex items-center gap-2">
+                                                    <button 
+                                                        type="button"
+                                                        onclick="generateReply({{ post.id }})"
+                                                        class="btn bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-sm"
+                                                    >
+                                                        <i data-lucide="sparkles" class="w-4 h-4 mr-1"></i>
+                                                        AI Generate
+                                                    </button>
+                                                    <span class="text-xs text-slate-500 dark:text-slate-400">
+                                                        <i data-lucide="info" class="w-3 h-3 inline"></i>
+                                                        Markdown supported
+                                                    </span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" onclick="collapseReplyBox()" class="btn-outline text-sm">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="submit" class="btn-primary text-sm">
+                                                        <i data-lucide="send" class="w-4 h-4 mr-1"></i>
+                                                        Comment
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        {# Not Logged In State #}
+                        <div class="card p-6">
+                            <a href="{{ path('auth_login') }}" class="flex items-center gap-3 group">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-navy-800 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
+                                </div>
+                                <div class="flex-1 px-4 py-3 bg-slate-50 dark:bg-navy-900 rounded-lg border-2 border-slate-200 dark:border-navy-800 group-hover:border-emerald-500 dark:group-hover:border-emerald-600 transition-colors">
+                                    <span class="text-slate-500 dark:text-slate-400 text-sm">Sign in to comment</span>
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {# Replies Header #}
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i data-lucide="message-square" class="w-5 h-5 text-emerald-600"></i>
+                                {{ post.replies|length }} {{ post.replies|length == 1 ? 'Comment' : 'Comments' }}
+                            </h2>
+                            <div class="flex items-center gap-2">
+                                <button onclick="collapseAllReplies()" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors px-3 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-navy-800">
+                                    <i data-lucide="minimize-2" class="w-3 h-3 inline mr-1"></i>
+                                    Collapse All
+                                </button>
+                                <select class="input text-xs py-1 px-3 w-auto" onchange="sortReplies(this.value)">
+                                    <option value="best">Best</option>
+                                    <option value="newest">Newest</option>
+                                    <option value="oldest">Oldest</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Replies List #}
+                    <div class="space-y-0" id="replies-container">
+                        {% for reply in post.replies %}
+                            {% if reply.parent is null %}
+                                {{ _self.render_reply_reddit(reply, replyReactionData, emojiMap, app.user, 0, loop.index) }}
+                            {% endif %}
+                        {% else %}
+                            <div class="card p-12 text-center">
+                                <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-navy-800 flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="message-circle-off" class="w-8 h-8 text-slate-400"></i>
+                                </div>
+                                <p class="text-lg font-medium text-slate-600 dark:text-slate-400 mb-1">No comments yet</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-500">Be the first to share your thoughts!</p>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
-        </article>
 
-        {# Answers Section #}
-<div class="mb-6">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">
-            {{ post.replies|length }} {{ post.replies|length == 1 ? 'Answer' : 'Answers' }}
-        </h2>
-        <select class="input py-2 w-auto text-sm">
-            <option>Sort by: Best</option>
-            <option>Sort by: Newest</option>
-        </select>
-    </div>
+            {# Sidebar - 1 column #}
+            <div class="lg:col-span-1 space-y-6">
+                {# Post Stats Card #}
+                <div class="card p-6 sticky top-24">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-emerald-600"></i>
+                        Post Stats
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-600 dark:text-slate-400">Replies</span>
+                            <span class="font-bold text-slate-900 dark:text-white">{{ post.replies|length }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-600 dark:text-slate-400">Reactions</span>
+                            <span class="font-bold text-slate-900 dark:text-white">
+                                {% set total = 0 %}
+                                {% for count in postReactionCounts|default({}) %}
+                                    {% set total = total + count %}
+                                {% endfor %}
+                                {{ total }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-600 dark:text-slate-400">Asked</span>
+                            <span class="font-medium text-slate-900 dark:text-white">{{ post.createdAt|date('M j') }}</span>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="space-y-4">
-        {# Only show top-level replies #}
-        {% for reply in post.replies %}
-            {% if reply.parent is null %}
-                {{ _self.render_reply(reply, replyReactionData, emojiMap, app.user, 0) }}
-            {% endif %}
-        {% else %}
-        <div class="card p-6 text-center text-slate-500 dark:text-slate-400">
-            No answers yet. Be the first to reply.
+                {# Related Topics #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="compass" class="w-5 h-5 text-blue-600"></i>
+                        Related Topics
+                    </h3>
+                    <div class="space-y-2">
+                        {% for tag in post.tags|slice(0, 3) %}
+                            <a href="#" class="block p-3 rounded-lg bg-slate-50 dark:bg-navy-800 hover:bg-slate-100 dark:hover:bg-navy-700 transition-colors">
+                                <span class="text-sm font-medium text-slate-900 dark:text-white">#{{ tag.name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Help Card #}
+                <div class="card p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-blue-800">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i>
+                        <h3 class="font-semibold text-slate-900 dark:text-white">How to Answer</h3>
+                    </div>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex gap-2">
+                            <span class="text-emerald-600">✓</span>
+                            <span>Be specific and clear</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-emerald-600">✓</span>
+                            <span>Include code examples</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-emerald-600">✓</span>
+                            <span>Cite sources when relevant</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-emerald-600">✓</span>
+                            <span>Be respectful and kind</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        {% endfor %}
     </div>
 </div>
 
-{# Recursive Reply Macro #}
-{% macro render_reply(reply, replyReactionData, emojiMap, currentUser, depth) %}
+{# Reddit-Style Reply Macro with Tree Structure #}
+{% macro render_reply_reddit(reply, replyReactionData, emojiMap, currentUser, depth, index) %}
     {% set replyData = replyReactionData[reply.id]|default({'userReaction': null, 'counts': {}}) %}
-    {% set totalReplyReactions = 0 %}
-    {% for count in replyData.counts %}
-        {% set totalReplyReactions = totalReplyReactions + count %}
-    {% endfor %}
+    {% set totalReactions = replyData.counts|reduce((sum, count) => sum + count, 0) %}
+    {% set hasNested = reply.replies|length > 0 %}
+    {% set replyCount = reply.replies|length %}
     
-    {# Calculate left margin based on depth (max 5 levels) #}
-    {% set marginClass = depth > 0 ? 'ml-' ~ (depth > 5 ? 20 : (depth * 4)) : '' %}
-    
-    <article class="card p-6 {{ marginClass }}" id="reply-{{ reply.id }}" style="{% if depth > 0 %}border-left: 3px solid rgb(16 185 129);{% endif %}">
-        <div class="flex gap-4">
-            <div class="flex-1 min-w-0">
-                {# Author Info #}
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
+    <div class="reply-thread" id="reply-thread-{{ reply.id }}" data-depth="{{ depth }}">
+        <div class="flex gap-0">
+            {# Collapse Line - Reddit Style #}
+            {% if depth > 0 %}
+                <div class="relative">
+                    <button 
+                        onclick="toggleReplyThread({{ reply.id }})"
+                        class="collapse-line-btn absolute top-0 bottom-0 w-4 hover:bg-blue-500/10 transition-colors group z-10"
+                        title="Collapse thread"
+                    >
+                        <div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-slate-300 dark:bg-navy-700 group-hover:bg-blue-500 transition-colors"></div>
+                    </button>
+                    <div class="w-4"></div>
+                </div>
+            {% endif %}
+
+            {# Reply Content Container #}
+            <div class="flex-1 {% if depth == 0 %}card p-4 mb-4{% else %}py-2 pr-4{% endif %}">
+                {# Reply Content #}
+                <div class="reply-content-wrapper-{{ reply.id }}">
+                    <div class="flex gap-3">
+                        {# Avatar #}
                         {% if reply.author.avatar %}
-                            <img src="{{ reply.author.avatar }}" alt="{{ reply.author.fullName }}" class="w-10 h-10 rounded-full object-cover">
+                            <img src="{{ reply.author.avatar }}" alt="{{ reply.author.fullName }}" class="w-8 h-8 rounded-full flex-shrink-0">
                         {% else %}
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                 {{ reply.author.fullName|slice(0,1)|upper }}
                             </div>
                         {% endif %}
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-medium text-slate-900 dark:text-white">{{ reply.author.fullName }}</span>
-                                <span class="text-xs text-slate-500 dark:text-slate-400">{{ reply.createdAt ? reply.createdAt|date('M j, Y, H:i') : '' }}</span>
+
+                        <div class="flex-1 min-w-0">
+                            {# Author & Meta #}
+                            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                <span class="font-semibold text-sm text-slate-900 dark:text-white hover:underline cursor-pointer">{{ reply.author.fullName }}</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">{{ reply.createdAt|date('M j, H:i') }}</span>
                                 {% if reply.updatedAt %}
-                                    <span class="text-xs text-slate-400 dark:text-slate-500">(edited)</span>
-                                {% endif %}
-                                {% if depth > 0 %}
-                                    <span class="text-xs badge bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">↳ Reply</span>
+                                    <span class="text-xs text-slate-400">(edited)</span>
                                 {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    {# Edit/Delete buttons #}
-                    {% if currentUser and currentUser.id == reply.author.id %}
-                        <div class="flex items-center gap-2">
-                            <button onclick="editReplyForm({{ reply.id}}, `{{ reply.content|e('js') }}`)" class="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1">
-                                <i data-lucide="edit-2" class="w-3 h-3"></i>
-                                Edit
-                            </button>
-                            <button onclick="deleteReply({{ reply.id }})" class="text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i>
-                                Delete
-                            </button>
-                        </div>
-                    {% endif %}
-                </div>
+                            {# Reply Content #}
+                            <div class="reply-content-{{ reply.id }} prose prose-sm dark:prose-invert max-w-none mb-3" data-reply-id="{{ reply.id }}"></div>
 
-                {# Reply Content - MARKDOWN RENDERED #}
-                <div class="reply-content-{{ reply.id }} prose prose-sm dark:prose-invert max-w-none mb-4" data-reply-id="{{ reply.id }}">
-                    {# Content rendered by JS #}
-                </div>
-
-                {# Edit Form #}
-                <div class="reply-edit-form-{{ reply.id }} hidden mb-4">
-                    <textarea class="input min-h-[120px] mb-2" id="edit-textarea-{{ reply.id }}"></textarea>
-                    <div class="flex gap-2">
-                        <button onclick="saveReplyEdit({{ reply.id }})" class="btn-primary text-sm px-4 py-2">
-                            Save Changes
-                        </button>
-                        <button onclick="cancelReplyEdit({{ reply.id }})" class="btn-outline text-sm px-4 py-2">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-
-                {# Reply Actions & Reactions #}
-                <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-navy-800">
-                    <div class="flex items-center gap-4">
-                        {# Reaction Button for Reply #}
-                        {% if currentUser %}
-                        <div class="reaction-trigger relative" data-reply-id="{{ reply.id }}">
-                            {% if replyData.userReaction %}
-                                <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
-                                    <span class="reaction-emoji text-lg">{{ emojiMap[replyData.userReaction] }}</span>
-                                    <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
-                                </button>
-                            {% else %}
-                                <button class="reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm font-medium">
-                                    <span class="reaction-emoji text-lg">👍</span>
-                                    {% if totalReplyReactions > 0 %}
-                                        <span class="reaction-count font-semibold">{{ totalReplyReactions }}</span>
-                                    {% else %}
-                                        <span>React</span>
-                                    {% endif %}
-                                </button>
-                            {% endif %}
-
-                            {# Reaction Picker #}
-                            <div class="reaction-picker hidden absolute top-full left-0 mt-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-2.5 flex items-center gap-1.5 z-20">
-                                {% for reactionType, emoji in emojiMap %}
-                                    <button 
-                                        class="reaction-btn group relative hover:scale-110 transition-all duration-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-700"
-                                        data-url="{{ path('community_react_reply', {'id': reply.id}) }}"
-                                        data-type="{{ reactionType }}"
-                                        data-target="reply"
-                                        data-id="{{ reply.id }}"
-                                        title="{{ reactionType|capitalize }}"
-                                    >
-                                        <span class="text-2xl">{{ emoji }}</span>
-                                        <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                            {{ reactionType|capitalize }}
-                                        </span>
-                                    </button>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        {# Reply to Reply Button #}
-                        {% if depth < 5 %}
-                            <button onclick="showReplyForm({{ reply.id }})" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all text-sm font-medium">
-                                <i data-lucide="corner-down-right" class="w-4 h-4"></i>
-                                <span>Reply</span>
-                            </button>
-                        {% endif %}
-                        {% else %}
-                            <a href="{{ path('auth_login') }}" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all text-sm font-medium">
-                                <span class="text-lg">👍</span>
-                                <span>Sign in</span>
-                            </a>
-                        {% endif %}
-                    </div>
-
-                    {# Show reaction breakdown #}
-                    {% if replyData.counts|length > 0 %}
-                        <div class="flex items-center gap-2">
-                            {% for type, count in replyData.counts %}
-                                <div class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 dark:bg-navy-800 text-xs">
-                                    <span>{{ emojiMap[type] }}</span>
-                                    <span class="font-semibold text-slate-600 dark:text-slate-400">{{ count }}</span>
+                            {# Edit Form #}
+                            <div class="reply-edit-form-{{ reply.id }} hidden mb-3 space-y-2">
+                                <textarea class="input text-sm min-h-[100px]" id="edit-textarea-{{ reply.id }}"></textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="saveReplyEdit({{ reply.id }})" class="btn-primary text-xs px-3 py-1">Save</button>
+                                    <button onclick="cancelReplyEdit({{ reply.id }})" class="btn-outline text-xs px-3 py-1">Cancel</button>
                                 </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+                            </div>
 
-                {# Nested Reply Form (hidden by default) #}
-                <div id="reply-form-{{ reply.id }}" class="hidden mt-4 pl-4 border-l-2 border-emerald-500">
-                    <textarea 
-                        id="reply-textarea-{{ reply.id }}" 
-                        class="input min-h-[100px] mb-2" 
-                        placeholder="Write your reply..."
-                    ></textarea>
-                    <div class="flex gap-2">
-                        <button onclick="submitNestedReply({{ reply.id }})" class="btn-primary text-sm px-4 py-2">
-                            <i data-lucide="send" class="w-4 h-4 mr-1"></i>
-                            Post Reply
-                        </button>
-                        <button onclick="hideReplyForm({{ reply.id }})" class="btn-outline text-sm px-4 py-2">
-                            Cancel
-                        </button>
+                            {# Action Buttons #}
+                            <div class="flex items-center gap-3 flex-wrap">
+                                {# Reactions - BACK TO EMOJI #}
+                                {% if currentUser %}
+                                    <div class="reaction-trigger relative" data-reply-id="{{ reply.id }}">
+                                        {% if replyData.userReaction %}
+                                            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
+                                                <span class="reaction-emoji text-lg">{{ emojiMap[replyData.userReaction] }}</span>
+                                                {% if totalReactions > 0 %}<span class="reaction-count font-semibold">{{ totalReactions }}</span>{% endif %}
+                                            </button>
+                                        {% else %}
+                                            <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm">
+                                                <span class="text-lg">👍</span>
+                                                {% if totalReactions > 0 %}<span class="font-semibold">{{ totalReactions }}</span>{% endif %}
+                                            </button>
+                                        {% endif %}
+
+                                        <div class="reaction-picker hidden absolute top-full left-0 mt-1 bg-white dark:bg-navy-800 rounded-xl shadow-2xl border border-slate-200 dark:border-navy-700 p-2 flex gap-1 z-30">
+                                            {% for reactionType, emoji in emojiMap %}
+                                                <button 
+                                                    class="reaction-btn hover:scale-110 transition-transform p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-navy-700"
+                                                    data-url="{{ path('community_react_reply', {'id': reply.id}) }}"
+                                                    data-type="{{ reactionType }}"
+                                                    data-target="reply"
+                                                    data-id="{{ reply.id }}"
+                                                >
+                                                    <span class="text-lg">{{ emoji }}</span>
+                                                </button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    {# Reply Button #}
+                                    {% if depth < 5 %}
+                                        <button onclick="toggleNestedReplyForm({{ reply.id }})" class="text-xs text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                                            <i data-lucide="corner-down-right" class="w-3 h-3 inline mr-1"></i>
+                                            Reply
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{{ path('auth_login') }}" class="text-xs text-slate-600 dark:text-slate-400 hover:text-emerald-600 font-medium px-2 py-1">
+                                        Sign in to react
+                                    </a>
+                                {% endif %}
+
+                                {# Edit/Delete #}
+                                {% if currentUser and currentUser.id == reply.author.id %}
+                                    <button onclick="editReplyForm({{ reply.id}}, `{{ reply.content|e('js') }}`)" class="text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 font-medium px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-navy-800">
+                                        Edit
+                                    </button>
+                                    <button onclick="deleteReply({{ reply.id }})" class="text-xs text-slate-600 dark:text-slate-400 hover:text-red-600 font-medium px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-navy-800">
+                                        Delete
+                                    </button>
+                                {% endif %}
+
+                                {# Share #}
+                                <button class="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-navy-800">
+                                    Share
+                                </button>
+                            </div>
+
+                            {# Nested Reply Form #}
+                            <div id="nested-reply-form-{{ reply.id }}" class="hidden mt-3 pl-4 border-l-2 border-emerald-500 space-y-2">
+                                <textarea 
+                                    id="nested-reply-textarea-{{ reply.id }}" 
+                                    class="input text-sm min-h-[80px]" 
+                                    placeholder="Write a reply..."
+                                ></textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="submitNestedReply({{ reply.id }})" class="btn-primary text-xs px-3 py-1">
+                                        <i data-lucide="send" class="w-3 h-3 mr-1"></i>
+                                        Reply
+                                    </button>
+                                    <button onclick="toggleNestedReplyForm({{ reply.id }})" class="btn-outline text-xs px-3 py-1">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </article>
 
-    {# Recursively render nested replies #}
-    {% if reply.replies|length > 0 %}
-        <div class="space-y-4 mt-4">
-            {% for nestedReply in reply.replies %}
-                {{ _self.render_reply(nestedReply, replyReactionData, emojiMap, currentUser, depth + 1) }}
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endmacro %}
-
-        {# Write Answer Form #}
-        {% if app.user %}
-        <div class="card p-6">
-            <h3 class="text-lg font-display font-bold text-slate-900 dark:text-white mb-4">Your Answer</h3>
-
-            <form action="{{ path('community_reply', {id: post.id}) }}" method="post">
-                <div class="mb-4">
-                    <textarea name="content" class="input min-h-[200px]" placeholder="Write your answer here... Use Markdown for formatting." required>{{ app.request.get('content')|e }}</textarea>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <p class="text-sm text-slate-500 dark:text-slate-400">
-                        <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-                        Markdown formatting is supported
-                    </p>
-                    <button type="submit" class="btn-primary">
-                        <i data-lucide="send" class="w-4 h-4 mr-2"></i>
-                        Post Answer
+                {# Collapsed State Message #}
+                <div class="reply-collapsed-message-{{ reply.id }} hidden">
+                    <button onclick="toggleReplyThread({{ reply.id }})" class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 py-1 transition-colors">
+                        <i data-lucide="plus-square" class="w-4 h-4"></i>
+                        <span class="font-medium">{{ reply.author.fullName }}</span>
+                        {% if hasNested %}
+                            <span>collapsed {{ replyCount }} {{ replyCount == 1 ? 'reply' : 'replies' }}</span>
+                        {% endif %}
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
-        {% else %}
-        <div class="card p-6 text-center">
-            <p class="text-slate-600 dark:text-slate-400 mb-4">
-                Please sign in to post an answer
-            </p>
-            <a href="{{ path('auth_login') }}" class="btn-primary inline-flex items-center">
-                <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
-                Sign In
-            </a>
-        </div>
+
+        {# Nested Replies #}
+        {% if hasNested %}
+            <div class="nested-replies-{{ reply.id }}">
+                {% for nestedReply in reply.replies %}
+                    {{ _self.render_reply_reddit(nestedReply, replyReactionData, emojiMap, currentUser, depth + 1, loop.index) }}
+                {% endfor %}
+            </div>
         {% endif %}
     </div>
-</div>
+{% endmacro %}
 
 {# Report Modal #}
-<div id="report-modal" class="hidden fixed inset-0 z-50 bg-navy-950/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeReportModal()">
-    <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-strong w-full max-w-md" onclick="event.stopPropagation()">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-display font-bold text-slate-900 dark:text-white">Report Post</h3>
-                <button onclick="closeReportModal()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
-                    <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
-                </button>
-            </div>
+<div id="report-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onclick="closeReportModal()">
+    <div class="min-h-screen p-4 flex items-center justify-center">
+        <div class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-display font-bold text-slate-900 dark:text-white">Report Post</h3>
+                    <button onclick="closeReportModal()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
-            <form id="report-form" onsubmit="submitReport(event)">
-                <div class="space-y-4">
+                <form id="report-form" onsubmit="submitReport(event)" class="space-y-4">
                     <div>
-                        <label class="input-label">Why are you reporting this post?</label>
+                        <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Reason</label>
                         <select name="reason" required class="input">
-                            <option value="">Select a reason...</option>
-                            <option value="spam">Spam or advertising</option>
-                            <option value="harassment">Harassment or bullying</option>
-                            <option value="inappropriate">Inappropriate content</option>
-                            <option value="misinformation">False or misleading information</option>
-                            <option value="off_topic">Off-topic or irrelevant</option>
+                            <option value="">Select...</option>
+                            <option value="spam">Spam</option>
+                            <option value="harassment">Harassment</option>
+                            <option value="inappropriate">Inappropriate</option>
+                            <option value="misinformation">Misinformation</option>
+                            <option value="off_topic">Off-topic</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="input-label">Additional details (optional)</label>
-                        <textarea name="description" rows="4" class="textarea" placeholder="Please provide more context..."></textarea>
+                        <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Details</label>
+                        <textarea name="description" rows="4" class="input" placeholder="Additional context..."></textarea>
                     </div>
-
-                    <div class="flex items-center gap-3 pt-4">
-                        <button type="button" onclick="closeReportModal()" class="btn-outline flex-1">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn-danger flex-1">
-                            <i data-lucide="flag" class="w-4 h-4"></i>
-                            Submit Report
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeReportModal()" class="btn-outline flex-1">Cancel</button>
+                        <button type="submit" class="btn bg-red-600 hover:bg-red-700 text-white flex-1">
+                            <i data-lucide="flag" class="w-4 h-4 mr-2"></i>
+                            Report
                         </button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -495,272 +626,265 @@
 
 {% block javascripts %}
 {{ parent() }}
-
-{# Markdown parser and syntax highlighting #}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/javascript.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/python.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/php.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/java.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/css.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/sql.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
 
 <script>
     lucide.createIcons();
-
-    // Configure marked for syntax highlighting
     marked.setOptions({
-        highlight: function(code, lang) {
-            if (lang && hljs.getLanguage(lang)) {
-                try {
-                    return hljs.highlight(code, { language: lang }).value;
-                } catch (err) {}
-            }
-            return hljs.highlightAuto(code).value;
-        },
+        highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
         breaks: true,
         gfm: true
     });
 
-    // Render post content
-    const postContent = {{ post.content|json_encode|raw }};
-    const contentDiv = document.getElementById('post-content');
-    if (contentDiv && postContent) {
-        contentDiv.innerHTML = marked.parse(postContent);
-        lucide.createIcons();
-    }
-
-    // Render reply content
-    const replyContents = {
-        {% for reply in post.replies %}
-        {{ reply.id }}: {{ reply.content|json_encode|raw }}{{ loop.last ? '' : ',' }}
-        {% endfor %}
-    };
-
-    Object.keys(replyContents).forEach(replyId => {
-        const el = document.querySelector(`[data-reply-id="${replyId}"]`);
-        if (el) {
-            el.innerHTML = marked.parse(replyContents[replyId]);
-        }
+    // Render content
+    document.getElementById('post-content').innerHTML = marked.parse({{ post.content|json_encode|raw }});
+    
+    const replyContents = { {% for reply in post.replies %}{{ reply.id }}: {{ reply.content|json_encode|raw }}{{ loop.last ? '' : ',' }}{% endfor %} };
+    Object.keys(replyContents).forEach(id => {
+        const el = document.querySelector(`[data-reply-id="${id}"]`);
+        if (el) el.innerHTML = marked.parse(replyContents[id]);
     });
 
-    // Reaction emoji mapping
-    const reactionEmojis = {
-        'like': '👍',
-        'love': '❤️',
-        'haha': '😂',
-        'wow': '😮',
-        'sad': '😢',
-        'angry': '😡'
-    };
+    lucide.createIcons();
 
-    // Show/hide reaction picker
+    // Reactions
+    const reactionEmojis = {'like':'👍','love':'❤️','haha':'😂','wow':'😮','sad':'😢','angry':'😡'};
+
     document.querySelectorAll('.reaction-trigger').forEach(trigger => {
         const picker = trigger.querySelector('.reaction-picker');
+        const btn = trigger.querySelector('.reaction-current-btn');
+        if (!picker || !btn) return;
+
+        let timeout;
+        trigger.addEventListener('mouseenter', () => { clearTimeout(timeout); picker.classList.remove('hidden'); });
+        trigger.addEventListener('mouseleave', () => { timeout = setTimeout(() => picker.classList.add('hidden'), 200); });
+        btn.addEventListener('click', (e) => { e.stopPropagation(); picker.classList.toggle('hidden'); });
+    });
+
+    document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.reaction-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    btn.disabled = true;
+
+    fetch(btn.dataset.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: new URLSearchParams({ type: btn.dataset.type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.ok) return;
+        const trigger = document.querySelector(`.reaction-trigger[data-${btn.dataset.target}-id="${btn.dataset.id}"]`);
+        if (!trigger) return;
+
         const currentBtn = trigger.querySelector('.reaction-current-btn');
-        
-        if (!picker || !currentBtn) return;
-        
-        let hideTimeout;
+        const emoji = currentBtn.querySelector('.reaction-emoji');
+        let count = currentBtn.querySelector('.reaction-count');
 
-        const showPicker = () => {
-            clearTimeout(hideTimeout);
-            picker.classList.remove('hidden');
-        };
-
-        const hidePicker = () => {
-            hideTimeout = setTimeout(() => {
-                picker.classList.add('hidden');
-            }, 200);
-        };
-
-        trigger.addEventListener('mouseenter', showPicker);
-        trigger.addEventListener('mouseleave', hidePicker);
-        
-        currentBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (picker.classList.contains('hidden')) {
-                showPicker();
+        if (data.userReaction) {
+            // Update emoji
+            if (emoji) {
+                emoji.textContent = reactionEmojis[data.userReaction];
             } else {
-                hidePicker();
+                // If emoji span doesn't exist, find the text node and replace it
+                const textNode = Array.from(currentBtn.childNodes).find(node => node.nodeType === 3);
+                if (textNode) textNode.textContent = '';
+                const newEmoji = document.createElement('span');
+                newEmoji.className = 'reaction-emoji text-lg';
+                newEmoji.textContent = reactionEmojis[data.userReaction];
+                currentBtn.insertBefore(newEmoji, currentBtn.firstChild);
             }
-        });
-    });
-
-    // Handle reaction button clicks
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.reaction-btn');
-        if (!btn) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        const url = btn.dataset.url;
-        const type = btn.dataset.type;
-        const target = btn.dataset.target;
-        const id = btn.dataset.id;
-
-        btn.disabled = true;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({ type: type })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (!data || !data.ok) {
-                console.error('Reaction failed', data);
-                return;
+            
+            if (!count) { 
+                count = document.createElement('span'); 
+                count.className = 'reaction-count font-semibold'; 
+                currentBtn.appendChild(count); 
             }
-
-            let trigger;
-            if (target === 'post') {
-                trigger = document.querySelector(`.reaction-trigger[data-post-id="${id}"]`);
+            count.textContent = data.total;
+            
+            currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium';
+        } else {
+            // Reset to thumbs up
+            if (emoji) {
+                emoji.textContent = '👍';
             } else {
-                trigger = document.querySelector(`.reaction-trigger[data-reply-id="${id}"]`);
+                currentBtn.innerHTML = '<span class="text-lg">👍</span>';
             }
-
-            if (!trigger) return;
-
-            const currentBtn = trigger.querySelector('.reaction-current-btn');
-            const emojiSpan = currentBtn.querySelector('.reaction-emoji');
-            let countSpan = currentBtn.querySelector('.reaction-count');
-            const picker = trigger.querySelector('.reaction-picker');
-
-            if (data.userReaction) {
-                emojiSpan.textContent = reactionEmojis[data.userReaction];
-                
-                if (!countSpan) {
-                    countSpan = document.createElement('span');
-                    countSpan.className = 'reaction-count';
-                    currentBtn.appendChild(countSpan);
-                }
-                countSpan.textContent = data.total;
-
-                if (target === 'post') {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border-2 border-emerald-200 dark:border-emerald-800 font-semibold';
+            if (count) {
+                if (data.total > 0) {
+                    count.textContent = data.total;
                 } else {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-sm font-medium';
-                }
-            } else {
-                emojiSpan.textContent = '👍';
-                
-                if (countSpan) {
-                    if (data.total > 0) {
-                        countSpan.textContent = data.total;
-                    } else {
-                        countSpan.remove();
-                    }
-                }
-
-                if (target === 'post') {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border-2 border-slate-200 dark:border-navy-700 font-semibold';
-                } else {
-                    currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm font-medium';
+                    count.remove();
                 }
             }
-
-            picker.classList.add('hidden');
-        })
-        .catch(err => {
-            console.error('Reaction request error', err);
-        })
-        .finally(() => {
-            btn.disabled = false;
-        });
-    });
-
-    // Close picker when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.reaction-trigger')) {
-            document.querySelectorAll('.reaction-picker').forEach(picker => {
-                picker.classList.add('hidden');
-            });
+            currentBtn.className = 'reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-all border border-slate-200 dark:border-navy-700 text-sm';
         }
-    });
 
-    // Reply Edit Functions
-    function editReplyForm(replyId, currentContent) {
-        document.querySelector(`.reply-content-${replyId}`).classList.add('hidden');
-        document.querySelector(`.reply-edit-form-${replyId}`).classList.remove('hidden');
-        document.getElementById(`edit-textarea-${replyId}`).value = currentContent;
+        trigger.querySelector('.reaction-picker').classList.add('hidden');
+    })
+    .finally(() => btn.disabled = false);
+});
+
+    // Quick Reply Box
+    function expandReplyBox() {
+        document.getElementById('quick-reply-collapsed').classList.add('hidden');
+        document.getElementById('quick-reply-expanded').classList.remove('hidden');
+        document.getElementById('quick-reply-textarea').focus();
         lucide.createIcons();
     }
 
-    function cancelReplyEdit(replyId) {
-        document.querySelector(`.reply-content-${replyId}`).classList.remove('hidden');
-        document.querySelector(`.reply-edit-form-${replyId}`).classList.add('hidden');
+    function collapseReplyBox() {
+        document.getElementById('quick-reply-collapsed').classList.remove('hidden');
+        document.getElementById('quick-reply-expanded').classList.add('hidden');
+        document.getElementById('quick-reply-textarea').value = '';
     }
 
-    function saveReplyEdit(replyId) {
-        const content = document.getElementById(`edit-textarea-${replyId}`).value.trim();
+    // Toggle Reply Thread
+    function toggleReplyThread(replyId) {
+        const thread = document.getElementById(`reply-thread-${replyId}`);
+        const contentWrapper = thread.querySelector(`.reply-content-wrapper-${replyId}`);
+        const collapsedMessage = thread.querySelector(`.reply-collapsed-message-${replyId}`);
+        const nestedReplies = thread.querySelector(`.nested-replies-${replyId}`);
+
+        if (contentWrapper.classList.contains('hidden')) {
+            contentWrapper.classList.remove('hidden');
+            collapsedMessage.classList.add('hidden');
+            if (nestedReplies) nestedReplies.classList.remove('hidden');
+        } else {
+            contentWrapper.classList.add('hidden');
+            collapsedMessage.classList.remove('hidden');
+            if (nestedReplies) nestedReplies.classList.add('hidden');
+        }
         
-        if (!content) {
-            alert('Reply content cannot be empty');
-            return;
-        }
-
-        fetch(`/community/reply/${replyId}/edit`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({ content: content })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                const contentDiv = document.querySelector(`[data-reply-id="${replyId}"]`);
-                contentDiv.innerHTML = marked.parse(data.content);
-                cancelReplyEdit(replyId);
-                alert('Reply updated successfully!');
-            } else {
-                alert('Error: ' + (data.error || 'Failed to update reply'));
-            }
-        })
-        .catch(err => {
-            console.error('Edit error:', err);
-            alert('Failed to update reply');
-        });
+        lucide.createIcons();
     }
 
-    function deleteReply(replyId) {
-        if (!confirm('Are you sure you want to delete this reply? This cannot be undone.')) {
-            return;
-        }
-
-        fetch(`/community/reply/${replyId}/delete`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+    // Collapse All
+    function collapseAllReplies() {
+        document.querySelectorAll('.reply-thread').forEach(thread => {
+            const replyId = thread.id.replace('reply-thread-', '');
+            const contentWrapper = thread.querySelector(`.reply-content-wrapper-${replyId}`);
+            const collapsedMessage = thread.querySelector(`.reply-collapsed-message-${replyId}`);
+            const nestedReplies = thread.querySelector(`.nested-replies-${replyId}`);
+            
+            if (thread.dataset.depth > 0) {
+                contentWrapper.classList.add('hidden');
+                collapsedMessage.classList.remove('hidden');
+                if (nestedReplies) nestedReplies.classList.add('hidden');
             }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                document.getElementById(`reply-${replyId}`).remove();
-                alert('Reply deleted successfully');
-            } else {
-                alert('Error: ' + (data.error || 'Failed to delete reply'));
-            }
-        })
-        .catch(err => {
-            console.error('Delete error:', err);
-            alert('Failed to delete reply');
         });
+        lucide.createIcons();
     }
 
-    // Report Modal Functions
+    // Toggle Nested Reply Form
+    function toggleNestedReplyForm(replyId) {
+        const form = document.getElementById(`nested-reply-form-${replyId}`);
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            document.getElementById(`nested-reply-textarea-${replyId}`).focus();
+        } else {
+            form.classList.add('hidden');
+            document.getElementById(`nested-reply-textarea-${replyId}`).value = '';
+        }
+        lucide.createIcons();
+    }
+
+    // Sort Replies
+    function sortReplies(sortBy) {
+        console.log('Sort by:', sortBy);
+        // TODO: Implement sorting
+    }
+
+    // Reply Functions
+    function editReplyForm(id, content) {
+        document.querySelector(`.reply-content-${id}`).classList.add('hidden');
+        document.querySelector(`.reply-edit-form-${id}`).classList.remove('hidden');
+        document.getElementById(`edit-textarea-${id}`).value = content;
+    }
+
+    function cancelReplyEdit(id) {
+        document.querySelector(`.reply-content-${id}`).classList.remove('hidden');
+        document.querySelector(`.reply-edit-form-${id}`).classList.add('hidden');
+    }
+
+    async function saveReplyEdit(id) {
+        const content = document.getElementById(`edit-textarea-${id}`).value.trim();
+        if (!content) return alert('Reply cannot be empty');
+
+        const res = await fetch(`/community/reply/${id}/edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams({ content })
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+            document.querySelector(`[data-reply-id="${id}"]`).innerHTML = marked.parse(data.content);
+            cancelReplyEdit(id);
+            lucide.createIcons();
+        } else alert(data.error || 'Failed');
+    }
+
+    async function deleteReply(id) {
+        if (!confirm('Delete this reply?')) return;
+        const res = await fetch(`/community/reply/${id}/delete`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        if (data.ok) document.getElementById(`reply-thread-${id}`).remove();
+        else alert('Failed');
+    }
+
+    async function submitNestedReply(parentId) {
+        const content = document.getElementById(`nested-reply-textarea-${parentId}`).value.trim();
+        if (!content) return alert('Reply cannot be empty');
+
+        const res = await fetch(`/community/reply/${parentId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams({ content })
+        });
+
+        const data = await res.json();
+        if (data.ok) location.reload();
+        else alert(data.error || 'Failed');
+    }
+
+    async function generateReply(postId) {
+        const textarea = document.querySelector('#quick-reply-textarea');
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Generating...';
+        lucide.createIcons();
+
+        try {
+            const res = await fetch('/community/ai-generate-reply', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId })
+            });
+
+            const data = await res.json();
+            if (data.success) textarea.value = data.reply;
+            else alert('AI generation failed');
+        } catch (e) {
+            alert('Error generating reply');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            lucide.createIcons();
+        }
+    }
+
     function openReportModal() {
         document.getElementById('report-modal').classList.remove('hidden');
-        document.getElementById('report-form').reset();
         lucide.createIcons();
     }
 
@@ -768,207 +892,72 @@
         document.getElementById('report-modal').classList.add('hidden');
     }
 
-    function submitReport(event) {
-        event.preventDefault();
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Submitting...';
-        lucide.createIcons();
-        
-        fetch('{{ path("community_report_post", {"id": post.id}) }}', {
+    async function submitReport(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const res = await fetch('{{ path("community_report_post", {"id": post.id}) }}', {
             method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                alert(data.message || 'Report submitted successfully.');
-                closeReportModal();
-            } else {
-                alert(data.error || 'Failed to submit report.');
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('Failed to submit report.');
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i data-lucide="flag" class="w-4 h-4"></i> Submit Report';
-            lucide.createIcons();
-        });
-    }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeReportModal();
-        }
-    });
-
-    // Show reply form for nested replies
-function showReplyForm(replyId) {
-    const form = document.getElementById(`reply-form-${replyId}`);
-    if (form) {
-        form.classList.remove('hidden');
-        document.getElementById(`reply-textarea-${replyId}`).focus();
-        lucide.createIcons();
-    }
-}
-
-// Hide reply form
-function hideReplyForm(replyId) {
-    const form = document.getElementById(`reply-form-${replyId}`);
-    if (form) {
-        form.classList.add('hidden');
-        document.getElementById(`reply-textarea-${replyId}`).value = '';
-    }
-}
-
-// Submit nested reply
-async function submitNestedReply(parentReplyId) {
-    const textarea = document.getElementById(`reply-textarea-${parentReplyId}`);
-    const content = textarea.value.trim();
-
-    if (!content) {
-        alert('Reply cannot be empty');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/community/reply/${parentReplyId}/reply`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({ content: content })
         });
 
-        const data = await response.json();
-
-        if (data.ok) {
-            alert('Reply posted! Page will reload to show nested reply.');
-            location.reload(); // Reload to show new nested reply
-        } else {
-            alert('Error: ' + (data.error || 'Failed to post reply'));
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to post reply');
+        const data = await res.json();
+        alert(data.message || data.error || 'Report submitted');
+        if (data.ok) closeReportModal();
     }
-}
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReportModal(); });
 </script>
 
 <style>
-/* Markdown prose styles */
-.prose {
-    color: rgb(51 65 85);
-    line-height: 1.75;
-}
-.dark .prose {
-    color: rgb(226 232 240);
-}
-.prose p {
-    margin: 1.25em 0;
-}
-.prose strong {
-    font-weight: 700;
-    color: rgb(15 23 42);
-}
-.dark .prose strong {
-    color: rgb(248 250 252);
-}
-.prose code {
-    background: rgb(241 245 249);
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.375rem;
-    font-size: 0.875em;
-    font-family: 'Courier New', monospace;
-}
-.dark .prose code {
-    background: rgb(30 41 59);
-    color: rgb(248 250 252);
-}
-.prose pre {
-    background: rgb(15 23 42);
-    padding: 1rem;
-    border-radius: 0.75rem;
-    overflow-x: auto;
-    margin: 1.5rem 0;
-}
-.prose pre code {
-    background: transparent;
-    padding: 0;
-    color: rgb(226 232 240);
-    font-size: 0.875em;
-}
-.prose img {
-    border-radius: 0.75rem;
-    max-width: 100%;
-    height: auto;
-    margin: 1.5rem 0;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-.prose a {
-    color: rgb(16 185 129);
-    text-decoration: underline;
-}
-.prose a:hover {
-    color: rgb(5 150 105);
-}
-.prose ul, .prose ol {
-    padding-left: 1.75rem;
-    margin: 1.25rem 0;
-}
-.prose li {
-    margin: 0.5rem 0;
-}
-.prose blockquote {
-    border-left: 4px solid rgb(16 185 129);
-    padding-left: 1rem;
-    margin: 1.5rem 0;
-    font-style: italic;
-    color: rgb(100 116 139);
-}
-.dark .prose blockquote {
-    border-left-color: rgb(16 185 129);
-    color: rgb(148 163 184);
-}
-.prose h1, .prose h2, .prose h3, .prose h4 {
-    font-weight: 700;
-    margin-top: 2em;
-    margin-bottom: 1em;
-    color: rgb(15 23 42);
-}
-.dark .prose h1, .dark .prose h2, .dark .prose h3, .dark .prose h4 {
-    color: rgb(248 250 252);
-}
-.prose h1 { font-size: 2.25em; }
-.prose h2 { font-size: 1.875em; }
-.prose h3 { font-size: 1.5em; }
-.prose h4 { font-size: 1.25em; }
+.prose { color: rgb(51 65 85); line-height: 1.75; }
+.dark .prose { color: rgb(226 232 240); }
+.prose p { margin: 1.25em 0; }
+.prose code { background: rgb(241 245 249); padding: 0.2rem 0.4rem; border-radius: 0.375rem; font-size: 0.875em; }
+.dark .prose code { background: rgb(30 41 59); }
+.prose pre { background: rgb(15 23 42); padding: 1rem; border-radius: 0.75rem; margin: 1.5rem 0; overflow-x: auto; }
+.prose pre code { background: transparent; padding: 0; }
+.prose img { border-radius: 0.75rem; max-width: 100%; margin: 1.5rem 0; }
+.prose a { color: rgb(16 185 129); }
+.prose ul, .prose ol { padding-left: 1.75rem; margin: 1.25rem 0; }
+.prose blockquote { border-left: 4px solid rgb(16 185 129); padding-left: 1rem; margin: 1.5rem 0; font-style: italic; }
+.btn-outline-sm { @apply px-3 py-1.5 rounded-lg border-2 border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors text-sm font-medium flex items-center gap-1; }
 
-/* Code block scrollbar */
-.prose pre::-webkit-scrollbar {
-    height: 8px;
+/* Reddit-style collapse line */
+.collapse-line-btn {
+    cursor: pointer;
 }
-.prose pre::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+
+.collapse-line-btn:hover {
+    background: rgba(59, 130, 246, 0.1);
 }
-.prose pre::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
+
+/* Reply thread spacing */
+.reply-thread[data-depth="0"] {
+    margin-bottom: 0;
 }
-.prose pre::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+
+.reply-thread[data-depth="0"] > div > .card {
+    border-bottom: 1px solid rgb(226 232 240);
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+.dark .reply-thread[data-depth="0"] > div > .card {
+    border-bottom-color: rgb(30 41 59);
+}
+
+/* Smooth transitions */
+.reply-content-wrapper,
+.reply-collapsed-message,
+.nested-replies {
+    transition: all 0.2s ease;
+}
+
+/* Tree structure visual hierarchy */
+.reply-thread {
+    position: relative;
 }
 </style>
 {% endblock %}

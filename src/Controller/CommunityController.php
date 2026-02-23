@@ -46,6 +46,38 @@ class CommunityController extends AbstractController
         $this->aiGenerator = $aiGenerator;
     }
 
+    #[Route('/community/ai-generate-reply', name: 'community_ai_generate_reply', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function aiGenerateReply(Request $request, AIGeneratorGroqService $aiGenerator): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $postId = (int) ($data['postId'] ?? 0);
+
+        if (!$postId) {
+            return $this->json(['success' => false, 'error' => 'Invalid post ID'], 400);
+        }
+
+        $post = $this->em->getRepository(Post::class)->find($postId);
+
+        if (!$post) {
+            return $this->json(['success' => false, 'error' => 'Post not found'], 404);
+        }
+
+        $result = $aiGenerator->generateReply(
+            $post->getTitle(),
+            $post->getContent()
+        );
+
+        if (!$result['success']) {
+            return $this->json(['success' => false, 'error' => $result['error']], 400);
+        }
+
+        return $this->json([
+            'success' => true,
+            'reply' => $result['content'],
+        ]);
+    }
+
     // Add new route
     #[Route('/community/ai-generate', name: 'community_ai_generate', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]

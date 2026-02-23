@@ -19,7 +19,7 @@ class AIGeneratorGroqService
 
     public function __construct(
         string $groqApiKey,
-        string $groqModelId, // e.g. 'gpt-oss-7b' — configure in services.yaml or parameters
+        string $groqModelId,
         HttpClientInterface $httpClient,
         LoggerInterface $logger,
         ModerationService $moderationService
@@ -75,16 +75,16 @@ class AIGeneratorGroqService
 
             if (isset($data['error'])) {
                 $this->logger->warning('Groq error', ['error' => $data['error']]);
-                return ['success' => false, 'error' => 'AI service returned an error: ' . (string)$data['error']];
+                return ['success' => false, 'error' => 'AI service returned an error: ' . (string) $data['error']];
             }
 
             // OpenAI-compatible response: choices[0].message.content
             $generated = '';
             if (!empty($data['choices'][0]['message']['content'])) {
-                $generated = (string)$data['choices'][0]['message']['content'];
+                $generated = (string) $data['choices'][0]['message']['content'];
             } elseif (!empty($data['choices'][0]['text'])) {
                 // some models/compatibility modes
-                $generated = (string)$data['choices'][0]['text'];
+                $generated = (string) $data['choices'][0]['text'];
             } else {
                 $this->logger->warning('Unexpected Groq response', ['raw' => $data]);
                 return ['success' => false, 'error' => 'Unexpected AI response format'];
@@ -202,5 +202,98 @@ PROMPT;
         $content = preg_replace('/\n{3,}/', "\n\n", $content);
         $content = preg_replace('/[\x00-\x1F\x7F]/u', '', $content);
         return $content;
+    }
+
+    /**
+     * Generate a short helpful reply for a given post (title + content).
+     *
+     * Returns:
+     *  [
+     *    'success' => bool,
+     *    'content' => string,    // the reply text
+     *    'error' => string|null
+     *  ]
+     */
+    public function generateReply(string $postTitle, string $postContent): array
+    {
+        if (empty($this->apiKey)) {
+            return ['success' => false, 'error' => 'AI service not configured'];
+        }
+
+        // Build a compact instruction for reply generation
+        $instruction = <<<PROMPT
+You are a helpful, concise community member. Read the post below and write a short, friendly, and practical reply (2-3 sentences). Be respectful and avoid profanity or threats.
+
+POST TITLE: {$postTitle}
+
+POST CONTENT:
+{$postContent}
+
+Write a reply (2-3 sentences):
+PROMPT;
+
+        try {
+            $payload = [
+                'model' => $this->modelId,
+                'messages' => [
+                    ['role' => 'system', 'content' => 'You are a helpful community member. Keep replies short and polite.'],
+                    ['role' => 'user', 'content' => $instruction]
+                ],
+                'max_tokens' => 150,
+                'temperature' => 0.6
+            ];
+
+            $response = $this->httpClient->request('POST', self::GROQ_BASE, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload,
+                'timeout' => self::TIMEOUT,
+            ]);
+
+            $data = $response->toArray(false);
+
+            if (isset($data['error'])) {
+                $this->logger->warning('Groq reply error', ['error' => $data['error']]);
+                // Provide a friendly error message for the frontend
+                return ['success' => false, 'error' => $data['error']['message'] ?? 'AI service error'];
+            }
+
+            // OpenAI-compatible parsing
+            $generated = '';
+            if (!empty($data['choices'][0]['message']['content'])) {
+                $generated = (string) $data['choices'][0]['message']['content'];
+            } elseif (!empty($data['choices'][0]['text'])) {
+                $generated = (string) $data['choices'][0]['text'];
+            } else {
+                $this->logger->warning('Unexpected Groq reply shape', ['raw' => $data]);
+                return ['success' => false, 'error' => 'Unexpected AI response format'];
+            }
+
+            // Clean up generated reply text
+            $replyText = $this->cleanContent($generated);
+            $replyText = trim($replyText);
+            // Limit reply length for safety
+            if (mb_strlen($replyText) > 1000) {
+                $replyText = mb_substr($replyText, 0, 1000);
+            }
+
+            // Run moderation to ensure generated reply is safe
+            $moderation = $this->moderationService->moderateContent($replyText);
+            if (!$moderation['safe']) {
+                $this->logger->warning('Generated reply blocked', [
+                    'scores' => $moderation['scores'],
+                    'categories' => $moderation['categories']
+                ]);
+                return ['success' => false, 'error' => 'Generated reply violates content policy.'];
+            }
+
+            return ['success' => true, 'content' => $replyText];
+
+        } catch (\Throwable $e) {
+            $this->logger->error('Groq reply generation exception', ['error' => $e->getMessage()]);
+            return ['success' => false, 'error' => 'AI generation failed: ' . $e->getMessage()];
+        }
     }
 }
