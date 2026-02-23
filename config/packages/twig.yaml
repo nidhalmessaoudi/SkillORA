@@ -5,7 +5,11 @@ twig:
     app_tagline: "Learn deeply. Grow visibly."
   form_themes:
     - "forms/admin_form_theme.html.twig"
+<<<<<<< HEAD
 
+=======
+    - "@FOSCKEditor/Form/ckeditor_widget.html.twig"
+>>>>>>> 496c29c (Integrating Rich Text Editor)
 when@test:
   twig:
     strict_variables: true

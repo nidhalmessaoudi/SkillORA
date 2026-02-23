@@ -1,0 +1,14 @@
+fos_ck_editor:
+  base_path: "https://cdn.ckeditor.com/4.22.1/standard"
+  js_path: "https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"
+
+  default_config: default
+  configs:
+    default:
+      toolbar:
+        - [Bold, Italic, Underline, Strike]
+        - [NumberedList, BulletedList]
+        - [Link, Unlink]
+        - [Undo, Redo]
+        - [Source]
+      uiColor: "#ffffff"

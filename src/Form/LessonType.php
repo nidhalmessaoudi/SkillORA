@@ -19,21 +19,24 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class LessonType extends AbstractType
 {
-    public function buildForm(
-        FormBuilderInterface $builder,
-        array $options,
-    ): void {
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
         $builder
             ->add("title", TextType::class)
             ->add("type", ChoiceType::class, [
                 "choices" => [
-                    "Text" => "text",
+                    "Text (Rich)" => "text",
                     "PDF" => "pdf",
                     "Video" => "video",
                 ],
             ])
             ->add("content", TextareaType::class, [
                 "required" => false,
+                "attr" => [
+                    "class" => "js-richtext",
+                    "rows" => 14,
+                ],
+                "help" => "Use the editor to write formatted content (only for Text lessons).",
             ])
             ->add("upload", FileType::class, [
                 "mapped" => false,
@@ -43,12 +46,11 @@ class LessonType extends AbstractType
                         "maxSize" => "500M",
                     ]),
                 ],
+                "help" => "Upload a PDF or video file (required for PDF/Video lessons).",
             ])
             ->add("position", IntegerType::class);
 
-        $builder->addEventListener(FormEvents::SUBMIT, function (
-            FormEvent $event,
-        ) {
+        $builder->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
             $lesson = $event->getData();
             $form = $event->getForm();
 
@@ -62,20 +64,17 @@ class LessonType extends AbstractType
             if ($type === "text") {
                 $content = $lesson->getContent();
                 if (empty(trim($content ?? ""))) {
-                    $lesson->setContent(""); // This will trigger NotBlank constraint
+                    $lesson->setContent(""); // triggers validation
                 }
             }
 
             // For PDF/Video lessons without existing file, ensure upload is present
             if ($type === "pdf" || $type === "video") {
                 $hasExistingFile = !empty(trim($lesson->getFilePath() ?? ""));
-                $uploadField = $form->get("upload");
-                $uploadedFile = $uploadField->getData();
+                $uploadedFile = $form->get("upload")->getData();
 
-                // Only require upload if there's no existing file
                 if (!$hasExistingFile && !$uploadedFile) {
-                    // Add a validation constraint dynamically
-                    $lesson->setFilePath(""); // Trigger validation
+                    $lesson->setFilePath(""); // triggers validation
                 }
             }
         });
@@ -86,10 +85,7 @@ class LessonType extends AbstractType
         $resolver->setDefaults([
             "data_class" => Lesson::class,
             "constraints" => [
-                new Callback(function (
-                    $lesson,
-                    ExecutionContextInterface $context,
-                ) {
+                new Callback(function ($lesson, ExecutionContextInterface $context) {
                     if (!$lesson instanceof Lesson) {
                         return;
                     }
@@ -101,9 +97,7 @@ class LessonType extends AbstractType
                         $content = trim($lesson->getContent() ?? "");
                         if ($content === "") {
                             $context
-                                ->buildViolation(
-                                    "Content is required for Text lessons.",
-                                )
+                                ->buildViolation("Content is required for Text lessons.")
                                 ->atPath("content")
                                 ->addViolation();
                         }
@@ -113,16 +107,12 @@ class LessonType extends AbstractType
                     if ($type === "pdf" || $type === "video") {
                         $filePath = trim($lesson->getFilePath() ?? "");
                         if ($filePath === "") {
-                            // Check if upload field has a file
                             $form = $context->getRoot();
-                            $uploadField = $form->get("upload");
-                            $uploadedFile = $uploadField->getData();
+                            $uploadedFile = $form->get("upload")->getData();
 
                             if (!$uploadedFile) {
                                 $context
-                                    ->buildViolation(
-                                        "Please upload a file for PDF/Video lessons.",
-                                    )
+                                    ->buildViolation("Please upload a file for PDF/Video lessons.")
                                     ->atPath("upload")
                                     ->addViolation();
                             }

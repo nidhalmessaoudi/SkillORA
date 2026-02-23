@@ -49,24 +49,26 @@
         </div>
       {% endif %}
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
+      {# ✅ 3 columns on md+ so first row can hold Title + Type + Position #}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-1">
           {{ form_row(form.title) }}
         </div>
 
-        <div>
+        <div class="md:col-span-1">
           {{ form_row(form.type) }}
         </div>
 
-        <div>
+        <div class="md:col-span-1">
           {{ form_row(form.position) }}
         </div>
 
-        <div id="lesson-content-row" class="md:col-span-2">
+        {# ✅ Editor full width #}
+        <div id="lesson-content-row" class="md:col-span-3">
           {{ form_row(form.content) }}
         </div>
 
-        <div id="lesson-upload-row" class="md:col-span-2">
+        <div id="lesson-upload-row" class="md:col-span-3">
           {{ form_row(form.upload) }}
         </div>
       </div>
@@ -83,6 +85,9 @@
   </div>
 </div>
 
+{# TinyMCE only on this page #}
+<script src="https://cdn.tiny.cloud/1/18vbmrfvds4qzicdip4q91liu9x5u5d9fulshc0kexufk5y3/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
 <script>
 (function () {
   const typeSelect = document.getElementById('{{ form.type.vars.id }}');
@@ -92,6 +97,171 @@
 
   const uploadHasErrors = {{ uploadHasErrors ? 'true' : 'false' }};
   const contentHasErrors = {{ contentHasErrors ? 'true' : 'false' }};
+
+  const textareaId = '{{ form.content.vars.id }}';
+
+  function getTextarea() {
+    return document.getElementById(textareaId);
+  }
+
+  function initTinyMCE() {
+    if (typeof tinymce === 'undefined') return;
+
+    const textarea = getTextarea();
+    if (!textarea) return;
+
+    if (tinymce.get(textareaId)) return;
+
+    tinymce.init({
+      target: textarea,
+      height: 520,
+      menubar: false,
+      branding: false,
+      statusbar: true,
+
+      // ✅ Image support added
+      plugins: 'autolink link lists table code fullscreen wordcount searchreplace visualblocks image',
+      toolbar: [
+        'undo redo | blocks |',
+        'bold italic underline strikethrough forecolor |',
+        'link image pdf |',
+        'bullist numlist outdent indent |',
+        'alignleft aligncenter alignright |',
+        'table |',
+        'visualblocks searchreplace |',
+        'code fullscreen'
+      ].join(' '),
+
+      images_upload_url: '{{ path("admin_lessons_images_upload", {courseId: course.id, sectionId: section.id}) }}',
+      images_upload_credentials: true,
+      automatic_uploads: true,
+      paste_data_images: true,
+      block_unsupported_drop: true,
+      image_caption: true,
+      image_advtab: true,
+      object_resizing: true,
+
+      constPdfUploadUrl: '{{ path("admin_lessons_files_upload", {courseId: course.id, sectionId: section.id}) }}',
+
+      // ✅ Better link behavior
+      link_default_protocol: 'https',
+      link_assume_external_targets: true,
+      link_context_toolbar: true,
+      default_link_target: '_blank',
+
+      block_formats: 'Paragraph=p; Heading 1=h2; Heading 2=h3; Heading 3=h4; Quote=blockquote',
+
+      content_style: `
+        body {
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+          font-size: 15px;
+          line-height: 1.7;
+          padding: 12px;
+        }
+        h2,h3,h4 { margin: 0.8em 0 0.4em; }
+        p { margin: 0 0 0.85em; }
+        blockquote {
+          border-left: 4px solid #e5e7eb;
+          margin: 1em 0;
+          padding: 0.25em 0 0.25em 1em;
+          color: #374151;
+        }
+        pre {
+          background: #111827;
+          color: #f9fafb;
+          padding: 12px;
+          border-radius: 12px;
+          overflow-x: auto;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 12px;
+          margin: 0.75rem 0;
+        }
+        table { border-collapse: collapse; width: 100%; }
+        table, th, td { border: 1px solid #e5e7eb; }
+        th, td { padding: 8px; }
+        a { color: #2563eb; }
+      `,
+
+      setup: function (editor) {
+        editor.on('change keyup', function () { editor.save(); });
+
+        const uploadPdfUrl = '{{ path("admin_lessons_files_upload", {courseId: course.id, sectionId: section.id}) }}';
+
+        async function uploadPdf(file) {
+          const fd = new FormData();
+          fd.append('file', file);
+
+          const res = await fetch(uploadPdfUrl, {
+            method: 'POST',
+            body: fd,
+            credentials: 'include' // ✅ keep Symfony session
+          });
+
+          if (!res.ok) {
+            let msg = 'Upload failed.';
+            try {
+              const data = await res.json();
+              if (data && data.error) msg = data.error;
+            } catch (e) {}
+            throw new Error(msg);
+          }
+
+          return await res.json(); // { location, filename }
+        }
+
+        editor.ui.registry.addButton('pdf', {
+          text: 'PDF',
+          tooltip: 'Upload PDF',
+          onAction: function () {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/pdf,.pdf';
+
+            input.onchange = async () => {
+              const file = input.files && input.files[0];
+              if (!file) return;
+
+              try {
+                editor.setProgressState(true);
+                const data = await uploadPdf(file);
+                const url = data.location;
+                const filename = (data.filename || file.name || 'PDF').replace(/</g, '&lt;');
+
+                // Choose link vs embed (simple prompt)
+                const mode = window.confirm('Embed PDF preview in the lesson?\n\nOK = Embed preview\nCancel = Insert download link');
+
+                if (mode) {
+                  editor.insertContent(
+                    `<div class="pdf-embed" style="margin:1rem 0;">
+                      <iframe src="${url}" style="width:100%;height:75vh;border:1px solid #e5e7eb;border-radius:12px;"></iframe>
+                    </div>`
+                  );
+                } else {
+                  editor.insertContent(`<p><a href="${url}" target="_blank" rel="noopener noreferrer">${filename}</a></p>`);
+                }
+              } catch (e) {
+                editor.notificationManager.open({ text: e.message || 'Upload failed.', type: 'error' });
+              } finally {
+                editor.setProgressState(false);
+                editor.save();
+              }
+            };
+
+            input.click();
+          }
+        });
+      }
+    });
+  }
+
+  function destroyTinyMCE() {
+    if (typeof tinymce === 'undefined') return;
+    const ed = tinymce.get(textareaId);
+    if (ed) { ed.save(); ed.remove(); }
+  }
 
   function syncLessonTypeFields() {
     const v = (typeSelect && typeSelect.value) ? typeSelect.value : 'text';
@@ -106,19 +276,20 @@
     }
 
     if (uploadInput) {
-      if (v === 'pdf') {
-        uploadInput.setAttribute('accept', 'application/pdf,.pdf');
-      } else if (v === 'video') {
-        uploadInput.setAttribute('accept', 'video/*');
-      } else {
-        uploadInput.removeAttribute('accept');
-      }
+      if (v === 'pdf') uploadInput.setAttribute('accept', 'application/pdf,.pdf');
+      else if (v === 'video') uploadInput.setAttribute('accept', 'video/*');
+      else uploadInput.removeAttribute('accept');
     }
+
+    if (isText) setTimeout(initTinyMCE, 0);
+    else if (!contentHasErrors) destroyTinyMCE();
   }
 
   if (typeSelect) {
     typeSelect.addEventListener('change', syncLessonTypeFields);
     syncLessonTypeFields();
+  } else {
+    initTinyMCE();
   }
 })();
 </script>
