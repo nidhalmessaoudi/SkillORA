@@ -66,6 +66,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(name: 'avatar_type', type: 'string', length: 50, nullable: true)]
+    private ?string $avatarType = null;
+
     #[ORM\Column(name: 'date_of_birth', type: 'date', nullable: true)]
     private ?\DateTimeInterface $dateOfBirth = null;
 
@@ -312,6 +315,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatar(?string $avatar): static
     {
         $this->avatar = $avatar;
+        return $this;
+    }
+
+    public function getAvatarType(): ?string
+    {
+        return $this->avatarType;
+    }
+
+    public function setAvatarType(?string $avatarType): static
+    {
+        $this->avatarType = $avatarType;
         return $this;
     }
 

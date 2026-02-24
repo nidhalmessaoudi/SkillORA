@@ -111,26 +111,48 @@
                             </p>
                         </div>
                         <div class="p-6 space-y-6">
-                            {# Profile Picture #}
+                            {# Profile Picture / 3D Avatar #}
                             <div>
                                 <label class="input-label">Profile Picture</label>
                                 <div class="flex items-center gap-6">
-                                    <div id="avatar-preview" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
-                                        {% if user.avatar %}
-                                            <img src="/uploads/avatars/{{ user.avatar }}" alt="Profile" class="w-full h-full object-cover">
-                                        {% else %}
-                                            {{ user.firstName|slice(0,1)|upper }}{{ user.lastName|slice(0,1)|upper }}
-                                        {% endif %}
-                                    </div>
+                                    {% if user.avatarType %}
+                                        {# 3D Avatar Display #}
+                                        <div id="profile-avatar-container" class="w-32 h-32 rounded-2xl overflow-hidden" 
+                                             data-profile-avatar 
+                                             data-avatar-file="{{ user.avatarType }}"
+                                             style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
+                                        </div>
+                                    {% else %}
+                                        {# Regular Avatar/Initials #}
+                                        <div id="avatar-preview" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                                            {% if user.avatar %}
+                                                <img src="/uploads/avatars/{{ user.avatar }}" alt="Profile" class="w-full h-full object-cover">
+                                            {% else %}
+                                                {{ user.firstName|slice(0,1)|upper }}{{ user.lastName|slice(0,1)|upper }}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
                                     <div class="flex-1">
-                                        <input type="file" id="avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewAvatar(this)">
-                                        <button type="button" onclick="document.getElementById('avatar-input').click()" class="btn-outline btn-sm">
-                                            <i data-lucide="upload" class="w-4 h-4"></i>
-                                            Upload Photo
-                                        </button>
-                                        <p class="text-caption text-navy-400 mt-2">
-                                            JPG, PNG or GIF. Max 2MB.
-                                        </p>
+                                        {% if user.avatarType %}
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-sm font-medium text-success-600 dark:text-success-400">3D Avatar Active</span>
+                                                <i data-lucide="check-circle" class="w-4 h-4 text-success-600 dark:text-success-400"></i>
+                                            </div>
+                                            <button type="button" onclick="openAvatarChanger()" class="btn-outline btn-sm">
+                                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                                Change Avatar
+                                            </button>
+                                        {% else %}
+                                            <input type="file" id="avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+                                            <button type="button" onclick="document.getElementById('avatar-input').click()" class="btn-outline btn-sm">
+                                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                                Upload Photo
+                                            </button>
+                                            <p class="text-caption text-navy-400 mt-2">
+                                                JPG, PNG or GIF. Max 2MB.
+                                            </p>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -385,5 +407,275 @@
             setTimeout(() => lucide.createIcons(), 100);
         });
     });
+
+    // Avatar changer modal (placeholder function)
+    function openAvatarChanger() {
+        alert('Avatar changer coming soon! You can change your avatar in the registration flow for now.');
+    }
 </script>
+
+{# Load Three.js and 3D Avatar Display #}
+{% if user.avatarType %}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    
+    // Make THREE and GLTFLoader available globally
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+    
+    console.log('Profile: THREE and GLTFLoader loaded successfully');
+    console.log('Avatar file to load:', '{{ user.avatarType }}');
+    
+    // ProfileAvatar class definition (MUST be before initProfileAvatar function)
+    class ProfileAvatar {
+        constructor(containerId, avatarFile) {
+            console.log('ProfileAvatar constructor called:', containerId, avatarFile);
+            this.container = document.getElementById(containerId);
+            if (!this.container) {
+                console.error('Profile avatar container not found:', containerId);
+                return;
+            }
+
+            if (!avatarFile) {
+                console.warn('No avatar file provided');
+                return;
+            }
+
+            this.avatarFile = avatarFile;
+            this.scene = null;
+            this.camera = null;
+            this.renderer = null;
+            this.model = null;
+            this.mixer = null;
+            this.clock = new THREE.Clock();
+            this.animationId = null;
+
+            this.init();
+        }
+
+        init() {
+            console.log('Initializing 3D scene...');
+            this.createScene();
+            this.loadAvatar();
+            this.startAnimation();
+        }
+
+        createScene() {
+            // Create scene
+            this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x0f172a);
+
+            // Create camera
+            const width = this.container.clientWidth || 128;
+            const height = this.container.clientHeight || 128;
+            this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            this.camera.position.set(0, 1.2, 2.5);
+            this.camera.lookAt(0, 0.8, 0);
+
+            // Create renderer
+            const canvas = document.createElement('canvas');
+            this.renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true,
+                alpha: true 
+            });
+            this.renderer.setSize(width, height, false);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            this.container.appendChild(canvas);
+
+            // Add lighting setup
+            this.setupLighting();
+
+            // Handle window resize
+            window.addEventListener('resize', () => this.onWindowResize());
+        }
+
+        setupLighting() {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            this.scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            mainLight.position.set(3, 4, 2);
+            mainLight.castShadow = true;
+            this.scene.add(mainLight);
+
+            const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.5);
+            fillLight.position.set(-3, 2, -1);
+            this.scene.add(fillLight);
+
+            const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.4);
+            rimLight.position.set(0, 3, -3);
+            this.scene.add(rimLight);
+        }
+
+        loadAvatar() {
+            console.log('Loading avatar GLB file:', this.avatarFile);
+            const loader = new GLTFLoader();
+            
+            loader.load(
+                `/avatars/${this.avatarFile}`,
+                (gltf) => {
+                    console.log('Avatar loaded successfully!');
+                    this.model = gltf.scene;
+                    
+                    this.model.position.set(0, -3, 0);
+                    this.model.scale.set(1, 1, 1);
+                    
+                    this.model.traverse((node) => {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                        }
+                    });
+
+                    this.scene.add(this.model);
+
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        this.mixer = new THREE.AnimationMixer(this.model);
+                        const action = this.mixer.clipAction(gltf.animations[0]);
+                        action.play();
+                    }
+
+                    this.playClimbAnimation();
+                },
+                (progress) => {
+                    console.log('Loading progress:', (progress.loaded / progress.total * 100).toFixed(0) + '%');
+                },
+                (error) => {
+                    console.error('Error loading avatar:', error);
+                    this.showFallback();
+                }
+            );
+        }
+
+        playClimbAnimation() {
+            if (!this.model) return;
+
+            const duration = 1200;
+            const startY = -3;
+            const endY = 0;
+            const startTime = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+
+                this.model.position.y = startY + (endY - startY) * eased;
+                this.model.rotation.y = Math.sin(progress * Math.PI) * 0.2;
+
+                if (progress > 0.8) {
+                    const bounceProgress = (progress - 0.8) / 0.2;
+                    const bounce = Math.sin(bounceProgress * Math.PI) * 0.1;
+                    this.model.position.y += bounce;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    this.model.rotation.y = 0;
+                }
+            };
+
+            animate();
+        }
+
+        startAnimation() {
+            const animate = () => {
+                this.animationId = requestAnimationFrame(animate);
+
+                if (this.model) {
+                    this.model.rotation.y += 0.003;
+                    const time = Date.now() * 0.001;
+                    this.model.position.y += Math.sin(time * 2) * 0.0005;
+
+                    if (this.mixer) {
+                        const delta = this.clock.getDelta();
+                        this.mixer.update(delta);
+                    }
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            };
+
+            animate();
+        }
+
+        onWindowResize() {
+            const width = this.container.clientWidth;
+            const height = this.container.clientHeight;
+
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+
+            this.renderer.setSize(width, height);
+        }
+
+        showFallback() {
+            this.container.innerHTML = `
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 1rem;
+                ">
+                    <div style="text-align: center; color: white;">
+                        <i data-lucide="user" style="width: 48px; height: 48px; margin: 0 auto;"></i>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Avatar unavailable</p>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    }
+    
+    // Initialize avatar after class is defined
+    function initProfileAvatar() {
+        console.log('Initializing profile avatar...');
+        const container = document.getElementById('profile-avatar-container');
+        console.log('Container found:', container);
+        
+        if (!container) {
+            console.error('Profile avatar container not found!');
+            return;
+        }
+        
+        const avatarFile = container.dataset.avatarFile;
+        console.log('Avatar file from data attribute:', avatarFile);
+        
+        if (!avatarFile) {
+            console.error('No avatar file specified!');
+            return;
+        }
+        
+        // Create ProfileAvatar instance
+        console.log('Creating ProfileAvatar instance...');
+        const profileAvatar = new ProfileAvatar('profile-avatar-container', avatarFile);
+    }
+    
+    // Wait for DOM and then initialize avatar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProfileAvatar);
+    } else {
+        initProfileAvatar();
+    }
+</script>
+{% endif %}
 {% endblock %}

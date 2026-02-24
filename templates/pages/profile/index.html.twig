@@ -30,7 +30,14 @@
                         {# Profile Picture #}
                         <div class="relative group">
                             <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden ring-4 ring-white dark:ring-navy-900 shadow-xl">
-                                {% if user.avatar %}
+                                {% if user.avatarType %}
+                                    {# 3D Avatar Display #}
+                                    <div id="profile-hero-avatar" 
+                                         data-profile-avatar 
+                                         data-avatar-file="{{ user.avatarType }}"
+                                         style="width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
+                                    </div>
+                                {% elseif user.avatar %}
                                     <img src="/uploads/avatars/{{ user.avatar }}" alt="{{ user.fullName }}" class="w-full h-full object-cover">
                                 {% else %}
                                     <div class="w-full h-full bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white text-4xl md:text-5xl font-bold">
@@ -383,4 +390,125 @@
 <script>
     lucide.createIcons();
 </script>
+
+{# Load Three.js and 3D Avatar Display #}
+{% if user.avatarType %}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+    
+    console.log('Profile Hero: THREE loaded');
+    
+    // Define class first
+    class ProfileHeroAvatar {
+        constructor(containerId, avatarFile) {
+            this.container = document.getElementById(containerId);
+            this.avatarFile = avatarFile;
+            this.scene = null;
+            this.camera = null;
+            this.renderer = null;
+            this.model = null;
+            this.mixer = null;
+            this.clock = new THREE.Clock();
+            
+            this.init();
+        }
+        
+        init() {
+            this.createScene();
+            this.loadAvatar();
+            this.animate();
+        }
+        
+        createScene() {
+            this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x0f172a);
+            
+            const width = this.container.clientWidth;
+            const height = this.container.clientHeight;
+            this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            this.camera.position.set(0, 1.2, 2.5);
+            this.camera.lookAt(0, 0.8, 0);
+            
+            const canvas = document.createElement('canvas');
+            this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            this.renderer.setSize(width, height, false);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.renderer.shadowMap.enabled = true;
+            
+            this.container.appendChild(canvas);
+            
+            // Lighting
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            mainLight.position.set(3, 4, 2);
+            mainLight.castShadow = true;
+            this.scene.add(mainLight);
+        }
+        
+        loadAvatar() {
+            const loader = new GLTFLoader();
+            loader.load(`/avatars/${this.avatarFile}`, (gltf) => {
+                this.model = gltf.scene;
+                this.model.position.set(0, 0, 0);
+                this.scene.add(this.model);
+                
+                if (gltf.animations && gltf.animations.length > 0) {
+                    this.mixer = new THREE.AnimationMixer(this.model);
+                    this.mixer.clipAction(gltf.animations[0]).play();
+                }
+            });
+        }
+        
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            
+            if (this.model) {
+                this.model.rotation.y += 0.003;
+                if (this.mixer) {
+                    this.mixer.update(this.clock.getDelta());
+                }
+            }
+            
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+    
+    // Initialize after class definition
+    function initHeroAvatar() {
+        const container = document.getElementById('profile-hero-avatar');
+        if (!container) {
+            console.log('Hero avatar container not found');
+            return;
+        }
+        
+        const avatarFile = container.dataset.avatarFile;
+        if (!avatarFile) {
+            console.log('No avatar file specified');
+            return;
+        }
+        
+        console.log('Creating hero avatar:', avatarFile);
+        new ProfileHeroAvatar('profile-hero-avatar', avatarFile);
+    }
+    
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHeroAvatar);
+    } else {
+        initHeroAvatar();
+    }
+</script>
+{% endif %}
 {% endblock %}

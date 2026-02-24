@@ -29,13 +29,30 @@
                 {# Header #}
                 <div class="mb-8">
                     <h1 class="font-display font-bold text-display-sm text-navy-900 dark:text-white mb-2">
-                        Create your account
+                        <span id="step-1-title">Create your account</span>
+                        <span id="step-2-title" class="hidden">Choose Your Avatar</span>
                     </h1>
                     <p class="text-body-md text-navy-500 dark:text-navy-400">
-                        Join 500,000+ learners today
+                        <span id="step-1-subtitle">Join 500,000+ learners today</span>
+                        <span id="step-2-subtitle" class="hidden">Select your 3D avatar to represent you</span>
                     </p>
+                    
+                    {# Progress Indicator #}
+                    <div class="flex items-center gap-3 mt-6">
+                        <div class="flex items-center gap-2">
+                            <div id="step-indicator-1" class="w-8 h-8 rounded-full bg-harbor-500 flex items-center justify-center text-white font-semibold text-sm">1</div>
+                            <span class="text-sm font-medium text-navy-900 dark:text-white">Account</span>
+                        </div>
+                        <div class="flex-1 h-px bg-navy-200 dark:bg-navy-700" id="step-connector"></div>
+                        <div class="flex items-center gap-2">
+                            <div id="step-indicator-2" class="w-8 h-8 rounded-full bg-navy-200 dark:bg-navy-700 flex items-center justify-center text-navy-400 font-semibold text-sm">2</div>
+                            <span class="text-sm font-medium text-navy-400">Avatar</span>
+                        </div>
+                    </div>
                 </div>
 
+                {# STEP 1: Account Details #}
+                <div id="registration-step-1">
                 {# Role Selection #}
                 <div class="mb-6">
                     <label class="input-label">I want to</label>
@@ -295,12 +312,40 @@
                             </label>
                         </div>
 
-                        {# Submit #}
-                        <button type="submit" class="btn-primary w-full">
-                            Create account
+                        {# Next Step Button #}
+                        <button type="button" id="next-to-avatar-btn" class="btn-primary w-full">
+                            Next: Choose Avatar
+                            <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
                         </button>
                     </div>
                 </form>
+                </div>
+
+                {# STEP 2: Avatar Selection #}
+                <div id="registration-step-2" class="hidden">
+                    <div class="mb-6">
+                        <button type="button" id="back-to-form-btn" class="btn-ghost inline-flex items-center gap-2">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            Back
+                        </button>
+                    </div>
+
+                    {# Avatar Gallery Container #}
+                    <div id="avatar-gallery-container" class="mb-6"></div>
+
+                    {# Hidden input to store selected avatar #}
+                    <input type="hidden" id="selected-avatar" name="avatar_type" value="">
+
+                    {# Complete Registration Button #}
+                    <button type="button" id="complete-registration-btn" class="btn-primary w-full" disabled>
+                        Complete Registration
+                        <i data-lucide="check" class="w-5 h-5 ml-2"></i>
+                    </button>
+
+                    <p class="mt-4 text-center text-sm text-navy-500 dark:text-navy-400">
+                        You can change your avatar later in settings
+                    </p>
+                </div>
 
                 {# Login Link #}
                 <p class="mt-8 text-center text-body-sm text-navy-500 dark:text-navy-400">
@@ -397,6 +442,30 @@
 {% block javascripts %}
 {{ parent() }}
 <script src="/js/face-recognition.js"></script>
+{# Three.js and GLTFLoader using ES modules #}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    
+    // Make THREE and GLTFLoader available globally
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+    
+    console.log('THREE and GLTFLoader loaded successfully');
+    
+    // Load avatar-selector after THREE is ready
+    const script = document.createElement('script');
+    script.src = '/js/avatar-selector.js';
+    document.head.appendChild(script);
+</script>
 <script>
     lucide.createIcons();
 
@@ -599,6 +668,150 @@
     // Cleanup on page unload
     window.addEventListener('beforeunload', function() {
         faceRecognition.stopCamera();
+    });
+
+    // ===== Multi-Step Registration Wizard =====
+    let currentStep = 1;
+    let formData = {};
+
+    // Step navigation
+    function showStep(stepNumber) {
+        // Hide all steps
+        document.getElementById('registration-step-1').classList.add('hidden');
+        document.getElementById('registration-step-2').classList.add('hidden');
+        
+        // Show current step
+        if (stepNumber === 1) {
+            document.getElementById('registration-step-1').classList.remove('hidden');
+            document.getElementById('step-1-title').classList.remove('hidden');
+            document.getElementById('step-1-subtitle').classList.remove('hidden');
+            document.getElementById('step-2-title').classList.add('hidden');
+            document.getElementById('step-2-subtitle').classList.add('hidden');
+            
+            // Update indicators
+            document.getElementById('step-indicator-1').classList.remove('bg-navy-200', 'dark:bg-navy-700', 'text-navy-400');
+            document.getElementById('step-indicator-1').classList.add('bg-harbor-500', 'text-white');
+            document.getElementById('step-indicator-2').classList.remove('bg-harbor-500', 'text-white');
+            document.getElementById('step-indicator-2').classList.add('bg-navy-200', 'dark:bg-navy-700', 'text-navy-400');
+        } else if (stepNumber === 2) {
+            document.getElementById('registration-step-2').classList.remove('hidden');
+            document.getElementById('step-1-title').classList.add('hidden');
+            document.getElementById('step-1-subtitle').classList.add('hidden');
+            document.getElementById('step-2-title').classList.remove('hidden');
+            document.getElementById('step-2-subtitle').classList.remove('hidden');
+            
+            // Update indicators
+            document.getElementById('step-indicator-1').classList.remove('bg-harbor-500', 'text-white');
+            document.getElementById('step-indicator-1').classList.add('bg-success-500', 'text-white');
+            document.getElementById('step-indicator-2').classList.remove('bg-navy-200', 'dark:bg-navy-700', 'text-navy-400');
+            document.getElementById('step-indicator-2').classList.add('bg-harbor-500', 'text-white');
+            
+            // Initialize avatar gallery when step 2 becomes visible
+            setTimeout(() => {
+                if (typeof window.initAvatarGallery === 'function') {
+                    window.initAvatarGallery();
+                }
+            }, 100);
+        }
+        
+        currentStep = stepNumber;
+        lucide.createIcons();
+    }
+
+    // Validate step 1 form
+    function validateStep1() {
+        const firstname = document.getElementById('firstname').value.trim();
+        const lastname = document.getElementById('lastname').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+        const terms = document.getElementById('terms').checked;
+
+        if (!firstname || !lastname || !email || !password || !passwordConfirm) {
+            alert('Please fill in all required fields');
+            return false;
+        }
+
+        if (password !== passwordConfirm) {
+            alert('Passwords do not match');
+            return false;
+        }
+
+        if (password.length < 8) {
+            alert('Password must be at least 8 characters long');
+            return false;
+        }
+
+        if (!terms) {
+            alert('Please accept the Terms and Privacy Policy');
+            return false;
+        }
+
+        // Store form data
+        formData = {
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            password: password,
+            password_confirm: passwordConfirm,
+            role: document.getElementById('role-input').value,
+            face_data: document.getElementById('face-data-input').value,
+            terms: terms
+        };
+
+        return true;
+    }
+
+    // Next to avatar selection
+    document.getElementById('next-to-avatar-btn').addEventListener('click', function() {
+        if (validateStep1()) {
+            showStep(2);
+        }
+    });
+
+    // Back to form
+    document.getElementById('back-to-form-btn').addEventListener('click', function() {
+        showStep(1);
+    });
+
+    // Listen for avatar selection
+    document.addEventListener('avatarSelected', function(e) {
+        const completeBtn = document.getElementById('complete-registration-btn');
+        completeBtn.disabled = false;
+        completeBtn.classList.add('animate-pulse');
+        setTimeout(() => {
+            completeBtn.classList.remove('animate-pulse');
+        }, 1000);
+    });
+
+    // Complete registration
+    document.getElementById('complete-registration-btn').addEventListener('click', async function() {
+        const selectedAvatar = document.getElementById('selected-avatar').value;
+        
+        if (!selectedAvatar) {
+            alert('Please select an avatar');
+            return;
+        }
+
+        this.disabled = true;
+        this.innerHTML = '<i data-lucide="loader" class="w-5 h-5 mr-2 animate-spin"></i> Creating account...';
+        lucide.createIcons();
+
+        // Submit the form with all data
+        const form = document.getElementById('register-form');
+        
+        // Create hidden input for avatar if it doesn't exist
+        let avatarInput = form.querySelector('input[name="avatar_type"]');
+        if (!avatarInput) {
+            avatarInput = document.createElement('input');
+            avatarInput.type = 'hidden';
+            avatarInput.name = 'avatar_type';
+            form.appendChild(avatarInput);
+        }
+        avatarInput.value = selectedAvatar;
+
+        // Submit the form
+        form.submit();
     });
 </script>
 {% endblock %}

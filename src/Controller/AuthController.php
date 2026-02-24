@@ -361,6 +361,7 @@ class AuthController extends AbstractController
             $lastName = trim($request->request->get('lastname', ''));
             $role = $request->request->get('role', 'student');
             $faceData = $request->request->get('face_data', '');
+            $avatarType = trim($request->request->get('avatar_type', ''));
             
             // Store form data for re-population
             $formData = [
@@ -478,6 +479,11 @@ class AuthController extends AbstractController
                     if (!empty($faceData)) {
                         $user->setFaceData($faceData);
                         $user->setFaceIdEnabled(true);
+                    }
+
+                    // Save avatar type if provided
+                    if (!empty($avatarType)) {
+                        $user->setAvatarType($avatarType);
                     }
 
                     // Save user
