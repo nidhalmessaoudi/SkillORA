@@ -49,36 +49,56 @@ class AITerminalController extends AbstractController
 
         try {
             // First, ask AI to analyze the request and generate admin commands
-            $systemPrompt = "You are an AI assistant with admin privileges for SkillHarbor platform. Analyze the user's request and determine if it requires admin actions.
+            $systemPrompt = "You are a command parser for SkillHarbor admin system. You MUST respond ONLY with valid JSON format.
 
-If the user wants to:
-- Create a user: Respond with JSON: {\"action\": \"create_user\", \"data\": {\"email\": \"...\", \"username\": \"...\", \"password\": \"...\", \"firstName\": \"...\", \"lastName\": \"...\", \"role\": \"student|professor\"}}
-- List users: Respond with JSON: {\"action\": \"list_users\", \"data\": {\"limit\": 10}}
-- Find user: Respond with JSON: {\"action\": \"find_user\", \"data\": {\"email\": \"...\" or \"username\": \"...\" or \"id\": \"...\"}}
-- Update user: Respond with JSON: {\"action\": \"update_user\", \"data\": {\"identifier\": \"email or username or id\", \"updates\": {\"firstName\": \"...\", \"lastName\": \"...\", etc}}}
-- Delete user: Respond with JSON: {\"action\": \"delete_user\", \"data\": {\"identifier\": \"email or username or id\"}}
-- Ban user: Respond with JSON: {\"action\": \"ban_user\", \"data\": {\"identifier\": \"email or username or id\"}}
-- Unban user: Respond with JSON: {\"action\": \"unban_user\", \"data\": {\"identifier\": \"email or username or id\"}}
-- Get statistics: Respond with JSON: {\"action\": \"get_stats\"}
+CRITICAL: When the user asks to perform ANY admin action, you MUST respond with ONLY a JSON object, nothing else.
 
-If it's a general question or doesn't require admin action, respond normally with helpful information.
+Analyze this request and respond with the appropriate JSON:
+
+1. Create user (create, add, register): {\"action\":\"create_user\",\"data\":{\"email\":\"user@email.com\",\"username\":\"username\",\"password\":\"password123\",\"firstName\":\"First\",\"lastName\":\"Last\",\"role\":\"student\"}}
+
+2. List users (list, show all, get users): {\"action\":\"list_users\",\"data\":{\"limit\":10}}
+
+3. Find user (find, search, get, show user): {\"action\":\"find_user\",\"data\":{\"identifier\":\"email or username or id\"}}
+
+4. Update user (update, edit, modify, change): {\"action\":\"update_user\",\"data\":{\"identifier\":\"email or username or id\",\"updates\":{\"firstName\":\"NewName\"}}}
+
+5. Delete user (delete, remove): {\"action\":\"delete_user\",\"data\":{\"identifier\":\"email or username or id\"}}
+
+6. Ban user (ban, block, disable): {\"action\":\"ban_user\",\"data\":{\"identifier\":\"email or username or id\"}}
+
+7. Unban user (unban, unblock, enable, activate): {\"action\":\"unban_user\",\"data\":{\"identifier\":\"email or username or id\"}}
+
+8. Get statistics (stats, statistics, show stats): {\"action\":\"get_stats\",\"data\":{}}
+
+IMPORTANT: 
+- Respond ONLY with the JSON object, NO explanations or additional text
+- Extract all relevant information from the user request into the JSON data field
+- For general questions, respond with normal helpful text
 
 User request: " . $userMessage;
 
             $aiResponse = $this->callGeminiAPI($systemPrompt);
+            
+            // Log the raw AI response for debugging
+            error_log('AI Response: ' . substr($aiResponse, 0, 500));
             
             // Try to parse AI response as JSON command
             $commandData = $this->parseAICommand($aiResponse);
             
             if ($commandData) {
                 // Execute the admin command
+                error_log('Executing command: ' . $commandData['action']);
                 $result = $this->executeAdminCommand($commandData);
+                error_log('Command executed successfully');
+                
                 return $this->json([
                     'success' => true,
                     'response' => $result
                 ]);
             } else {
-                // Normal AI response
+                // Normal AI response - no command detected
+                error_log('No command detected, returning normal response');
                 return $this->json([
                     'success' => true,
                     'response' => $aiResponse
@@ -97,13 +117,35 @@ User request: " . $userMessage;
 
     private function parseAICommand(string $response): ?array
     {
-        // Try to extract JSON from the response
-        if (preg_match('/\{[^}]*"action"[^}]*\}/s', $response, $matches)) {
-            $json = json_decode($matches[0], true);
+        // Clean the response
+        $response = trim($response);
+        
+        // Try to extract JSON from the response - improved regex to handle nested objects
+        if (preg_match('/\{.*"action".*\}/s', $response, $matches)) {
+            // Find the complete JSON object
+            $jsonStr = $matches[0];
+            
+            // Try to decode it
+            $json = json_decode($jsonStr, true);
+            
             if ($json && isset($json['action'])) {
+                // Log for debugging
+                error_log('Command detected: ' . $json['action']);
+                error_log('Command data: ' . json_encode($json));
                 return $json;
             }
         }
+        
+        // Also try if the entire response is JSON
+        $json = json_decode($response, true);
+        if ($json && isset($json['action'])) {
+            error_log('Command detected (full response): ' . $json['action']);
+            return $json;
+        }
+        
+        // Log that no command was detected
+        error_log('No command detected in response: ' . substr($response, 0, 200));
+        
         return null;
     }
 
