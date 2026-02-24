@@ -15,10 +15,10 @@ parameters:
     plagiarismsearch_api_key: '%env(PLAGIARISMSEARCH_API_KEY)%'
     plagiarismsearch_endpoint: '%env(resolve:PLAGIARISMSEARCH_ENDPOINT)%'
 
-    # ✅ GROQ (AJOUT)
+    # ✅ GROQ
     groq_api_key: '%env(GROQ_API_KEY)%'
     groq_model: '%env(GROQ_MODEL)%'
-    
+
 
 services:
     _defaults:
@@ -32,13 +32,27 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # ✅ OpenAiQuizGenerator (FINAL ✅)
+    # ✅ OpenAiQuizGenerator
     App\Service\OpenAiQuizGenerator:
         arguments:
             $openAiApiKey: '%env(OPENAI_API_KEY)%'
 
-    # ✅ GroqAiClient (AJOUT)
+    # ✅ Groq AI Client
     App\Service\GroqAiClient:
         arguments:
             $apiKey: '%groq_api_key%'
             $model: '%groq_model%'
+
+    # ✅ PlagiarismSearch (WEB plagiarism)
+    App\Service\PlagiarismSearchClient:
+        arguments:
+            $apiKey: '%plagiarismsearch_api_key%'
+            $endpoint: '%plagiarismsearch_endpoint%'
+
+    # ✅ Answer Plagiarism Orchestrator (IA + Web)
+    # Injection par POSITION pour éviter erreur argument name
+    App\Service\AnswerPlagiarismOrchestrator:
+        arguments:
+            - '@doctrine.orm.entity_manager'
+            - '@App\Service\AiSuspicionScorer'
+            - '@App\Service\PlagiarismSearchClient'

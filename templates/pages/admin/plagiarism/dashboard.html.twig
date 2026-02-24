@@ -11,41 +11,44 @@
 
   <form method="post" action="{{ path('admin_plagiarism_run', {id: evaluation.id}) }}">
     <input type="hidden" name="_token" value="{{ csrf_token('plagiarism_run_' ~ evaluation.id) }}">
-    <button type="submit" class="btn-primary btn-sm">Run Pro Plagiarism</button>
+    
   </form>
 </div>
 
-{# ✅ Toujours afficher Submissions, même s’il n’y a aucun run #}
+{# ✅ Toujours afficher Submissions #}
 <div class="card p-5 mb-6">
-  <h2 class="font-semibold mb-3">Submissions (Integrity / IA / Web)</h2>
+  <h2 class="font-semibold mb-3">Submissions (IA / Web)</h2>
 
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
         <tr>
-          <th class="px-4 py-2 text-left">Student</th>
-          <th class="px-4 py-2 text-left">Paste</th>
-          <th class="px-4 py-2 text-left">Tab</th>
+          <th class="px-4 py-2 text-left">Etudiant</th>
           <th class="px-4 py-2 text-left">IA</th>
           <th class="px-4 py-2 text-left">Web</th>
           <th class="px-4 py-2 text-left">Last check</th>
         </tr>
       </thead>
+
       <tbody>
       {% for a in submissions %}
         <tr class="border-t">
-          <td class="px-4 py-2">User #{{ a.student.id ?? '-' }}</td>
-          <td class="px-4 py-2">{{ a.pasteCount ?? 0 }}</td>
-          <td class="px-4 py-2">{{ a.tabSwitchCount ?? 0 }}</td>
-          <td class="px-4 py-2">{{ a.aiSuspicionPercent ?? '-' }}%</td>
-          <td class="px-4 py-2">{{ a.webPlagiarismPercent ?? '-' }}%</td>
+          <td class="px-4 py-2">
+            {{ a.student ? a.student.fullName : '-' }}
+          </td>
+          <td class="px-4 py-2">
+            {{ a.aiSuspicionPercent is not null ? a.aiSuspicionPercent ~ '%' : '-' }}
+          </td>
+          <td class="px-4 py-2">
+            {{ a.webPlagiarismPercent is not null ? a.webPlagiarismPercent ~ '%' : '-' }}
+          </td>
           <td class="px-4 py-2">
             {{ a.lastPlagiarismCheckAt ? a.lastPlagiarismCheckAt|date('d/m/Y H:i') : '-' }}
           </td>
         </tr>
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-6 text-gray-500 text-center">No submissions.</td>
+          <td colspan="4" class="px-4 py-6 text-gray-500 text-center">No submissions.</td>
         </tr>
       {% endfor %}
       </tbody>
@@ -67,6 +70,7 @@
     <div class="card p-5 lg:col-span-1">
       <h2 class="font-semibold mb-3">Top suspicious students</h2>
       <div class="space-y-2 text-sm">
+        {# Ici leaderboard est (userId => score). On ne peut pas afficher le nom sans passer les Users au twig #}
         {% for userId, score in leaderboard|slice(0, 10) %}
           <div class="flex justify-between border-b py-2">
             <span>User #{{ userId }}</span>
@@ -97,8 +101,12 @@
           <tbody>
           {% for p in pairs|slice(0, 50) %}
             <tr class="border-t">
-              <td class="px-4 py-2">User #{{ p.answerA.student.id }}</td>
-              <td class="px-4 py-2">User #{{ p.answerB.student.id }}</td>
+              <td class="px-4 py-2">
+                {{ p.answerA.student ? p.answerA.student.fullName : ('User #' ~ p.answerA.student.id) }}
+              </td>
+              <td class="px-4 py-2">
+                {{ p.answerB.student ? p.answerB.student.fullName : ('User #' ~ p.answerB.student.id) }}
+              </td>
               <td class="px-4 py-2">{{ (p.semantic * 100)|round }}%</td>
               <td class="px-4 py-2">{{ (p.lexical * 100)|round }}%</td>
               <td class="px-4 py-2">{{ (p.structure * 100)|round }}%</td>
@@ -134,8 +142,6 @@
     </div>
   </div>
 {% else %}
-  <div class="card p-6 text-gray-600">
-    No plagiarism runs yet.
-  </div>
+  
 {% endif %}
 {% endblock %}
