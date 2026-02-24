@@ -2,283 +2,410 @@
 
 {% block title %}AI Terminal - Admin Dashboard{% endblock %}
 
+{% block head %}
+<style>
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    .chat-message {
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    .modal-backdrop {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .modal-content {
+        animation: slideUp 0.4s ease-out;
+    }
+    
+    .typing-dot {
+        animation: pulse 1.4s ease-in-out infinite;
+    }
+    
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    .gradient-border {
+        position: relative;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2px;
+        border-radius: 16px;
+    }
+    
+    .gradient-border-inner {
+        background: white;
+        border-radius: 14px;
+    }
+    
+    .message-user {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .message-ai {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .shimmer-bg {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 1000px 100%;
+        animation: shimmer 2s infinite;
+    }
+    
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(103, 126, 234, 0.3);
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(103, 126, 234, 0.5);
+    }
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
-    <div class="max-w-6xl mx-auto">
+<div class="min-h-screen bg-gradient-to-br from-navy-50 via-purple-50 to-pink-50 dark:from-navy-950 dark:via-purple-950 dark:to-pink-950 p-6">
+    <div class="max-w-7xl mx-auto">
         {# Header #}
-        <div class="mb-6">
-            <div class="flex items-center justify-between mb-4">
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">
-                        <i data-lucide="terminal" class="w-8 h-8 inline-block mr-2 text-green-400"></i>
-                        AI Terminal
+                    <h1 class="text-4xl font-display font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        Admin Assistant
                     </h1>
-                    <p class="text-gray-400">Powered by Google Gemini 2.5 Flash</p>
+                    <p class="text-navy-600 dark:text-navy-400 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        Powered by Advanced Intelligence
+                    </p>
                 </div>
-                <button id="clear-chat-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    Clear Chat
+                <button id="open-chat-btn" class="group px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                    <i data-lucide="message-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    Start Conversation
                 </button>
             </div>
         </div>
 
-        {# Terminal Container #}
-        <div class="bg-gray-950 rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
-            {# Terminal Header #}
-            <div class="bg-gray-900 px-4 py-3 flex items-center gap-2 border-b border-gray-800">
-                <div class="flex gap-2">
-                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+        {# Feature Cards #}
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-navy-100 dark:border-navy-800">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="users" class="w-6 h-6 text-white"></i>
                 </div>
-                <span class="ml-4 text-sm text-gray-400 font-mono">gemini-terminal@skillharbor:~$</span>
+                <h3 class="font-semibold text-lg text-navy-900 dark:text-white mb-2">User Management</h3>
+                <p class="text-navy-600 dark:text-navy-400 text-sm">Create, update, delete, ban or unban users with simple commands</p>
             </div>
-
-            {# Chat Messages Area #}
-            <div id="chat-container" class="h-[600px] overflow-y-auto p-6 space-y-4 font-mono text-sm">
-                {# Welcome Message #}
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                        <i data-lucide="bot" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                            <p class="text-green-400 mb-2">System initialized successfully.</p>
-                            <p class="text-gray-300">Welcome to SkillHarbor AI Terminal. I'm powered by Google Gemini AI.</p>
-                            <p class="text-gray-400 text-xs mt-2">Type your message below to start the conversation.</p>
-                        </div>
-                    </div>
+            
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-navy-100 dark:border-navy-800">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
                 </div>
+                <h3 class="font-semibold text-lg text-navy-900 dark:text-white mb-2">Analytics</h3>
+                <p class="text-navy-600 dark:text-navy-400 text-sm">Get instant platform statistics and user insights</p>
             </div>
-
-            {# Input Area #}
-            <div class="border-t border-gray-800 bg-gray-900 p-4">
-                <form id="chat-form" class="flex gap-3">
-                    <div class="flex-1 relative">
-                        <input 
-                            type="text" 
-                            id="user-input" 
-                            placeholder="Type your message... (e.g., 'Explain quantum computing')" 
-                            class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 font-mono"
-                            style="color: #000000 !important;"
-                            autocomplete="off"
-                        >
-                        <div id="typing-indicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
-                            <div class="flex gap-1">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <button 
-                        type="submit" 
-                        id="send-btn"
-                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                        Send
-                    </button>
-                </form>
-                
-                {# Quick Actions #}
-                <div class="mt-3 flex flex-wrap gap-2">
-                    <button class="quick-action-btn px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition-colors border border-gray-700">
-                        Explain machine learning
-                    </button>
-                    <button class="quick-action-btn px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition-colors border border-gray-700">
-                        Write a Python function
-                    </button>
-                    <button class="quick-action-btn px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition-colors border border-gray-700">
-                        Best practices for web development
-                    </button>
-                    <button class="quick-action-btn px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition-colors border border-gray-700">
-                        Database optimization tips
-                    </button>
+            
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-navy-100 dark:border-navy-800">
+                <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="zap" class="w-6 h-6 text-white"></i>
                 </div>
+                <h3 class="font-semibold text-lg text-navy-900 dark:text-white mb-2">Quick Actions</h3>
+                <p class="text-navy-600 dark:text-navy-400 text-sm">Execute commands instantly using natural language</p>
             </div>
         </div>
 
-        {# Info Cards #}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
-                        <i data-lucide="zap" class="w-5 h-5 text-blue-400"></i>
+        {# Example Commands #}
+        <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg border border-navy-100 dark:border-navy-800">
+            <h3 class="font-semibold text-lg text-navy-900 dark:text-white mb-4 flex items-center gap-2">
+                <i data-lucide="lightbulb" class="w-5 h-5 text-purple-600"></i>
+                Example Commands
+            </h3>
+            <div class="grid md:grid-cols-2 gap-3">
+                <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-navy-900 dark:text-white text-sm">"List all users"</p>
+                        <p class="text-navy-600 dark:text-navy-400 text-xs mt-1">View recent users in the system</p>
                     </div>
-                    <h3 class="text-white font-semibold">Fast Response</h3>
                 </div>
-                <p class="text-sm text-gray-400">Powered by Gemini Pro for instant answers</p>
-            </div>
-            
-            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center">
-                        <i data-lucide="brain" class="w-5 h-5 text-purple-400"></i>
+                <div class="flex items-start gap-3 p-3 bg-pink-50 dark:bg-pink-950/30 rounded-xl">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-navy-900 dark:text-white text-sm">"Create a user named John"</p>
+                        <p class="text-navy-600 dark:text-navy-400 text-xs mt-1">Add new users quickly</p>
                     </div>
-                    <h3 class="text-white font-semibold">Smart AI</h3>
                 </div>
-                <p class="text-sm text-gray-400">Advanced language understanding</p>
-            </div>
-            
-            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center">
-                        <i data-lucide="shield-check" class="w-5 h-5 text-green-400"></i>
+                <div class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-navy-900 dark:text-white text-sm">"Show platform statistics"</p>
+                        <p class="text-navy-600 dark:text-navy-400 text-xs mt-1">Get real-time analytics</p>
                     </div>
-                    <h3 class="text-white font-semibold">Secure</h3>
                 </div>
-                <p class="text-sm text-gray-400">Admin-only access protected</p>
+                <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-navy-900 dark:text-white text-sm">"Ban user test@example.com"</p>
+                        <p class="text-navy-600 dark:text-navy-400 text-xs mt-1">Manage user access</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
+{# Chat Modal #}
+<div id="chat-modal" class="modal-backdrop hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-navy-100 dark:border-navy-800">
+        {# Modal Header #}
+        <div class="flex items-center justify-between p-6 border-b border-navy-100 dark:border-navy-800 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="bot" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-navy-900 dark:text-white">Admin Assistant</h3>
+                    <p class="text-sm text-navy-600 dark:text-navy-400 flex items-center gap-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Online
+                    </p>
+                </div>
+            </div>
+            <button id="close-chat-btn" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800 transition-colors text-navy-600 dark:text-navy-400">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        {# Chat Messages #}
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+            {# Welcome Message #}
+            <div class="chat-message flex items-start gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="message-ai rounded-2xl rounded-tl-sm p-4 shadow-lg max-w-md">
+                        <p class="text-sm font-medium mb-2">👋 Welcome to Admin Assistant!</p>
+                        <p class="text-sm opacity-90">I can help you manage users, get statistics, and perform various admin tasks. Just type what you need in natural language!</p>
+                    </div>
+                    <p class="text-xs text-navy-400 mt-2 ml-1">Just now</p>
+                </div>
+            </div>
+        </div>
+
+        {# Chat Input #}
+        <div class="p-6 border-t border-navy-100 dark:border-navy-800 bg-navy-50 dark:bg-navy-950/50">
+            <form id="chat-form" class="flex gap-3">
+                <div class="flex-1 relative">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="Type your message here..." 
+                        class="w-full px-6 py-4 bg-white dark:bg-navy-800 border border-navy-200 dark:border-navy-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-navy-900 dark:text-white placeholder-navy-400"
+                        style="color: #000000 !important;"
+                        autocomplete="off"
+                    >
+                    <div id="typing-indicator" class="absolute right-4 top-1/2 -translate-y-1/2 hidden flex gap-1">
+                        <div class="typing-dot w-2 h-2 bg-purple-600 rounded-full"></div>
+                        <div class="typing-dot w-2 h-2 bg-purple-600 rounded-full"></div>
+                        <div class="typing-dot w-2 h-2 bg-purple-600 rounded-full"></div>
+                    </div>
+                </div>
+                <button 
+                    type="submit" 
+                    id="send-btn"
+                    class="px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-2xl transition-all flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline">Send</span>
+                </button>
+            </form>
+            
+            {# Quick Suggestions #}
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button class="quick-suggestion px-4 py-2 text-xs bg-white dark:bg-navy-800 hover:bg-purple-50 dark:hover:bg-navy-700 text-navy-700 dark:text-navy-300 rounded-xl transition-all border border-navy-200 dark:border-navy-700 font-medium">
+                    📊 Show statistics
+                </button>
+                <button class="quick-suggestion px-4 py-2 text-xs bg-white dark:bg-navy-800 hover:bg-purple-50 dark:hover:bg-navy-700 text-navy-700 dark:text-navy-300 rounded-xl transition-all border border-navy-200 dark:border-navy-700 font-medium">
+                    👥 List all users
+                </button>
+                <button class="quick-suggestion px-4 py-2 text-xs bg-white dark:bg-navy-800 hover:bg-purple-50 dark:hover:bg-navy-700 text-navy-700 dark:text-navy-300 rounded-xl transition-all border border-navy-200 dark:border-navy-700 font-medium">
+                    ➕ Create new user
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
 
-        const chatContainer = document.getElementById('chat-container');
-        const chatForm = document.getElementById('chat-form');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const clearChatBtn = document.getElementById('clear-chat-btn');
+    const chatModal = document.getElementById('chat-modal');
+    const openChatBtn = document.getElementById('open-chat-btn');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const sendBtn = document.getElementById('send-btn');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const quickSuggestions = document.querySelectorAll('.quick-suggestion');
 
-        // Check if elements exist
-        if (!chatContainer || !chatForm || !userInput || !sendBtn || !typingIndicator || !clearChatBtn) {
-            console.error('Required elements not found:', {
-                chatContainer, chatForm, userInput, sendBtn, typingIndicator, clearChatBtn
-            });
-            return;
+    // Open modal
+    openChatBtn.addEventListener('click', function() {
+        chatModal.classList.remove('hidden');
+        chatInput.focus();
+    });
+
+    // Close modal
+    closeChatBtn.addEventListener('click', function() {
+        chatModal.classList.add('hidden');
+    });
+
+    // Close on backdrop click
+    chatModal.addEventListener('click', function(e) {
+        if (e.target === chatModal) {
+            chatModal.classList.add('hidden');
         }
+    });
 
-        // Quick action buttons
-        document.querySelectorAll('.quick-action-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            userInput.value = btn.textContent.trim();
-            userInput.focus();
+    // Quick suggestions
+    quickSuggestions.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const text = this.textContent.trim().replace(/^[^\s]+\s/, ''); // Remove emoji
+            chatInput.value = text;
+            chatInput.focus();
         });
     });
 
-    // Clear chat
-    clearChatBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear the chat history?')) {
-            const welcomeMessage = chatContainer.querySelector('.flex.items-start');
-            chatContainer.innerHTML = '';
-            chatContainer.appendChild(welcomeMessage);
-        }
-    });
-
     // Handle form submission
-    chatForm.addEventListener('submit', async (e) => {
+    chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const message = userInput.value.trim();
+        const message = chatInput.value.trim();
         if (!message) return;
 
-        // Add user message to chat
-        addUserMessage(message);
-        userInput.value = '';
+        // Clear input
+        chatInput.value = '';
+
+        // Add user message
+        addMessage(message, 'user');
 
         // Show typing indicator
-        setLoading(true);
+        typingIndicator.classList.remove('hidden');
+        sendBtn.disabled = true;
 
         try {
-            const response = await fetch('{{ path('admin_ai_terminal_query') }}', {
+            // Send to backend
+            const response = await fetch('/admin/ai-terminal/query', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message })
+                body: JSON.stringify({ message: message })
             });
 
             const data = await response.json();
 
+            // Hide typing indicator
+            typingIndicator.classList.add('hidden');
+            sendBtn.disabled = false;
+
             if (data.success) {
-                addAIMessage(data.response);
+                addMessage(data.response, 'ai');
             } else {
-                addErrorMessage(data.error || 'An error occurred');
+                addMessage('❌ Error: ' + (data.error || 'Something went wrong'), 'ai');
             }
         } catch (error) {
-            addErrorMessage('Failed to connect to AI service');
-        } finally {
-            setLoading(false);
+            console.error('Error:', error);
+            typingIndicator.classList.add('hidden');
+            sendBtn.disabled = false;
+            addMessage('❌ Connection error. Please try again.', 'ai');
         }
     });
 
-    function addUserMessage(message) {
+    function addMessage(text, type) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start gap-3 justify-end';
-        messageDiv.innerHTML = `
-            <div class="flex-1 max-w-2xl">
-                <div class="bg-green-900/30 rounded-lg p-4 border border-green-800">
-                    <p class="text-green-300 whitespace-pre-wrap">${escapeHtml(message)}</p>
-                </div>
-            </div>
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="user" class="w-4 h-4 text-white"></i>
-            </div>
-        `;
-        chatContainer.appendChild(messageDiv);
-        lucide.createIcons();
-        scrollToBottom();
-    }
-
-    function addAIMessage(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start gap-3';
-        messageDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="bot" class="w-4 h-4 text-white"></i>
-            </div>
-            <div class="flex-1 max-w-2xl">
-                <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                    <div class="text-gray-300 prose prose-invert max-w-none whitespace-pre-wrap">${formatMarkdown(message)}</div>
-                </div>
-            </div>
-        `;
-        chatContainer.appendChild(messageDiv);
-        lucide.createIcons();
-        scrollToBottom();
-    }
-
-    function addErrorMessage(error) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start gap-3';
-        messageDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="alert-circle" class="w-4 h-4 text-white"></i>
-            </div>
-            <div class="flex-1">
-                <div class="bg-red-900/30 rounded-lg p-4 border border-red-800">
-                    <p class="text-red-300">${escapeHtml(error)}</p>
-                </div>
-            </div>
-        `;
-        chatContainer.appendChild(messageDiv);
-        lucide.createIcons();
-        scrollToBottom();
-    }
-
-    function setLoading(loading) {
-        sendBtn.disabled = loading;
-        userInput.disabled = loading;
-        typingIndicator.classList.toggle('hidden', !loading);
+        messageDiv.className = 'chat-message flex items-start gap-3 ' + (type === 'user' ? 'flex-row-reverse' : '');
         
-        if (loading) {
-            sendBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Thinking...';
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        
+        if (type === 'user') {
+            messageDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-br from-navy-700 to-navy-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="flex-1 flex flex-col items-end">
+                    <div class="message-user rounded-2xl rounded-tr-sm p-4 shadow-lg max-w-md">
+                        <p class="text-sm">${escapeHtml(text)}</p>
+                    </div>
+                    <p class="text-xs text-navy-400 mt-2 mr-1">${timeStr}</p>
+                </div>
+            `;
         } else {
-            sendBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Send';
+            messageDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="message-ai rounded-2xl rounded-tl-sm p-4 shadow-lg max-w-md">
+                        <div class="text-sm prose prose-sm max-w-none prose-invert">${formatMessage(text)}</div>
+                    </div>
+                    <p class="text-xs text-navy-400 mt-2 ml-1">${timeStr}</p>
+                </div>
+            `;
         }
-        lucide.createIcons();
-    }
-
-    function scrollToBottom() {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        chatMessages.appendChild(messageDiv);
+        
+        // Re-initialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     function escapeHtml(text) {
@@ -287,31 +414,21 @@
         return div.innerHTML;
     }
 
-    function formatMarkdown(text) {
-        // Basic markdown formatting
-        let formatted = escapeHtml(text);
-        
-        // Code blocks
-        formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-gray-950 p-3 rounded mt-2 mb-2 overflow-x-auto"><code class="text-green-400">$2</code></pre>');
-        
-        // Inline code
-        formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-1.5 py-0.5 rounded text-green-400 text-sm">$1</code>');
+    function formatMessage(text) {
+        // Convert markdown-style formatting
+        text = escapeHtml(text);
         
         // Bold
-        formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         
-        // Italic
-        formatted = formatted.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+        // Line breaks
+        text = text.replace(/\n/g, '<br>');
         
-        // Links
-        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:underline" target="_blank">$1</a>');
+        // Lists
+        text = text.replace(/^- (.+)$/gm, '• $1');
         
-        return formatted;
+        return text;
     }
-
-        // Focus input on load
-        userInput.focus();
-
-    }); // End DOMContentLoaded
+});
 </script>
 {% endblock %}
