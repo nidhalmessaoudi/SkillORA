@@ -160,7 +160,15 @@
                     <span>Rendez-vous</span>
                 </a>
                 
-    
+                {# AI Tools Section #}
+                <div class="pt-4 pb-2 px-3">
+                    <span class="text-caption font-semibold text-navy-400 uppercase tracking-wider">AI Tools</span>
+                </div>
+                <a href="{{ path('admin_ai_terminal') }}" class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'admin_ai_terminal' %}sidebar-nav-item-active{% endif %}">
+                    <i data-lucide="terminal" class="w-5 h-5"></i>
+                    <span>AI Terminal</span>
+                    <span class="ml-auto px-2 py-0.5 text-xs bg-green-500 text-white rounded-full">New</span>
+                </a>
                 
             </nav>
         </aside>
