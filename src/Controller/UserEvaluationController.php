@@ -82,12 +82,16 @@ class UserEvaluationController extends AbstractController
             $em->flush();
         }
 
+        //if ($userEvaluation->getSubmittedAt()) {
+           // if ($evaluation->getType() === 'EXAM') {
+             //   return $this->redirectToRoute('user_evaluation_index');
+            //}
+            //return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+        //}
+
         if ($userEvaluation->getSubmittedAt()) {
-            if ($evaluation->getType() === 'EXAM') {
-                return $this->redirectToRoute('user_evaluation_index');
-            }
-            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
-        }
+    return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
+}
 
         $startedAt = $userEvaluation->getStartedAt();
         $endTime = (clone $startedAt)->modify("+{$evaluation->getDuration()} minutes");
@@ -109,7 +113,9 @@ class UserEvaluationController extends AbstractController
             $em->flush();
 
             $this->addFlash('danger', 'Time is up. Your exam has been submitted automatically and is now pending review.');
-            return $this->redirectToRoute('user_evaluation_index');
+            //return $this->redirectToRoute('user_evaluation_index');
+
+            return $this->redirectToRoute('user_evaluation_result', ['id' => $userEvaluation->getId()]);
         }
 
         $questions = $evaluation->getQuestions();
@@ -258,6 +264,20 @@ class UserEvaluationController extends AbstractController
         $evaluation = $userEvaluation->getEvaluation();
         $questions = $evaluation->getQuestions();
 
+        $examSubmission = null;
+
+if ($evaluation->getType() === 'EXAM') {
+    $firstQuestion = $questions->first() ?: null;
+
+    if ($firstQuestion) {
+        $examSubmission = $em->getRepository(Answer::class)->findOneBy([
+            'student' => $user,
+            'question' => $firstQuestion,
+            'role' => 'SUBMISSION',
+        ]);
+    }
+}
+
         $submitted = $em->createQueryBuilder()
             ->select('a')
             ->from(Answer::class, 'a')
@@ -281,6 +301,7 @@ class UserEvaluationController extends AbstractController
             'evaluation' => $evaluation,
             'questions' => $questions,
             'submittedMap' => $submittedMap,
+            'examSubmission' => $examSubmission,
         ]);
     }
 }

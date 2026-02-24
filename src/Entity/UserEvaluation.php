@@ -30,6 +30,12 @@ class UserEvaluation
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $score = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+private ?string $aiFeedback = null;
+
+#[ORM\Column(nullable: true)]
+private ?\DateTimeImmutable $aiCorrectedAt = null;
+
     // ✅ AJOUT IMPORTANT
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isCorrected = false;
@@ -102,6 +108,12 @@ class UserEvaluation
         $this->score = $score;
         return $this;
     }
+
+    public function getAiFeedback(): ?string { return $this->aiFeedback; }
+public function setAiFeedback(?string $aiFeedback): static { $this->aiFeedback = $aiFeedback; return $this; }
+
+public function getAiCorrectedAt(): ?\DateTimeImmutable { return $this->aiCorrectedAt; }
+public function setAiCorrectedAt(?\DateTimeImmutable $dt): static { $this->aiCorrectedAt = $dt; return $this; }
 
     // ✅ NOUVELLES MÉTHODES
 

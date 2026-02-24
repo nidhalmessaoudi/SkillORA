@@ -238,11 +238,14 @@ body.dark-mode #assessments-wrap .hero,
                   View result
                 </a>
               {% else %}
-                <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}"
-                   class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition
-                          dark:bg-blue-500 dark:hover:bg-blue-400">
-                  Take assessment
-                </a>
+               <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}"
+   class="!inline-flex !items-center !justify-center
+          px-4 py-2 rounded-xl
+          !bg-blue-600 !text-white font-semibold
+          hover:!bg-blue-700 transition
+          shadow-md">
+  Take assessment
+</a>
               {% endif %}
             </div>
 

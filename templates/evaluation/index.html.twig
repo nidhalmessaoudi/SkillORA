@@ -138,21 +138,27 @@
                   </button>
                 </form>
 
-                <a href="{{ path('admin_question_new', {
-                  evaluationId: selectedEvaluation.id,
-                  back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
-                }) }}"
-                   class="btn-secondary btn-sm">
-                  Add Questions
-                </a>
+              <div class="d-flex justify-content-end align-items-center small gap-3">
+    
+    <a href="{{ path('admin_question_new', {
+        evaluationId: selectedEvaluation.id,
+        back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+    }) }}"
+       class="text-decoration-none text-muted fw-semibold">
+        Add Questions
+    </a>
 
-                <a href="{{ path('admin_answer_index', {
-                  evaluationId: selectedEvaluation.id,
-                  back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
-                }) }}"
-                   class="btn-primary btn-sm">
-                  View Answers
-                </a>
+    <span class="text-muted">|</span>
+
+    <a href="{{ path('admin_answer_index', {
+        evaluationId: selectedEvaluation.id,
+        back: path('evaluation_index', { type: selectedType, evaluationId: selectedEvaluation.id })
+    }) }}"
+       class="text-decoration-none text-dark fw-semibold">
+        View Answers
+    </a>
+
+</div>
 
               </div>
             {% else %}

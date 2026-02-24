@@ -1,0 +1,51 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-4">Copies EXAM soumises</h1>
+
+<table class="w-full border">
+  <thead>
+    <tr class="bg-gray-50">
+      <th class="p-2 border">Examen</th>
+      <th class="p-2 border">Étudiant</th>
+      <th class="p-2 border">Soumis le</th>
+      <th class="p-2 border">Note</th>
+      <th class="p-2 border">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ue in rows %}
+      <tr>
+        <td class="p-2 border">{{ ue.evaluation.title }}</td>
+        <td class="p-2 border">{{ ue.user.email }}</td>
+        <td class="p-2 border">{{ ue.submittedAt ? ue.submittedAt|date('d/m/Y H:i') : '-' }}</td>
+        <td class="p-2 border">
+          {% if ue.isCorrected %}
+            {{ ue.score }} / {{ ue.evaluation.totalScore }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td class="p-2 border">
+          <div class="flex gap-2">
+            <a href="{{ path('admin_exam_submission_show', {id: ue.id}) }}"
+               class="px-3 py-2 rounded bg-gray-200 text-sm">
+              Voir
+            </a>
+
+            <form method="post" action="{{ path('admin_exam_ai_correct', {id: ue.id}) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('ai_correct_' ~ ue.id) }}">
+              <button class="px-3 py-2 rounded bg-black text-white text-sm"
+                      {% if ue.isCorrected %}disabled style="opacity:.5"{% endif %}>
+                Corriger IA
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td class="p-4" colspan="5">Aucune copie.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

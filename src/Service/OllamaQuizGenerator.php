@@ -57,7 +57,8 @@ Règles :
 - explanation = 1 phrase courte
 PROMPT;
 
-        $raw = $this->ollama->generate('mistral', $prompt);
+       // $raw = $this->ollama->generate('mistral', $prompt);
+       $raw = $this->ollama->generate('mistral:latest', $prompt);
 
         $json = $this->extractJson($raw);
 

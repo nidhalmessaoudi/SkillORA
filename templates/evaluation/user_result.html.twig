@@ -35,16 +35,38 @@
   {% endfor %}
 
 {% else %}
+
+  {# PDF reste affiché #}
+  {% if evaluation.pdfPath %}
+    <div class="mb-4 border rounded overflow-hidden">
+      <iframe src="{{ asset(evaluation.pdfPath) ~ '?v=' ~ random() }}" width="100%" height="600"></iframe>
+    </div>
+  {% endif %}
+
   <div class="p-4 border rounded mb-6">
-    {% if userEvaluation.isCorrected %}
-      <p><b>Note :</b> {{ userEvaluation.score }} / {{ evaluation.totalScore }}</p>
-    {% else %}
-      <p class="text-gray-700">
-        Votre examen a été soumis ✅.<br>
-        <b>En attente de correction par l’admin.</b>
-      </p>
-    {% endif %}
+    <p class="font-semibold mb-2">Votre réponse (verrouillée)</p>
+
+    <textarea class="w-full border p-3" rows="10" readonly>{{ examSubmission ? examSubmission.content : '' }}</textarea>
+
+    <div class="mt-4">
+      {% if userEvaluation.isCorrected %}
+        <p><b>Note :</b> {{ userEvaluation.score }} / {{ evaluation.totalScore }}</p>
+
+        {% if userEvaluation.aiFeedback %}
+          <div class="mt-2 text-sm whitespace-pre-line">
+            <b>Feedback IA :</b><br>
+            {{ userEvaluation.aiFeedback }}
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="text-gray-700">
+          Votre examen a été soumis ✅.<br>
+          <b>En attente de correction par l’admin.</b>
+        </p>
+      {% endif %}
+    </div>
   </div>
+
 {% endif %}
 
 <a href="{{ path('user_evaluation_index') }}" class="btn-secondary">Retour</a>

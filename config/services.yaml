@@ -4,19 +4,21 @@
 parameters:
     lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
     lesson_upload_public_base: "/uploads/lessons"
-    # exam_pdf_upload_dir: '%kernel.project_dir%/public/uploads/exams'
     exam_docx_upload_dir: '%kernel.project_dir%/public/uploads/docx'
     exam_pdf_upload_dir: '%kernel.project_dir%/public/uploads/pdf'
 
     # ✅ Windows (change si ton chemin diffère)
     libreoffice_soffice_path: 'C:\Program Files\LibreOffice\program\soffice.exe'
 
-    # ✅ (Optionnel) tu peux le garder, mais on ne l’utilise plus pour OpenAiQuizGenerator
     openai_api_key: '%env(OPENAI_API_KEY)%'
 
     plagiarismsearch_api_key: '%env(PLAGIARISMSEARCH_API_KEY)%'
     plagiarismsearch_endpoint: '%env(resolve:PLAGIARISMSEARCH_ENDPOINT)%'
 
+    # ✅ GROQ (AJOUT)
+    groq_api_key: '%env(GROQ_API_KEY)%'
+    groq_model: '%env(GROQ_MODEL)%'
+    
 
 services:
     _defaults:
@@ -30,19 +32,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # ✅ OpenAIEmbeddingsClient (si tu le réactives un jour)
-    # App\Service\OpenAIEmbeddingsClient:
-    #     arguments:
-    #         $openaiApiKey: '%env(OPENAI_API_KEY)%'
-    #         $model: 'text-embedding-3-small'
-
-    # ✅ PlagiarismSearchClient (si tu le réactives)
-    # App\Service\PlagiarismSearchClient:
-    #     arguments:
-    #         $apiKey: '%plagiarismsearch_api_key%'
-    #         $endpoint: '%plagiarismsearch_endpoint%'
-
     # ✅ OpenAiQuizGenerator (FINAL ✅)
     App\Service\OpenAiQuizGenerator:
         arguments:
             $openAiApiKey: '%env(OPENAI_API_KEY)%'
+
+    # ✅ GroqAiClient (AJOUT)
+    App\Service\GroqAiClient:
+        arguments:
+            $apiKey: '%groq_api_key%'
+            $model: '%groq_model%'
