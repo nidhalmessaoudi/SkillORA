@@ -4,7 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Entity\CourseSection;
+use App\Entity\LessonCompletion;
 use App\Entity\Lesson;
+use App\Entity\User;
+use App\Repository\CertificateRepository;
+use App\Repository\EnrollmentRepository;
+use App\Repository\LessonCompletionRepository;
+use App\Service\CertificateService;
+use App\Service\CourseProgressService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -110,7 +117,13 @@ class CourseController extends AbstractController
             requirements: ["courseId" => "\d+"],
         ),
     ]
-    public function show(int $courseId, EntityManagerInterface $em): Response
+    public function show(
+        int $courseId,
+        EntityManagerInterface $em,
+        EnrollmentRepository $enrollmentRepository,
+        CourseProgressService $courseProgressService,
+        CertificateRepository $certificateRepository,
+    ): Response
     {
         /** @var Course|null $course */
         $course = $em->getRepository(Course::class)->find($courseId);
@@ -155,10 +168,33 @@ class CourseController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        /** @var User|null $currentUser */
+        $currentUser = $this->getUser();
+        $enrollment = null;
+        $progressPercent = 0;
+        $completedLessons = 0;
+        $totalLessons = $courseProgressService->getTotalLessons($course);
+        $certificate = null;
+
+        if ($currentUser instanceof User) {
+            $enrollment = $enrollmentRepository->findOneByUserAndCourse($currentUser, $course);
+            if ($enrollment) {
+                $progressPercent = $courseProgressService->calculateProgress($enrollment);
+                $completedLessons = $courseProgressService->getCompletedLessons($enrollment);
+                $certificate = $certificateRepository->findOneBy(['enrollment' => $enrollment]);
+            }
+        }
+
         return $this->render("pages/courses/show.html.twig", [
             "course" => $course,
             "sections" => $sectionsView,
             "related_courses" => $related,
+            "is_enrolled" => $enrollment !== null,
+            "enrollment" => $enrollment,
+            "course_progress" => $progressPercent,
+            "completed_lessons" => $completedLessons,
+            "total_lessons" => $totalLessons,
+            "certificate" => $certificate,
         ]);
     }
 
@@ -173,6 +209,11 @@ class CourseController extends AbstractController
         int $courseId,
         int $lessonId,
         EntityManagerInterface $em,
+        EnrollmentRepository $enrollmentRepository,
+        LessonCompletionRepository $lessonCompletionRepository,
+        CourseProgressService $courseProgressService,
+        CertificateRepository $certificateRepository,
+        CertificateService $certificateService,
     ): Response {
         /** @var Course|null $course */
         $course = $em->getRepository(Course::class)->find($courseId);
@@ -244,6 +285,40 @@ class CourseController extends AbstractController
                 ? $orderedLessons[$currentIndex + 1]
                 : null;
 
+        /** @var User|null $currentUser */
+        $currentUser = $this->getUser();
+        $enrollment = null;
+        $lessonAutoCompleted = false;
+        $certificate = null;
+        $progressPercent = 0;
+        $completedLessons = 0;
+        $totalLessons = $courseProgressService->getTotalLessons($course);
+
+        if ($currentUser instanceof User) {
+            $enrollment = $enrollmentRepository->findOneByUserAndCourse($currentUser, $course);
+            if ($enrollment) {
+                $alreadyCompleted = $lessonCompletionRepository->existsForEnrollmentAndLesson($enrollment, $lesson);
+                if (!$alreadyCompleted) {
+                    $completion = new LessonCompletion();
+                    $completion->setEnrollment($enrollment);
+                    $completion->setLesson($lesson);
+                    $completion->setCompletedAt(new \DateTimeImmutable());
+                    $em->persist($completion);
+                    $lessonAutoCompleted = true;
+                    // Persist completion before progress queries so the current lesson counts immediately.
+                    $em->flush();
+                }
+
+                $courseProgressService->recalculateEnrollmentProgress($enrollment);
+                $issuedCertificate = $certificateService->issueIfEligible($enrollment);
+                $em->flush();
+
+                $progressPercent = $enrollment->getProgressPercent();
+                $completedLessons = $courseProgressService->getCompletedLessons($enrollment);
+                $certificate = $issuedCertificate ?? $certificateRepository->findOneBy(['enrollment' => $enrollment]);
+            }
+        }
+
         return $this->render("pages/lessons/show.html.twig", [
             "course" => $course,
             "section" => $section,
@@ -251,6 +326,12 @@ class CourseController extends AbstractController
             "sections" => $sectionsView,
             "prev_lesson" => $prevLesson,
             "next_lesson" => $nextLesson,
+            "is_enrolled" => $enrollment !== null,
+            "course_progress" => $progressPercent,
+            "completed_lessons" => $completedLessons,
+            "total_lessons" => $totalLessons,
+            "certificate" => $certificate,
+            "lesson_auto_completed" => $lessonAutoCompleted,
         ]);
     }
 }

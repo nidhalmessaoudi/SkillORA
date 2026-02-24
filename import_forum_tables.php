@@ -2,7 +2,7 @@
 // Script to import forum tables - Simple version
 // Run: php import_forum_tables.php
 
-echo "Importing Forum Tables to SkillHarbor Database\n";
+echo "Importing Forum Tables to SkillORA Database\n";
 echo str_repeat("=", 60) . "\n\n";
 
 // Read .env file manually

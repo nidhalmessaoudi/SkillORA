@@ -2,7 +2,7 @@
 // Import additional SQL tables (quiz, assessment, events)
 // Run: php import_additional_tables.php
 
-echo "Importing Additional Tables to SkillHarbor Database\n";
+echo "Importing Additional Tables to SkillORA Database\n";
 echo str_repeat("=", 60) . "\n\n";
 
 // Read database credentials from .env

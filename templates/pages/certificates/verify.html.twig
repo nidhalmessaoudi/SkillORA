@@ -1,0 +1,45 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Certificate Verification - SkillORA{% endblock %}
+
+{% block body %}
+<div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+  <div class="container-wide py-10 max-w-4xl">
+    <div class="card p-8">
+      {% if is_valid and certificate %}
+        <div class="flex items-center gap-3 mb-5 text-success-700 dark:text-success-300">
+          <i data-lucide="shield-check" class="w-7 h-7"></i>
+          <h1 class="font-display font-bold text-2xl">Certificate Verified</h1>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4 text-body-sm">
+          <div>
+            <p class="text-navy-500 dark:text-navy-400">Student</p>
+            <p class="font-semibold text-navy-900 dark:text-white">{{ certificate.studentName }}</p>
+          </div>
+          <div>
+            <p class="text-navy-500 dark:text-navy-400">Course</p>
+            <p class="font-semibold text-navy-900 dark:text-white">{{ certificate.courseTitle }}</p>
+          </div>
+          <div>
+            <p class="text-navy-500 dark:text-navy-400">Issued</p>
+            <p class="font-semibold text-navy-900 dark:text-white">{{ certificate.issuedAt|date('F d, Y') }}</p>
+          </div>
+          <div>
+            <p class="text-navy-500 dark:text-navy-400">Certificate Code</p>
+            <p class="font-mono font-semibold text-navy-900 dark:text-white">{{ certificate.certificateCode }}</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="flex items-center gap-3 mb-5 text-danger-700 dark:text-danger-300">
+          <i data-lucide="shield-x" class="w-7 h-7"></i>
+          <h1 class="font-display font-bold text-2xl">Certificate Invalid</h1>
+        </div>
+        <p class="text-body-md text-navy-600 dark:text-navy-300">
+          No valid certificate was found for code: <span class="font-mono font-semibold">{{ code }}</span>
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

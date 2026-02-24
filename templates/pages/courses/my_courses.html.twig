@@ -1,0 +1,73 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}My Courses - SkillORA{% endblock %}
+
+{% block body %}
+<div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+  <div class="container-wide py-8">
+    <nav class="breadcrumb mb-6">
+      <a href="{{ path('app_home') }}" class="breadcrumb-link">Home</a>
+      <i data-lucide="chevron-right" class="w-4 h-4 breadcrumb-separator"></i>
+      <span class="text-navy-900 dark:text-white">My Courses</span>
+    </nav>
+
+    <div class="mb-8">
+      <h1 class="font-display font-bold text-display-md text-navy-900 dark:text-white mb-2">My Enrolled Courses</h1>
+      <p class="text-body-md text-navy-600 dark:text-navy-400">{{ items|length }} enrolled courses</p>
+    </div>
+
+    {% if items is empty %}
+      <div class="card p-8 text-center">
+        <i data-lucide="book-open" class="w-10 h-10 mx-auto text-navy-400 mb-3"></i>
+        <h2 class="font-display font-semibold text-xl text-navy-900 dark:text-white mb-2">No courses enrolled yet</h2>
+        <p class="text-body-sm text-navy-500 mb-5">Browse courses and enroll to start tracking your progress.</p>
+        <a href="{{ path('courses_index') }}" class="btn-primary">Browse Courses</a>
+      </div>
+    {% else %}
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for item in items %}
+          {% set course = item.course %}
+          <article class="card p-5 flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-3">
+              <h2 class="font-display font-semibold text-lg text-navy-900 dark:text-white line-clamp-2">
+                {{ course.title }}
+              </h2>
+              <span class="badge {{ item.progress >= 100 ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300' : 'bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-300' }}">
+                {{ item.progress }}%
+              </span>
+            </div>
+
+            <p class="text-body-sm text-navy-500 dark:text-navy-400">
+              {{ item.completed_lessons }} / {{ item.total_lessons }} lessons completed
+            </p>
+
+            <div class="h-2.5 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-harbor-500 to-harbor-600 rounded-full" style="width: {{ item.progress }}%"></div>
+            </div>
+
+            <div class="mt-2 flex flex-wrap gap-2">
+              {% if item.next_lesson %}
+                <a href="{{ path('lesson_show', {courseId: course.id, lessonId: item.next_lesson.id}) }}" class="btn-primary btn-sm">
+                  <i data-lucide="play" class="w-4 h-4"></i>
+                  Continue
+                </a>
+              {% else %}
+                <a href="{{ path('course_show', {courseId: course.id}) }}" class="btn-secondary btn-sm">
+                  View Course
+                </a>
+              {% endif %}
+
+              {% if item.certificate %}
+                <a href="{{ path('certificate_download', {certificateCode: item.certificate.certificateCode}) }}" class="btn-secondary btn-sm">
+                  <i data-lucide="badge-check" class="w-4 h-4"></i>
+                  Certificate
+                </a>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

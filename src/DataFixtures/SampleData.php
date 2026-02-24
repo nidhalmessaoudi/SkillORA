@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 /**
- * SampleData - Hardcoded sample datasets for SkillHarbor
+ * SampleData - Hardcoded sample datasets for SkillORA
  * No database required - all data stored as PHP arrays
  */
 class SampleData
@@ -544,7 +544,7 @@ class SampleData
     {
         return [
             ['id' => 1, 'title' => 'Tips for staying motivated during long courses?', 'content' => 'I\'m halfway through the ML bootcamp and finding it hard to stay motivated. Any tips from those who\'ve completed it?', 'author' => 'Alex K.', 'upvotes' => 234, 'comments_count' => 45, 'tag' => 'Discussion', 'created_at' => '2 hours ago'],
-            ['id' => 2, 'title' => 'Just landed my first dev job thanks to this platform!', 'content' => 'After 6 months of learning React and TypeScript, I finally got an offer. Thank you SkillHarbor!', 'author' => 'Maria S.', 'upvotes' => 892, 'comments_count' => 127, 'tag' => 'Success Story', 'created_at' => '5 hours ago'],
+            ['id' => 2, 'title' => 'Just landed my first dev job thanks to this platform!', 'content' => 'After 6 months of learning React and TypeScript, I finally got an offer. Thank you SkillORA!', 'author' => 'Maria S.', 'upvotes' => 892, 'comments_count' => 127, 'tag' => 'Success Story', 'created_at' => '5 hours ago'],
             ['id' => 3, 'title' => 'Best practices for taking notes while learning?', 'content' => 'What note-taking strategies have worked best for you? I\'m trying to improve my retention.', 'author' => 'James L.', 'upvotes' => 156, 'comments_count' => 38, 'tag' => 'Discussion', 'created_at' => '8 hours ago'],
             ['id' => 4, 'title' => 'Study group for AWS certification?', 'content' => 'Looking to form a study group for the AWS Solutions Architect exam. Who\'s interested?', 'author' => 'Priya M.', 'upvotes' => 89, 'comments_count' => 23, 'tag' => 'Study Group', 'created_at' => '12 hours ago'],
             ['id' => 5, 'title' => 'How I built my portfolio project using skills from the Design course', 'content' => 'Sharing my journey of creating a full design system after completing Elena\'s UX course.', 'author' => 'Chris D.', 'upvotes' => 445, 'comments_count' => 67, 'tag' => 'Project Showcase', 'created_at' => '1 day ago'],
@@ -586,7 +586,7 @@ class SampleData
                 'name' => 'Jennifer Walsh',
                 'role' => 'Software Engineer at Google',
                 'avatar' => 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200&h=200&fit=crop',
-                'content' => 'SkillHarbor helped me transition from marketing to tech. The structured learning paths and real-world projects made all the difference.',
+                'content' => 'SkillORA helped me transition from marketing to tech. The structured learning paths and real-world projects made all the difference.',
             ],
             [
                 'name' => 'Michael Chen',

@@ -1,4 +1,4 @@
--- Clean SQL for SkillHarbor Forum Integration
+-- Clean SQL for SkillORA Forum Integration
 -- This creates forum/community tables without test data
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";

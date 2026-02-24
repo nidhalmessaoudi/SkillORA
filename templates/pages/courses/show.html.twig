@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html.twig' %}
 
-{% block title %}{{ course.title }} - SkillHarbor{% endblock %}
+{% block title %}{{ course.title }} - SkillORA{% endblock %}
 
 {% block body %}
 <div class="bg-navy-950 text-white">
@@ -68,6 +68,28 @@
         </div>
 
         <div class="flex flex-wrap gap-3">
+          {% if app.user %}
+            {% if is_enrolled %}
+              <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300 text-body-sm font-semibold">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                Enrolled
+              </span>
+            {% else %}
+              <form method="post" action="{{ path('course_enroll', {courseId: course.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('enroll_course_' ~ course.id) }}">
+                <button type="submit" class="btn-primary">
+                  <i data-lucide="user-plus" class="w-4 h-4"></i>
+                  Enroll Now
+                </button>
+              </form>
+            {% endif %}
+          {% else %}
+            <a href="{{ path('auth_login') }}" class="btn-primary">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              Login to Enroll
+            </a>
+          {% endif %}
+
           <a href="#content" class="btn-secondary">
             <i data-lucide="book-open" class="w-4 h-4"></i>
             Content
@@ -176,6 +198,41 @@
           </p>
         {% endif %}
       </section>
+
+      {% if app.user and is_enrolled %}
+      <section class="card p-6">
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <h2 class="font-display font-semibold text-xl">
+            Your Progress
+          </h2>
+          <span class="text-body-sm font-semibold text-harbor-600 dark:text-harbor-400">
+            {{ course_progress }}%
+          </span>
+        </div>
+
+        <div class="h-3 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden mb-3">
+          <div class="h-full bg-gradient-to-r from-harbor-500 to-harbor-600 rounded-full" style="width: {{ course_progress }}%"></div>
+        </div>
+
+        <p class="text-body-sm text-navy-600 dark:text-navy-400">
+          {{ completed_lessons }} / {{ total_lessons }} lessons completed
+        </p>
+
+        <div class="flex flex-wrap gap-3 mt-5">
+          <a href="{{ path('my_courses') }}" class="btn-secondary btn-sm">
+            <i data-lucide="book-check" class="w-4 h-4"></i>
+            My Courses
+          </a>
+
+          {% if certificate %}
+            <a href="{{ path('certificate_download', {certificateCode: certificate.certificateCode}) }}" class="btn-primary btn-sm">
+              <i data-lucide="badge-check" class="w-4 h-4"></i>
+              Download Certificate
+            </a>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
     </main>
   </div>
 </div>

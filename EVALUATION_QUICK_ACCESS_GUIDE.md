@@ -123,7 +123,7 @@ You can:
 ### **Admin Sidebar - Where to Look:**
 ```
 ┌─────────────────────────────┐
-│ SkillHarbor                 │
+│ SkillORA                 │
 │ Admin Panel                 │
 ├─────────────────────────────┤
 │ Dashboard                   │
@@ -143,7 +143,7 @@ You can:
 ### **Frontend Header - Where to Look:**
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ 🏴 SkillHarbor  Browse  My Learning  Community  Events  Evaluations ← NEW! │
+│ 🏴 SkillORA  Browse  My Learning  Community  Events  Evaluations ← NEW! │
 └────────────────────────────────────────────────────────────┘
 ```
 

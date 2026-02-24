@@ -1,6 +1,6 @@
 {
     "name": "skillharbor/app",
-    "description": "SkillHarbor - Premium Online Learning Platform",
+    "description": "SkillORA - Premium Online Learning Platform",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -12,6 +12,8 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
+        "dompdf/dompdf": "^3.1",
+        "endroid/qr-code": "^5.1",
         "friendsofsymfony/ckeditor-bundle": "^2.8",
         "knpuniversity/oauth2-client-bundle": "^2.20",
         "league/oauth2-google": "^4.1",

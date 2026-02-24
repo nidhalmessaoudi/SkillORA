@@ -252,7 +252,7 @@ class AdminController extends AbstractController
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // Report Header
-            fputcsv($handle, ['SkillHarbor Platform Statistics Report']);
+            fputcsv($handle, ['SkillORA Platform Statistics Report']);
             fputcsv($handle, ['Generated on: ' . date('F d, Y H:i:s')]);
             fputcsv($handle, []);
 

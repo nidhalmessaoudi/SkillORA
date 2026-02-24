@@ -19,7 +19,7 @@
                         <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
                     </div>
                     <div class="hidden sm:block">
-                        <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillHarbor</span>
+                        <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillORA</span>
                     </div>
                 </a>
             </div>
@@ -29,9 +29,11 @@
                 <a href="{{ path('courses_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Browse
                 </a>
-                <a href="{{ path('learn_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                {% if app.user %}
+                <a href="{{ path('my_courses') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     My Learning
                 </a>
+                {% endif %}
                 <a href="{{ path('community_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Community
                 </a>
@@ -225,7 +227,7 @@
                                 <i data-lucide="user" class="w-4 h-4"></i>
                                 <span>My Profile</span>
                             </a>
-                            <a href="{{ path('learn_index') }}" class="dropdown-item">
+                            <a href="{{ path('my_courses') }}" class="dropdown-item">
                                 <i data-lucide="play-circle" class="w-4 h-4"></i>
                                 <span>My Learning</span>
                             </a>
@@ -237,7 +239,7 @@
                                 <i data-lucide="activity" class="w-4 h-4"></i>
                                 <span>Profile Statistics</span>
                             </a>
-                            <a href="{{ path('user_profile') }}" class="dropdown-item">
+                            <a href="{{ path('my_courses') }}" class="dropdown-item">
                                 <i data-lucide="file-badge" class="w-4 h-4"></i>
                                 <span>Certificates</span>
                             </a>
@@ -284,7 +286,7 @@
                 <div class="w-10 h-10 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-2xl flex items-center justify-center">
                     <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
                 </div>
-                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillHarbor</span>
+                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillORA</span>
             </a>
             <button onclick="closeMobileMenu()" class="p-2 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800">
                 <i data-lucide="x" class="w-5 h-5 text-navy-600 dark:text-navy-400"></i>
@@ -307,10 +309,12 @@
                 <i data-lucide="compass" class="w-5 h-5"></i>
                 <span>Browse Courses</span>
             </a>
-            <a href="{{ path('learn_index') }}" class="sidebar-nav-item sidebar-nav-item-active">
+            {% if app.user %}
+            <a href="{{ path('my_courses') }}" class="sidebar-nav-item sidebar-nav-item-active">
                 <i data-lucide="play-circle" class="w-5 h-5"></i>
                 <span>My Learning</span>
             </a>
+            {% endif %}
             <a href="{{ path('community_index') }}" class="sidebar-nav-item">
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span>Community</span>
