@@ -3,159 +3,44 @@
 {% block title %}My Assessments{% endblock %}
 
 {% block content %}
+<div class="mx-auto w-full max-w-7xl space-y-8 px-3 sm:px-5">
+  <section class="relative overflow-hidden rounded-3xl border border-harbor-200/60 dark:border-harbor-800/60 bg-gradient-to-br from-harbor-600 via-harbor-500 to-navy-700 p-8 md:p-10 text-white shadow-medium flex items-center justify-center text-center">
+    <div class="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-white/20 blur-2xl"></div>
+    <div class="absolute -bottom-16 -left-14 h-44 w-44 rounded-full bg-harbor-300/30 blur-2xl"></div>
 
-<style>
-/* ✅ Fallback dark mode when Tailwind dark: isn't applied or you use a custom switch */
-/* 1) OS dark mode */
-@media (prefers-color-scheme: dark) {
-  #assessments-wrap .surface { background:#0b1220 !important; border-color:#1f2a3d !important; }
-  #assessments-wrap .title   { color:#f1f5f9 !important; }
-  #assessments-wrap .muted   { color:#cbd5e1 !important; }
-  #assessments-wrap .meta    { color:#cbd5e1 !important; }
-  #assessments-wrap .soft    { background:rgba(148,163,184,.12) !important; color:#e5e7eb !important; }
-  #assessments-wrap .soft:hover { background:rgba(148,163,184,.18) !important; }
-  #assessments-wrap .hero    { background:linear-gradient(135deg, rgba(37,99,235,.75) 0%, rgba(30,41,59,.90) 55%, rgba(15,23,42,.98) 100%) !important; }
-}
-
-/* 2) ✅ Your app switch (most common cases) */
-html.dark #assessments-wrap .surface,
-body.dark #assessments-wrap .surface,
-body.dark-mode #assessments-wrap .surface,
-[data-theme="dark"] #assessments-wrap .surface,
-.theme-dark #assessments-wrap .surface {
-  background:#0b1220 !important;
-  border-color:#1f2a3d !important;
-}
-
-html.dark #assessments-wrap .title,
-body.dark #assessments-wrap .title,
-body.dark-mode #assessments-wrap .title,
-[data-theme="dark"] #assessments-wrap .title,
-.theme-dark #assessments-wrap .title { color:#f1f5f9 !important; }
-
-html.dark #assessments-wrap .muted,
-body.dark #assessments-wrap .muted,
-body.dark-mode #assessments-wrap .muted,
-[data-theme="dark"] #assessments-wrap .muted,
-.theme-dark #assessments-wrap .muted { color:#cbd5e1 !important; }
-
-html.dark #assessments-wrap .meta,
-body.dark #assessments-wrap .meta,
-body.dark-mode #assessments-wrap .meta,
-[data-theme="dark"] #assessments-wrap .meta,
-.theme-dark #assessments-wrap .meta { color:#cbd5e1 !important; }
-
-html.dark #assessments-wrap .soft,
-body.dark #assessments-wrap .soft,
-body.dark-mode #assessments-wrap .soft,
-[data-theme="dark"] #assessments-wrap .soft,
-.theme-dark #assessments-wrap .soft {
-  background:rgba(148,163,184,.12) !important;
-  color:#e5e7eb !important;
-}
-
-html.dark #assessments-wrap .hero,
-body.dark #assessments-wrap .hero,
-body.dark-mode #assessments-wrap .hero,
-[data-theme="dark"] #assessments-wrap .hero,
-.theme-dark #assessments-wrap .hero {
-  background:linear-gradient(135deg, rgba(37,99,235,.75) 0%, rgba(30,41,59,.90) 55%, rgba(15,23,42,.98) 100%) !important;
-}
-</style>
-
-<div id="assessments-wrap">
-
-  {# =======================
-     HERO
-     ======================= #}
-  <div class="hero relative overflow-hidden rounded-3xl p-10 md:p-14 mb-10 shadow-sm dark:shadow-none"
-       style="background: linear-gradient(135deg, rgba(37,99,235,.95) 0%, rgba(96,165,250,.65) 45%, rgba(255,255,255,.85) 100%);">
-    <div class="flex items-center justify-center mb-4">
-      <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium backdrop-blur">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        Assessments management
+    <div class="relative max-w-2xl mx-auto flex flex-col items-center">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+        Learning space
       </span>
-    </div>
-
-    <h1 class="text-center text-4xl md:text-6xl font-extrabold text-white tracking-tight">
-      My Assessments
-    </h1>
-    <p class="text-center text-white/90 mt-3 text-base md:text-lg">
-      View, take, and track your assessments easily.
-    </p>
-
-    <div class="mt-8 flex justify-center">
-      <a href="#assessments-list"
-         class="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-6 py-3 rounded-2xl shadow hover:shadow-md transition
-                dark:bg-white/90 dark:hover:bg-white">
-        <span class="text-xl leading-none">＋</span>
+      <h1 class="mt-4 text-3xl md:text-5xl font-display font-bold tracking-tight">My Assessments</h1>
+      <p class="mt-3 max-w-2xl text-sm md:text-base text-white/90">
+        Track your progress, launch pending assessments, and review completed results.
+      </p>
+      <a href="#assessments-list" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-harbor-700 hover:bg-harbor-50 transition-colors">
         View assessments
       </a>
     </div>
+  </section>
 
-    <div class="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl"></div>
-    <div class="absolute -bottom-12 -left-12 w-44 h-44 rounded-full bg-blue-200/40 blur-2xl"></div>
-  </div>
-
-  {# =======================
-     FILTERS
-     ======================= #}
-  <div id="assessments-list" class="mb-6">
-    <div class="surface flex flex-col md:flex-row md:items-center gap-3 p-4 rounded-2xl border bg-white shadow-sm
-                dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100">
-      <div class="flex items-center gap-2 text-gray-700 dark:text-slate-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 019 17v-4.586L3.293 6.707A1 1 0 013 6V4z"/>
-        </svg>
-        <span class="font-medium">Filter:</span>
+  <section id="assessments-list" class="card p-4 md:p-5">
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h2 class="font-display text-lg font-semibold text-navy-900 dark:text-white">Assessment List</h2>
+        <p class="text-body-sm text-navy-500 dark:text-navy-400">Use filters to focus on pending or completed work.</p>
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <button type="button" data-filter="all"
-                class="filter-pill px-4 py-2 rounded-xl text-sm font-semibold bg-blue-50 text-blue-700
-                       dark:bg-blue-500/20 dark:text-blue-200">
-          All
-        </button>
-
-        <button type="button" data-filter="todo"
-                class="filter-pill soft px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition
-                       dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-          To do
-        </button>
-
-        <button type="button" data-filter="done"
-                class="filter-pill soft px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition
-                       dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-          Completed
-        </button>
-
-        <button type="button" data-filter="exam"
-                class="filter-pill soft px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition
-                       dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-          EXAM
-        </button>
-
-        <button type="button" data-filter="quiz"
-                class="filter-pill soft px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition
-                       dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-          QUIZ
-        </button>
+        <button type="button" data-filter="all" class="filter-pill rounded-xl px-3 py-2 text-xs font-semibold">All</button>
+        <button type="button" data-filter="todo" class="filter-pill rounded-xl px-3 py-2 text-xs font-semibold">To do</button>
+        <button type="button" data-filter="done" class="filter-pill rounded-xl px-3 py-2 text-xs font-semibold">Completed</button>
+        <button type="button" data-filter="exam" class="filter-pill rounded-xl px-3 py-2 text-xs font-semibold">Exam</button>
+        <button type="button" data-filter="quiz" class="filter-pill rounded-xl px-3 py-2 text-xs font-semibold">Quiz</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  {# =======================
-     LIST
-     ======================= #}
   {% if pagination is empty %}
-    <div class="surface p-6 rounded-2xl border bg-white text-gray-600
-                dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200">
-      No assessments available at the moment.
-    </div>
+    <div class="card p-8 text-center text-navy-500 dark:text-navy-400">No assessments available at the moment.</div>
   {% else %}
     <div class="space-y-4">
       {% for evaluation in pagination %}
@@ -163,94 +48,38 @@ body.dark-mode #assessments-wrap .hero,
         {% set done = userEvaluation is not empty and userEvaluation.submittedAt is not null %}
         {% set typeKey = evaluation.type|upper == 'EXAM' ? 'exam' : 'quiz' %}
 
-        <div class="eval-item surface p-5 rounded-2xl border bg-white shadow-sm hover:shadow-md transition
-                    dark:bg-slate-900 dark:border-slate-700"
-             data-status="{{ done ? 'done' : 'todo' }}"
-             data-type="{{ typeKey }}">
+        <article class="eval-item card p-5 md:p-6" data-status="{{ done ? 'done' : 'todo' }}" data-type="{{ typeKey }}">
+          <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="text-lg font-display font-semibold text-navy-900 dark:text-white">{{ evaluation.title }}</h3>
 
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <span class="badge {{ evaluation.type|upper == 'EXAM' ? 'badge-warning' : 'badge-primary' }}">{{ evaluation.type|upper }}</span>
+                <span class="badge {{ done ? 'badge-success' : 'badge-secondary' }}">{{ done ? 'Completed' : 'To do' }}</span>
+              </div>
 
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center
-                          {{ done ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-200'
-                                 : 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200' }}">
-                {% if done %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                {% else %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/>
-                  </svg>
+              <p class="mt-2 text-body-sm text-navy-600 dark:text-navy-300">{{ evaluation.description|default('No description provided.') }}</p>
+
+              <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-navy-500 dark:text-navy-400">
+                <span>Duration: {{ evaluation.duration }} minutes</span>
+                {% if userEvaluation and userEvaluation.startedAt %}
+                  <span>Started: {{ userEvaluation.startedAt|date('d/m/Y H:i') }}</span>
+                {% endif %}
+                {% if done and userEvaluation.submittedAt %}
+                  <span>Submitted: {{ userEvaluation.submittedAt|date('d/m/Y H:i') }}</span>
                 {% endif %}
               </div>
-
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <h2 class="title text-lg font-bold text-gray-900 dark:text-slate-100">{{ evaluation.title }}</h2>
-
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold
-                              {{ evaluation.type|upper == 'EXAM'
-                                 ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200'
-                                 : 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200' }}">
-                    {{ evaluation.type|upper }}
-                  </span>
-
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold
-                              {{ done ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-200'
-                                     : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-200' }}">
-                    {{ done ? 'Completed' : 'To do' }}
-                  </span>
-                </div>
-
-                <p class="muted text-sm text-gray-600 dark:text-slate-300 mt-1">
-                  {{ evaluation.description|default('No description') }}
-                </p>
-
-                <div class="meta flex flex-wrap gap-4 text-sm text-gray-700 dark:text-slate-300 mt-3">
-                  <div class="inline-flex items-center gap-2">
-                    <span class="text-gray-500 dark:text-slate-400">⏱</span>
-                    <span>{{ evaluation.duration }} minutes</span>
-                  </div>
-
-                  {% if userEvaluation and userEvaluation.startedAt %}
-                    <div class="inline-flex items-center gap-2">
-                      <span class="text-gray-500 dark:text-slate-400">🕒</span>
-                      <span>Started on {{ userEvaluation.startedAt|date('d/m/Y H:i') }}</span>
-                    </div>
-                  {% endif %}
-
-                  {% if done and userEvaluation.submittedAt %}
-                    <div class="inline-flex items-center gap-2">
-                      <span class="text-gray-500 dark:text-slate-400">✅</span>
-                      <span>Submitted on {{ userEvaluation.submittedAt|date('d/m/Y H:i') }}</span>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
             </div>
 
-            <div class="flex items-center gap-2 justify-end">
+            <div class="flex shrink-0 items-center gap-2">
               {% if done %}
-                <a href="{{ path('user_evaluation_result', {'id': userEvaluation.id}) }}"
-                   class="soft px-4 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold hover:bg-gray-200 transition
-                          dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-                  View result
-                </a>
+                <a href="{{ path('user_evaluation_result', {'id': userEvaluation.id}) }}" class="btn-secondary btn-sm">View result</a>
               {% else %}
-               <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}"
-   class="!inline-flex !items-center !justify-center
-          px-4 py-2 rounded-xl
-          !bg-blue-600 !text-white font-semibold
-          hover:!bg-blue-700 transition
-          shadow-md">
-  Take assessment
-</a>
+                <a href="{{ path('user_evaluation_take', {'id': evaluation.id}) }}" class="btn-primary btn-sm">Take assessment</a>
               {% endif %}
             </div>
-
           </div>
-        </div>
+        </article>
       {% endfor %}
     </div>
 
@@ -258,25 +87,28 @@ body.dark-mode #assessments-wrap .hero,
       {{ knp_pagination_render(pagination, 'pagination/tailwind.html.twig') }}
     </div>
   {% endif %}
-
 </div>
 
 <script>
 (function () {
+  const activeClasses = ['bg-harbor-100', 'text-harbor-700', 'dark:bg-harbor-900/40', 'dark:text-harbor-300'];
+  const inactiveClasses = ['bg-navy-100', 'text-navy-600', 'dark:bg-navy-800', 'dark:text-navy-300'];
+
   const pills = document.querySelectorAll('.filter-pill');
   const items = document.querySelectorAll('.eval-item');
 
   function setActive(btn) {
-    pills.forEach(b => {
-      b.classList.remove('bg-blue-50','text-blue-700','dark:bg-blue-500/20','dark:text-blue-200');
-      b.classList.add('bg-gray-100','text-gray-700','dark:bg-slate-800','dark:text-slate-200');
+    pills.forEach((pill) => {
+      pill.classList.remove(...activeClasses);
+      pill.classList.add(...inactiveClasses);
     });
-    btn.classList.remove('bg-gray-100','text-gray-700','dark:bg-slate-800','dark:text-slate-200');
-    btn.classList.add('bg-blue-50','text-blue-700','dark:bg-blue-500/20','dark:text-blue-200');
+
+    btn.classList.remove(...inactiveClasses);
+    btn.classList.add(...activeClasses);
   }
 
   function applyFilter(key) {
-    items.forEach(el => {
+    items.forEach((el) => {
       const status = el.getAttribute('data-status');
       const type = el.getAttribute('data-type');
       let show = false;
@@ -291,7 +123,8 @@ body.dark-mode #assessments-wrap .hero,
     });
   }
 
-  pills.forEach(btn => {
+  pills.forEach((btn) => {
+    btn.classList.add(...inactiveClasses);
     btn.addEventListener('click', () => {
       const key = btn.getAttribute('data-filter');
       setActive(btn);
@@ -303,5 +136,4 @@ body.dark-mode #assessments-wrap .hero,
   if (first) setActive(first);
 })();
 </script>
-
 {% endblock %}

@@ -1,58 +1,69 @@
 {% extends 'layouts/base.html.twig' %}
 
-{% block title %}User — SkillHarbor{% endblock %}
+{% block title %}User - SkillHarbor{% endblock %}
 
 {% block body %}
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  {% set currentRoute = app.request.attributes.get('_route') %}
 
-    {# ============================= #}
-    {# ✅ USER NAVIGATION MENU      #}
-    {# ============================= #}
-    <nav class="mb-8 flex flex-wrap gap-3 border-b pb-4">
+  <div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <section class="card p-4 sm:p-5 mb-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-display font-bold text-navy-900 dark:text-white">User Workspace</h1>
+          <p class="text-body-sm text-navy-500 dark:text-navy-400 mt-1">Access assessments and games in one place.</p>
+        </div>
 
-      <a href="{{ path('user_evaluation_index') }}"
-         class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-        📚 Assessments
-      </a>
+        <nav aria-label="User navigation" class="flex flex-wrap gap-2">
+          <a
+            href="{{ path('user_evaluation_index') }}"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors {{ currentRoute starts with 'user_evaluation' ? 'bg-harbor-600 text-white shadow-soft' : 'bg-navy-100 text-navy-700 hover:bg-navy-200 dark:bg-navy-800 dark:text-navy-200 dark:hover:bg-navy-700' }}"
+          >
+            <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+            <span>Assessments</span>
+          </a>
 
-      <a href="{{ path('user_games_index') }}"
-         class="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold hover:bg-gray-200 transition">
-        🎮 Games
-      </a>
+         
 
-      <li>
-  <a href="{{ path('user_hangman_index') }}">🪓 Hangman</a>
-</li>
+          <a
+            href="{{ path('user_hangman_index') }}"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors {{ currentRoute starts with 'user_hangman' ? 'bg-harbor-600 text-white shadow-soft' : 'bg-navy-100 text-navy-700 hover:bg-navy-200 dark:bg-navy-800 dark:text-navy-200 dark:hover:bg-navy-700' }}"
+          >
+            <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+            <span>Hangman</span>
+          </a>
+        </nav>
+      </div>
+    </section>
 
-    </nav>
-
-    {# ============================= #}
-    {# ✅ Flash messages             #}
-    {# ============================= #}
     {% for label, messages in app.flashes %}
       {% for message in messages %}
-        <div class="mb-6 p-5 rounded-lg border-l-4 shadow-md text-base font-medium
+        <div class="mb-4 rounded-xl border px-4 py-3 text-sm font-medium shadow-soft
           {% if label == 'success' %}
-            bg-green-50 border-green-600 text-green-800
-          {% elseif label == 'danger' %}
-            bg-red-50 border-red-600 text-red-800
+            border-success-200 bg-success-50 text-success-700
+          {% elseif label in ['danger', 'error'] %}
+            border-danger-200 bg-danger-50 text-danger-700
           {% elseif label == 'warning' %}
-            bg-yellow-50 border-yellow-500 text-yellow-800
+            border-warning-200 bg-warning-50 text-warning-700
           {% else %}
-            bg-gray-50 border-gray-400 text-gray-800
+            border-navy-200 bg-navy-50 text-navy-700 dark:border-navy-700 dark:bg-navy-900 dark:text-navy-200
           {% endif %}
         ">
-          <div class="flex items-start gap-3">
-            <div class="text-xl">⚠️</div>
-            <div class="leading-relaxed">
-              {{ message }}
-            </div>
+          <div class="flex items-start gap-2">
+            {% if label == 'success' %}
+              <i data-lucide="check-circle-2" class="w-4 h-4 mt-0.5"></i>
+            {% elseif label in ['danger', 'error'] %}
+              <i data-lucide="x-circle" class="w-4 h-4 mt-0.5"></i>
+            {% elseif label == 'warning' %}
+              <i data-lucide="triangle-alert" class="w-4 h-4 mt-0.5"></i>
+            {% else %}
+              <i data-lucide="info" class="w-4 h-4 mt-0.5"></i>
+            {% endif %}
+            <span class="leading-relaxed">{{ message }}</span>
           </div>
         </div>
       {% endfor %}
     {% endfor %}
 
     {% block content %}{% endblock %}
-
   </div>
 {% endblock %}
