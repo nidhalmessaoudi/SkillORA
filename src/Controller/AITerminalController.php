@@ -13,7 +13,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AITerminalController extends AbstractController
 {
-    private const GEMINI_API_KEY = 'AIzaSyBtIyy2lgCDZKgD5v40YDXQ_Fwo7ty-ZYY';
     private const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
     public function __construct(
@@ -444,7 +443,14 @@ User request: " . $userMessage;
 
     private function callGeminiAPI(string $message): string
     {
-        $url = self::GEMINI_API_URL . '?key=' . self::GEMINI_API_KEY;
+        // Get API key from environment variable
+        $apiKey = $_ENV['GEMINI_API_KEY'] ?? null;
+        
+        if (empty($apiKey)) {
+            throw new \Exception('GEMINI_API_KEY not configured. Please add it to your .env file.');
+        }
+        
+        $url = self::GEMINI_API_URL . '?key=' . $apiKey;
 
         $payload = [
             'contents' => [
