@@ -583,72 +583,101 @@ class RendezVousController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+        $redirectUrl = (string) ($request->headers->get('referer') ?: $this->generateUrl('public_rendezvous_index'));
 
         if (!$rdv->getProfessor() || !$user || $rdv->getProfessor()->getId() !== $user->getId()) {
             $this->addFlash('error', 'Ce rendez-vous ne vous est pas assigné.');
-            return $this->redirectToRoute('public_rendezvous_index');
+            return $this->redirect($redirectUrl);
         }
 
         if (!$this->isCsrfTokenValid('accept_rdv_' . $rdv->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
-            return $this->redirectToRoute('public_rendezvous_index');
+            return $this->redirect($redirectUrl);
         }
 
-        if ($rdv->getStatut() === RendezVous::STATUS_CONFIRME && $rdv->getMeetingLink()) {
-            $this->addFlash('error', 'Le lien de réunion est déjà défini.');
-            return $this->redirectToRoute('public_rendezvous_index');
+        if ($rdv->getStatut() === RendezVous::STATUS_CONFIRME) {
+            $this->addFlash('error', 'Ce rendez-vous est déjà confirmé.');
+            return $this->redirect($redirectUrl);
         }
 
         if ($rdv->getStatut() === RendezVous::STATUS_REJETE) {
             $this->addFlash('info', 'Ce rendez-vous est déjà refusé.');
-            return $this->redirectToRoute('public_rendezvous_index');
+            return $this->redirect($redirectUrl);
         }
 
         if ($rdv->getStatut() !== RendezVous::STATUS_EN_ATTENTE) {
             $this->addFlash('info', 'Aucun changement de statut possible.');
-            return $this->redirectToRoute('public_rendezvous_index');
+            return $this->redirect($redirectUrl);
         }
+
+        if ($rdv->getMeetingLink() !== null) {
+            $this->addFlash('error', 'Le lien de réunion est déjà défini et ne peut plus être modifié.');
+            return $this->redirect($redirectUrl);
+        }
+
+        $slot = $rdv->getSlot();
+        $slotHasLocation = $slot && (
+            trim((string) $slot->getLocationLabel()) !== '' ||
+            $slot->getLocationLat() !== null ||
+            $slot->getLocationLng() !== null
+        );
 
         $meetingLink = trim((string) $request->request->get('meeting_link', ''));
-        if ($meetingLink === '' || mb_strlen($meetingLink) < 10) {
-            $this->addFlash('error', 'Le lien de réunion est obligatoire (minimum 10 caractères).');
-            return $this->redirectToRoute('public_rendezvous_index');
-        }
 
-        if (!filter_var($meetingLink, FILTER_VALIDATE_URL)) {
+        if (!$slotHasLocation) {
+            if ($meetingLink === '' || !filter_var($meetingLink, FILTER_VALIDATE_URL)) {
+                $this->addFlash('error', "Ce créneau n'a pas de lieu. Veuillez fournir un lien de réunion.");
+                return $this->redirect($redirectUrl);
+            }
+        } elseif ($meetingLink !== '' && !filter_var($meetingLink, FILTER_VALIDATE_URL)) {
             $this->addFlash('error', 'Lien de réunion invalide (URL requise).');
-            return $this->redirectToRoute('public_rendezvous_index');
+            return $this->redirect($redirectUrl);
         }
 
-        $rdv->setMeetingLink($meetingLink);
-        $rdv->setMeetingType(RendezVous::TYPE_ONLINE);
         $rdv->setStatut(RendezVous::STATUS_CONFIRME);
+
+        if ($slotHasLocation && $meetingLink === '') {
+            $rdv->setMeetingType(RendezVous::TYPE_IN_PERSON);
+            $rdv->setMeetingLink(null);
+            $rdv->setLocationLabel($slot?->getLocationLabel());
+            $rdv->setLocationLat($slot?->getLocationLat());
+            $rdv->setLocationLng($slot?->getLocationLng());
+            $rdv->setLocation($slot?->getLocationLabel());
+        } else {
+            $rdv->setMeetingType(RendezVous::TYPE_ONLINE);
+            $rdv->setMeetingLink($meetingLink);
+            $rdv->setLocationLabel(null);
+            $rdv->setLocationLat(null);
+            $rdv->setLocationLng(null);
+            $rdv->setLocation(null);
+        }
 
         $student = $rdv->getStudent();
         $professor = $rdv->getProfessor();
         $studentName = $student ? $student->getFullName() : 'Étudiant';
         $profName = $professor ? $professor->getFullName() : 'Professeur';
-        $slot = $rdv->getSlot();
         $dateLabel = $slot ? $slot->getStartAt()->format('d/m/Y') : 'N/A';
         $timeLabel = $slot ? $slot->getStartAt()->format('H:i') . ' → ' . $slot->getEndAt()->format('H:i') : 'N/A';
         $courseLabel = $rdv->getCourse() ? $rdv->getCourse()->getTitle() : 'N/A';
         $meetingTypeLabel = $rdv->getMeetingType() === RendezVous::TYPE_IN_PERSON ? 'En personne' : 'En ligne';
-        $locationLabel = $rdv->getLocationLabel() ?: ($slot ? $slot->getLocationLabel() : null);
+        $locationLabel = $slot ? trim((string) $slot->getLocationLabel()) : '';
+        if ($locationLabel === '') {
+            $locationLabel = $rdv->getLocationLabel() ?: '';
+        }
         $rdvLink = $this->generateUrl('public_rendezvous_index') . '#rdv-' . $rdv->getId();
 
         if ($student) {
             $messageLines = [
-                sprintf('Étudiant: %s', $studentName),
                 sprintf('Professeur: %s', $profName),
                 sprintf('Date: %s', $dateLabel),
                 sprintf('Heure: %s', $timeLabel),
                 sprintf('Cours: %s', $courseLabel),
-                sprintf('Type: %s', $meetingTypeLabel),
-                sprintf('Lien: %s', $meetingLink),
             ];
 
-            if ($meetingTypeLabel === 'En personne' && $locationLabel) {
-                $messageLines[] = sprintf('Lieu: %s', $locationLabel);
+            if ($rdv->getMeetingType() === RendezVous::TYPE_ONLINE) {
+                $messageLines[] = sprintf('Lien: %s', $rdv->getMeetingLink());
+            } else {
+                $messageLines[] = sprintf('Lieu: %s', $locationLabel !== '' ? $locationLabel : 'Lieu non défini');
             }
 
             $notification = (new Notification())
@@ -676,19 +705,19 @@ class RendezVousController extends AbstractController
                         'timeLabel' => $timeLabel,
                         'courseLabel' => $courseLabel,
                         'meetingTypeLabel' => $meetingTypeLabel,
-                        'locationLabel' => $locationLabel,
+                        'locationLabel' => $locationLabel !== '' ? $locationLabel : null,
                         'rdvLink' => $rdvLink,
                     ]))
                     ->text(sprintf(
-                        "Bonjour %s,\n\nVotre rendez-vous avec %s est confirmé.\nDate: %s\nHeure: %s\nCours: %s\nType: %s\nLien: %s%s\n\nDétails: %s",
+                        "Bonjour %s,\n\nVotre rendez-vous avec %s est confirmé.\nDate: %s\nHeure: %s\nCours: %s\nType: %s%s%s\n\nDétails: %s",
                         $studentName,
                         $profName,
                         $dateLabel,
                         $timeLabel,
                         $courseLabel,
                         $meetingTypeLabel,
-                        $meetingLink,
-                        ($meetingTypeLabel === 'En personne' && $locationLabel) ? "\nLieu: " . $locationLabel : '',
+                        $rdv->getMeetingType() === RendezVous::TYPE_ONLINE ? "\nLien: " . $rdv->getMeetingLink() : '',
+                        $rdv->getMeetingType() === RendezVous::TYPE_IN_PERSON ? "\nLieu: " . ($locationLabel !== '' ? $locationLabel : 'Lieu non défini') : '',
                         $rdvLink
                     ));
 
@@ -704,7 +733,7 @@ class RendezVousController extends AbstractController
 
         $this->addFlash('success', 'Rendez-vous confirmé.');
 
-        return $this->redirectToRoute('public_rendezvous_index');
+        return $this->redirect($redirectUrl);
     }
 
     #[Route('/rendezvous/{id}/refuse', name: 'public_rendezvous_refuse', methods: ['POST'])]
