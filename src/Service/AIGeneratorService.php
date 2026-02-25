@@ -296,4 +296,30 @@ PROMPT;
             return ['success' => false, 'error' => 'AI generation failed: ' . $e->getMessage()];
         }
     }
+
+public function generateRaw(string $prompt): string
+{
+    $response = $this->httpClient->request('POST', self::GROQ_BASE, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+        ],
+        'json' => [
+            'model' => $this->modelId,
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'temperature' => 0.3,
+        ],
+        'timeout' => self::TIMEOUT,
+    ]);
+
+    $data = $response->toArray(false);
+
+    if (!isset($data['choices'][0]['message']['content'])) {
+        throw new \RuntimeException('Invalid AI response');
+    }
+
+    return $data['choices'][0]['message']['content'];
+}
 }

@@ -190,7 +190,37 @@
 
                         {# Content #}
                         <div class="prose prose-slate dark:prose-invert max-w-none mb-8" id="post-content"></div>
+<div class="bg-white dark:bg-navy-800 p-6 rounded-2xl shadow-sm mb-8 border border-slate-200 dark:border-navy-700">
 
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold flex items-center gap-2">
+            <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                        </div>
+            AI Summary
+        </h3>
+
+        <button id="generate-summary-btn"
+    data-post-id="{{ post.id }}"
+    class="inline-flex items-center gap-2 px-4 py-2 
+           bg-gradient-to-r from-violet-600 to-purple-600
+           hover:from-violet-700 hover:to-purple-700
+           text-white font-semibold rounded-xl
+           shadow-md transition-all duration-200">
+    <i data-lucide="sparkles" class="w-4 h-4"></i>
+    Generate
+</button>
+    </div>
+
+    <textarea id="post-summary"
+              rows="4"
+              class="w-full border rounded-xl p-3 dark:bg-navy-900 dark:border-navy-700 text-sm"
+              placeholder="Summary will appear here..."
+              readonly></textarea>
+
+    <p id="summary-status" class="text-sm mt-2 text-slate-500"></p>
+
+</div>
                         {# Sleek Tags #}
                         {% if post.tags|length %}
                             <div class="flex flex-wrap gap-2 mb-8">
@@ -1065,6 +1095,51 @@
             }
         } 
     });
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+    const btn = document.getElementById("generate-summary-btn");
+    const textarea = document.getElementById("post-summary");
+    const status = document.getElementById("summary-status");
+
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+
+        btn.disabled = true;
+        btn.innerText = "Generating...";
+        status.textContent = "";
+
+        try {
+            const res = await fetch("/community/ai-summarize", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({
+                    postId: btn.dataset.postId
+                })
+            });
+
+            const data = await res.json();
+
+            if (!data.ok) {
+                throw new Error(data.error || "Failed");
+            }
+
+            textarea.value = data.summary;
+            status.textContent = "Summary generated successfully.";
+
+        } catch (e) {
+            status.textContent = "AI Summary failed: " + e.message;
+        }
+
+        btn.disabled = false;
+        btn.innerText = "Generate";
+    });
+
+});
 </script>
 
 <style>
