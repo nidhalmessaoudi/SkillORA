@@ -66,7 +66,10 @@
             </thead>
             <tbody class="divide-y divide-navy-100 dark:divide-navy-800" data-event-rows>
                 {% for event in events %}
-                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors" data-event-row data-title="{{ event.title|lower }}" data-price="{{ event.priceType|lower }}">
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors"
+                    data-event-row
+                    data-title="{{ event.title|lower }}"
+                    data-price="{{ event.priceType|lower }}">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-3">
                             {% if event.image %}
@@ -101,7 +104,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
+                    <td colspan="6" class="px-6 py-12 text-center">
                         <div class="empty-state">
                             <div class="empty-state-icon">
                                 <i data-lucide="calendar" class="w-full h-full"></i>
@@ -114,56 +117,238 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Empty search state -->
     <div id="event-empty" class="hidden px-6 py-10 text-center text-navy-500">No matching events.</div>
+
+    <!-- ══════════════════════════════════════════
+         PAGINATION
+         ══════════════════════════════════════════ -->
+    <div class="px-6 py-4 border-t border-navy-100 dark:border-navy-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Info text -->
+        <p class="text-caption text-navy-500 dark:text-navy-400 select-none">
+            Showing <span id="ev-pg-from" class="font-semibold text-navy-700 dark:text-navy-300">1</span>–<span id="ev-pg-to" class="font-semibold text-navy-700 dark:text-navy-300">10</span>
+            of <span id="ev-pg-total" class="font-semibold text-navy-700 dark:text-navy-300">0</span> events
+        </p>
+        <!-- Nav buttons -->
+        <nav class="flex items-center gap-1" id="ev-pagination-nav" aria-label="Events pagination"></nav>
+    </div>
 </div>
+
+<style>
+/* ── Pagination buttons ────────────────────── */
+.pg-btn {
+    position: relative;
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    padding: 0 8px;
+    color: #64748b;
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+}
+.pg-btn:hover:not(:disabled):not(.pg-active) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+.dark .pg-btn:hover:not(:disabled):not(.pg-active) {
+    background: rgba(255,255,255,0.07);
+    color: #e2e8f0;
+}
+.pg-btn.pg-active {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+}
+.dark .pg-btn.pg-active {
+    background: rgba(255,255,255,0.10);
+    color: #fff;
+}
+/* Underline on active page */
+.pg-btn.pg-active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 2px;
+    border-radius: 2px;
+    background: #0f172a;
+}
+.dark .pg-btn.pg-active::after {
+    background: #fff;
+}
+.pg-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.pg-sep {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    padding: 0 4px;
+    line-height: 36px;
+    user-select: none;
+}
+</style>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
-        (function() {
-            const searchInput = document.getElementById('event-search');
-            const sortSelect = document.getElementById('event-sort');
-            const tbody = document.querySelector('[data-event-rows]');
-            const emptyState = document.getElementById('event-empty');
+    (function () {
+        /* ── Elements ─────────────────────────────── */
+        const searchInput = document.getElementById('event-search');
+        const sortSelect  = document.getElementById('event-sort');
+        const tbody       = document.querySelector('[data-event-rows]');
+        const emptyMsg    = document.getElementById('event-empty');
+        const pgNav       = document.getElementById('ev-pagination-nav');
+        const pgFrom      = document.getElementById('ev-pg-from');
+        const pgTo        = document.getElementById('ev-pg-to');
+        const pgTotal     = document.getElementById('ev-pg-total');
 
-            if (!searchInput || !sortSelect || !tbody) {
-                return;
-            }
+        if (!searchInput || !sortSelect || !tbody) return;
 
-            const rows = Array.from(tbody.querySelectorAll('[data-event-row]'));
+        /* ── Config ────────────────────────────────── */
+        const PER_PAGE = 3;
 
-            const normalize = (value) => (value || '').toLowerCase().trim();
+        /* ── State ─────────────────────────────────── */
+        const allRows = Array.from(tbody.querySelectorAll('[data-event-row]'));
+        let visibleRows  = [];
+        let currentPage  = 1;
 
-            const applyFilterSort = () => {
-                const query = normalize(searchInput.value);
+        /* ── Helpers ───────────────────────────────── */
+        const normalize  = (v) => (v || '').toLowerCase().trim();
+        const totalPages = () => Math.max(1, Math.ceil(visibleRows.length / PER_PAGE));
 
-                rows.forEach((row) => {
-                    const title = normalize(row.getAttribute('data-title'));
-                    const matches = !query || title.includes(query);
-                    row.classList.toggle('hidden', !matches);
-                });
+        /* ── Filter + Sort ─────────────────────────── */
+        function applyFilterSort() {
+            const query    = normalize(searchInput.value);
+            const sortMode = sortSelect.value;
 
-                const visibleRows = rows.filter((row) => !row.classList.contains('hidden'));
-                const sortMode = sortSelect.value;
+            // 1. Filter
+            visibleRows = allRows.filter(row => {
+                const title = normalize(row.getAttribute('data-title'));
+                return !query || title.includes(query);
+            });
 
-                visibleRows.sort((a, b) => {
-                    const aPrice = normalize(a.getAttribute('data-price'));
-                    const bPrice = normalize(b.getAttribute('data-price'));
-                    return sortMode === 'price-desc'
-                        ? bPrice.localeCompare(aPrice)
-                        : aPrice.localeCompare(bPrice);
-                });
+            // 2. Sort by price type
+            visibleRows.sort((a, b) => {
+                const ap = normalize(a.getAttribute('data-price'));
+                const bp = normalize(b.getAttribute('data-price'));
+                return sortMode === 'price-desc'
+                    ? bp.localeCompare(ap)
+                    : ap.localeCompare(bp);
+            });
 
-                visibleRows.forEach((row) => tbody.appendChild(row));
-                if (emptyState) {
-                    emptyState.classList.toggle('hidden', visibleRows.length > 0);
+            // Reset to page 1 on every new filter/sort
+            currentPage = 1;
+            render();
+        }
+
+        /* ── Render page ───────────────────────────── */
+        function render() {
+            const tp    = totalPages();
+            currentPage = Math.min(Math.max(1, currentPage), tp);
+
+            const start = (currentPage - 1) * PER_PAGE;
+            const end   = start + PER_PAGE;
+
+            // Hide all, then show current slice
+            allRows.forEach(r => r.classList.add('hidden'));
+            visibleRows.forEach((row, idx) => {
+                tbody.appendChild(row);  // maintain sorted order
+                row.classList.toggle('hidden', idx < start || idx >= end);
+            });
+
+            // Empty message
+            if (emptyMsg) emptyMsg.classList.toggle('hidden', visibleRows.length > 0);
+
+            // Info text
+            const showing = Math.min(visibleRows.length, end) - start;
+            if (pgFrom)  pgFrom.textContent  = visibleRows.length ? start + 1 : 0;
+            if (pgTo)    pgTo.textContent    = visibleRows.length ? start + showing : 0;
+            if (pgTotal) pgTotal.textContent = visibleRows.length;
+
+            renderNav(tp);
+        }
+
+        /* ── Build pagination nav ──────────────────── */
+        function renderNav(tp) {
+            if (!pgNav) return;
+            pgNav.innerHTML = '';
+            if (tp <= 1) return;
+
+            pgNav.appendChild(makeArrow('prev', currentPage <= 1));
+
+            pageNumbers(currentPage, tp).forEach(p => {
+                if (p === '…') {
+                    const sep = document.createElement('span');
+                    sep.className   = 'pg-sep';
+                    sep.textContent = '…';
+                    pgNav.appendChild(sep);
+                } else {
+                    pgNav.appendChild(makePageBtn(p));
                 }
-            };
+            });
 
-            searchInput.addEventListener('input', applyFilterSort);
-            sortSelect.addEventListener('change', applyFilterSort);
-            applyFilterSort();
-        })();
+            pgNav.appendChild(makeArrow('next', currentPage >= tp));
+        }
+
+        /* Compact page-number list with ellipsis */
+        function pageNumbers(cur, tp) {
+            if (tp <= 7) return Array.from({ length: tp }, (_, i) => i + 1);
+            const set    = new Set([1, tp, cur, cur - 1, cur + 1].filter(p => p >= 1 && p <= tp));
+            const sorted = Array.from(set).sort((a, b) => a - b);
+            const result = [];
+            sorted.forEach((p, i) => {
+                if (i > 0 && p - sorted[i - 1] > 1) result.push('…');
+                result.push(p);
+            });
+            return result;
+        }
+
+        function makePageBtn(page) {
+            const btn = document.createElement('button');
+            btn.type        = 'button';
+            btn.className   = 'pg-btn' + (page === currentPage ? ' pg-active' : '');
+            btn.textContent = page;
+            btn.setAttribute('aria-label', `Page ${page}`);
+            if (page === currentPage) btn.setAttribute('aria-current', 'page');
+            btn.addEventListener('click', () => { currentPage = page; render(); });
+            return btn;
+        }
+
+        function makeArrow(dir, disabled) {
+            const btn = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'pg-btn';
+            btn.disabled  = disabled;
+            btn.setAttribute('aria-label', dir === 'prev' ? 'Previous page' : 'Next page');
+            btn.innerHTML = dir === 'prev'
+                ? `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>`
+                : `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
+            btn.addEventListener('click', () => {
+                currentPage += dir === 'prev' ? -1 : 1;
+                render();
+            });
+            return btn;
+        }
+
+        /* ── Bind events ───────────────────────────── */
+        searchInput.addEventListener('input',  applyFilterSort);
+        sortSelect.addEventListener('change',  applyFilterSort);
+
+        // Initial render
+        applyFilterSort();
+    })();
     </script>
 {% endblock %}

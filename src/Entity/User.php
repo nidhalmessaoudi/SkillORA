@@ -42,6 +42,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $phone = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $gender = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $bio = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(name: 'date_of_birth', type: 'date', nullable: true)]
+    private ?\DateTimeInterface $dateOfBirth = null;
+
+    #[ORM\Column(name: 'field_of_study', type: 'string', length: 100, nullable: true)]
+    private ?string $fieldOfStudy = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $university = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $country = null;
+
+    #[ORM\Column(name: 'profile_completed', type: 'boolean', options: ['default' => 0])]
+    private bool $profileCompleted = false;
+
     private ?string $role = null; // This will be loaded from user_roles table
 
     public function __construct()
@@ -89,14 +116,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        // For now, we'll check the role property loaded from database
         $roles = ['ROLE_USER'];
         
         if ($this->role === 'admin') {
             $roles[] = 'ROLE_ADMIN';
-        } elseif ($this->role === 'instructor') {
-            $roles[] = 'ROLE_INSTRUCTOR';
+        } elseif ($this->role === 'professor' || $this->role === 'instructor') {
+            $roles[] = 'ROLE_PROFESSOR';
         }
+        // 'student' or 'user' gets only ROLE_USER
 
         return array_unique($roles);
     }
@@ -219,5 +246,117 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isProfessor(): bool
+    {
+        return $this->role === 'professor' || $this->role === 'instructor';
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?string $gender): static
+    {
+        $this->gender = $gender;
+        return $this;
+    }
+
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
+    public function setBio(?string $bio): static
+    {
+        $this->bio = $bio;
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
+        return $this;
+    }
+
+    public function getDateOfBirth(): ?\DateTimeInterface
+    {
+        return $this->dateOfBirth;
+    }
+
+    public function setDateOfBirth(?\DateTimeInterface $dateOfBirth): static
+    {
+        $this->dateOfBirth = $dateOfBirth;
+        return $this;
+    }
+
+    public function getFieldOfStudy(): ?string
+    {
+        return $this->fieldOfStudy;
+    }
+
+    public function setFieldOfStudy(?string $fieldOfStudy): static
+    {
+        $this->fieldOfStudy = $fieldOfStudy;
+        return $this;
+    }
+
+    public function getUniversity(): ?string
+    {
+        return $this->university;
+    }
+
+    public function setUniversity(?string $university): static
+    {
+        $this->university = $university;
+        return $this;
+    }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?string $country): static
+    {
+        $this->country = $country;
+        return $this;
+    }
+
+    public function isProfileCompleted(): bool
+    {
+        return $this->profileCompleted;
+    }
+
+    public function setProfileCompleted(bool $profileCompleted): static
+    {
+        $this->profileCompleted = $profileCompleted;
+        return $this;
+    }
+
+    public function getAge(): ?int
+    {
+        if (!$this->dateOfBirth) {
+            return null;
+        }
+        return $this->dateOfBirth->diff(new \DateTime())->y;
     }
 }

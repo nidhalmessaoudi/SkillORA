@@ -95,6 +95,21 @@ class PublicReservationController extends AbstractController
                 $this->entityManager->persist($reservation);
                 $this->entityManager->flush();
 
+                $normalizedPhone = $this->normalizePhoneNumber((string) $reservation->getTelephone());
+                if ($normalizedPhone !== null) {
+                    $firstName = trim((string) $reservation->getPrenom());
+                    $smsBody = sprintf(
+                        'Merci %s ! Votre reservation a ete enregistree avec succes.',
+                        $firstName !== '' ? $firstName : 'pour votre reservation'
+                    );
+
+                    if (!$this->sendTwilioSms($normalizedPhone, $smsBody)) {
+                        $this->addFlash('error', 'Reservation saved, but SMS confirmation could not be sent.');
+                    }
+                } else {
+                    $this->addFlash('error', 'Reservation saved, but phone number format is invalid for SMS.');
+                }
+
                 $this->addFlash('success', 'Reservation submitted successfully.');
                 return $this->redirectToRoute('events_index');
             }
@@ -257,5 +272,83 @@ class PublicReservationController extends AbstractController
         $numbers = array_values(array_unique($numbers));
         sort($numbers);
         return $numbers;
+    }
+
+    private function normalizePhoneNumber(string $phone): ?string
+    {
+        $normalized = preg_replace('/[^\d+]/', '', trim($phone));
+        if (!$normalized) {
+            return null;
+        }
+
+        if (str_starts_with($normalized, '00')) {
+            $normalized = '+' . substr($normalized, 2);
+        }
+
+        if (!str_starts_with($normalized, '+')) {
+            $normalized = '+' . ltrim($normalized, '+');
+        }
+
+        return preg_match('/^\+\d{8,15}$/', $normalized) === 1 ? $normalized : null;
+    }
+
+    private function sendTwilioSms(string $to, string $body): bool
+    {
+        if (!function_exists('curl_init')) {
+            return false;
+        }
+
+        $accountSid = $this->getEnvValue('TWILIO_ACCOUNT_SID');
+        $authToken = $this->getEnvValue('TWILIO_AUTH_TOKEN');
+        $from = $this->getEnvValue('TWILIO_FROM');
+        if ($from === '') {
+            $from = $this->getEnvValue('TWILIO_FROM_NUMBER');
+        }
+
+        if ($accountSid === '' || $authToken === '' || $from === '') {
+            return false;
+        }
+
+        $url = sprintf(
+            'https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json',
+            rawurlencode($accountSid)
+        );
+
+        $payload = http_build_query([
+            'From' => $from,
+            'To' => $to,
+            'Body' => $body,
+        ]);
+
+        $ch = curl_init($url);
+        if ($ch === false) {
+            return false;
+        }
+
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_USERPWD => $accountSid . ':' . $authToken,
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+
+        curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return $httpCode >= 200 && $httpCode < 300;
+    }
+
+    private function getEnvValue(string $name): string
+    {
+        $fromEnv = $_ENV[$name] ?? $_SERVER[$name] ?? getenv($name);
+        if (!is_string($fromEnv)) {
+            return '';
+        }
+
+        $value = trim($fromEnv);
+        return trim($value, " \t\n\r\0\x0B\"'");
     }
 }

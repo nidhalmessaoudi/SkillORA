@@ -9,8 +9,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProgressController extends AbstractController
 {
-    #[Route('/profile', name: 'app_profile')]
-    public function profile(): Response
+    // Disabled - using UserProfileController instead
+    // #[Route('/profile', name: 'app_profile')]
+    public function profile_old(): Response
     {
         $user = SampleData::getCurrentUser();
         $badges = SampleData::getBadges();

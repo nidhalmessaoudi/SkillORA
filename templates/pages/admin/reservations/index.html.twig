@@ -61,40 +61,35 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="card">
-    <div class="p-6 border-b border-navy-100 dark:border-navy-800">
-        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white text-center">Share by Event</h2>
-        <p class="text-body-sm text-navy-500 mt-1 text-center">Visual split of reserved places.</p>
-    </div>
-    <div class="p-6">
-        {% if pie_slices is not empty %}
-            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-                {# Pie chart avec animation #}
-                <div class="relative animate-fade-in">
-                    <div class="w-48 h-48 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-110 transition-all duration-500 animate-spin-slow" 
-                         style="background: {{ pie_gradient }};">
+        <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white text-center">Share by Event</h2>
+            <p class="text-body-sm text-navy-500 mt-1 text-center">Visual split of reserved places.</p>
+        </div>
+        <div class="p-6">
+            {% if pie_slices is not empty %}
+                <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                    <div class="relative animate-fade-in">
+                        <div class="w-48 h-48 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-110 transition-all duration-500 animate-spin-slow"
+                             style="background: {{ pie_gradient }};">
+                        </div>
+                    </div>
+                    <div class="space-y-3 animate-slide-in">
+                        {% for slice in pie_slices %}
+                            <div class="flex items-center gap-3 transform hover:translate-x-2 transition-transform duration-300 animate-fade-in-up" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                                <span class="w-4 h-4 rounded-full shadow-md animate-pulse-slow" style="background: {{ slice.color }};"></span>
+                                <div class="text-body-sm text-navy-700 dark:text-navy-300">
+                                    <span class="font-semibold">{{ slice.title }}</span>
+                                    <span class="text-navy-500">({{ slice.places }} places, {{ slice.percent|number_format(1) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-                
-                {# Légende avec animation #}
-                <div class="space-y-3 animate-slide-in">
-                    {% for slice in pie_slices %}
-                        <div class="flex items-center gap-3 transform hover:translate-x-2 transition-transform duration-300 animate-fade-in-up" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
-                            <span class="w-4 h-4 rounded-full shadow-md animate-pulse-slow" style="background: {{ slice.color }};"></span>
-                            <div class="text-body-sm text-navy-700 dark:text-navy-300">
-                                <span class="font-semibold">{{ slice.title }}</span>
-                                <span class="text-navy-500">({{ slice.places }} places, {{ slice.percent|number_format(1) }}%)</span>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% else %}
-            <p class="text-body-sm text-navy-500 text-center animate-fade-in">No reservation data yet.</p>
-        {% endif %}
+            {% else %}
+                <p class="text-body-sm text-navy-500 text-center animate-fade-in">No reservation data yet.</p>
+            {% endif %}
+        </div>
     </div>
-</div>
-
-
 
     <div class="card">
         <div class="p-6 border-b border-navy-100 dark:border-navy-800">
@@ -161,7 +156,11 @@
             </thead>
             <tbody class="divide-y divide-navy-100 dark:divide-navy-800" data-reservation-rows>
                 {% for reservation in reservations %}
-                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors" data-reservation-row data-name="{{ (reservation.prenom ~ ' ' ~ reservation.nom)|lower }}" data-places="{{ reservation.nombrePlaces }}" data-date="{{ reservation.dateReservation|date('Y-m-d H:i') }}">
+                <tr class="hover:bg-navy-50 dark:hover:bg-navy-900/30 transition-colors"
+                    data-reservation-row
+                    data-name="{{ (reservation.prenom ~ ' ' ~ reservation.nom)|lower }}"
+                    data-places="{{ reservation.nombrePlaces }}"
+                    data-date="{{ reservation.dateReservation|date('Y-m-d H:i') }}">
                     <td class="px-6 py-4 whitespace-nowrap text-body-sm text-navy-900 dark:text-white">
                         {% set event = event_map[reservation.eventId]|default(null) %}
                         {{ event ? event.title : 'Unknown' }}
@@ -200,71 +199,257 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Empty search state -->
     <div id="reservation-empty" class="hidden px-6 py-10 text-center text-navy-500">No matching reservations.</div>
+
+    <!-- ══════════════════════════════════════════
+         PAGINATION
+         ══════════════════════════════════════════ -->
+    <div class="px-6 py-4 border-t border-navy-100 dark:border-navy-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Info text -->
+        <p class="text-caption text-navy-500 dark:text-navy-400 select-none">
+            Showing <span id="pg-from" class="font-semibold text-navy-700 dark:text-navy-300">1</span>–<span id="pg-to" class="font-semibold text-navy-700 dark:text-navy-300">10</span>
+            of <span id="pg-total" class="font-semibold text-navy-700 dark:text-navy-300">0</span> reservations
+        </p>
+        <!-- Nav buttons -->
+        <nav class="flex items-center gap-1" id="pagination-nav" aria-label="Reservations pagination"></nav>
+    </div>
 </div>
+
+<style>
+/* ── Pagination buttons ────────────────────── */
+.pg-btn {
+    position: relative;
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    padding: 0 8px;
+    color: #64748b;
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+}
+.pg-btn:hover:not(:disabled):not(.pg-active) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+.dark .pg-btn:hover:not(:disabled):not(.pg-active) {
+    background: rgba(255,255,255,0.07);
+    color: #e2e8f0;
+}
+/* Active page */
+.pg-btn.pg-active {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+}
+.dark .pg-btn.pg-active {
+    background: rgba(255,255,255,0.10);
+    color: #fff;
+}
+/* Underline on active page — matches the image */
+.pg-btn.pg-active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 2px;
+    border-radius: 2px;
+    background: #0f172a;
+}
+.dark .pg-btn.pg-active::after {
+    background: #fff;
+}
+/* Disabled arrow */
+.pg-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+/* Ellipsis separator */
+.pg-sep {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    padding: 0 4px;
+    line-height: 36px;
+    user-select: none;
+}
+</style>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
-        (function() {
-            const searchInput = document.getElementById('reservation-search');
-            const sortSelect = document.getElementById('reservation-sort');
-            const tbody = document.querySelector('[data-reservation-rows]');
-            const emptyState = document.getElementById('reservation-empty');
+    (function () {
+        /* ── Elements ─────────────────────────────── */
+        const searchInput = document.getElementById('reservation-search');
+        const sortSelect  = document.getElementById('reservation-sort');
+        const tbody       = document.querySelector('[data-reservation-rows]');
+        const emptyMsg    = document.getElementById('reservation-empty');
+        const pgNav       = document.getElementById('pagination-nav');
+        const pgFrom      = document.getElementById('pg-from');
+        const pgTo        = document.getElementById('pg-to');
+        const pgTotal     = document.getElementById('pg-total');
 
-            if (!searchInput || !sortSelect || !tbody) {
-                return;
-            }
+        if (!searchInput || !sortSelect || !tbody) return;
 
-            const rows = Array.from(tbody.querySelectorAll('[data-reservation-row]'));
+        /* ── Config ────────────────────────────────── */
+        const PER_PAGE = 4;
 
-            const normalize = (value) => (value || '').toLowerCase().trim();
+        /* ── State ─────────────────────────────────── */
+        const allRows = Array.from(tbody.querySelectorAll('[data-reservation-row]'));
+        let visibleRows = [];   // rows that pass the current filter+sort
+        let currentPage = 1;
 
-            const parsePlaces = (value) => {
-                const raw = (value || '').trim();
-                if (raw === '') {
-                    return 0;
+        /* ── Helpers ───────────────────────────────── */
+        const normalize   = (v) => (v || '').toLowerCase().trim();
+        const parsePlaces = (v) => {
+            const raw = (v || '').trim();
+            if (!raw) return 0;
+            if (/^\d+$/.test(raw)) return parseInt(raw, 10);
+            return raw.split(',').filter(p => /^\d+$/.test(p.trim())).length;
+        };
+        const totalPages  = () => Math.max(1, Math.ceil(visibleRows.length / PER_PAGE));
+
+        /* ── Filter + Sort ─────────────────────────── */
+        function applyFilterSort() {
+            const query    = normalize(searchInput.value);
+            const sortMode = sortSelect.value;
+
+            // 1. Filter
+            visibleRows = allRows.filter(row => {
+                const name = normalize(row.getAttribute('data-name'));
+                return !query || name.includes(query);
+            });
+
+            // 2. Sort
+            visibleRows.sort((a, b) => {
+                if (sortMode.startsWith('places')) {
+                    const av = parsePlaces(a.getAttribute('data-places'));
+                    const bv = parsePlaces(b.getAttribute('data-places'));
+                    return sortMode === 'places-asc' ? av - bv : bv - av;
                 }
-                if (/^\d+$/.test(raw)) {
-                    return parseInt(raw, 10);
+                const ad = new Date(a.getAttribute('data-date'));
+                const bd = new Date(b.getAttribute('data-date'));
+                return sortMode === 'date-asc' ? ad - bd : bd - ad;
+            });
+
+            // Reset to page 1 on every new filter/sort
+            currentPage = 1;
+            render();
+        }
+
+        /* ── Render page ───────────────────────────── */
+        function render() {
+            const tp    = totalPages();
+            currentPage = Math.min(Math.max(1, currentPage), tp);
+
+            const start = (currentPage - 1) * PER_PAGE;  // 0-based
+            const end   = start + PER_PAGE;
+
+            // Hide all rows first, then show the current page slice
+            allRows.forEach(r => r.classList.add('hidden'));
+            visibleRows.forEach((row, idx) => {
+                tbody.appendChild(row); // maintain sorted order in DOM
+                row.classList.toggle('hidden', idx < start || idx >= end);
+            });
+
+            // Empty message
+            if (emptyMsg) emptyMsg.classList.toggle('hidden', visibleRows.length > 0);
+
+            // Info text
+            const showing = Math.min(visibleRows.length, end) - start;
+            if (pgFrom)  pgFrom.textContent  = visibleRows.length ? start + 1 : 0;
+            if (pgTo)    pgTo.textContent    = visibleRows.length ? start + showing : 0;
+            if (pgTotal) pgTotal.textContent = visibleRows.length;
+
+            renderNav(tp);
+        }
+
+        /* ── Build pagination nav ──────────────────── */
+        function renderNav(tp) {
+            if (!pgNav) return;
+            pgNav.innerHTML = '';
+
+            if (tp <= 1) return; // no nav needed for a single page
+
+            // Prev arrow
+            pgNav.appendChild(makeArrow('prev', currentPage <= 1));
+
+            // Page numbers with ellipsis logic
+            const pages = pageNumbers(currentPage, tp);
+            let lastNum = null;
+            pages.forEach(p => {
+                if (p === '…') {
+                    const sep = document.createElement('span');
+                    sep.className   = 'pg-sep';
+                    sep.textContent = '…';
+                    pgNav.appendChild(sep);
+                } else {
+                    pgNav.appendChild(makePageBtn(p));
                 }
-                const parts = raw.split(',').map((item) => item.trim()).filter((item) => /^\d+$/.test(item));
-                return parts.length;
-            };
+                lastNum = p;
+            });
 
-            const applyFilterSort = () => {
-                const query = normalize(searchInput.value);
+            // Next arrow
+            pgNav.appendChild(makeArrow('next', currentPage >= tp));
+        }
 
-                rows.forEach((row) => {
-                    const name = normalize(row.getAttribute('data-name'));
-                    const matches = !query || name.includes(query);
-                    row.classList.toggle('hidden', !matches);
-                });
+        /* Return array like [1, 2, '…', 7, 8] */
+        function pageNumbers(cur, tp) {
+            if (tp <= 7) return Array.from({ length: tp }, (_, i) => i + 1);
+            const pages = new Set([1, tp, cur, cur - 1, cur + 1].filter(p => p >= 1 && p <= tp));
+            const sorted = Array.from(pages).sort((a, b) => a - b);
+            const result = [];
+            sorted.forEach((p, i) => {
+                if (i > 0 && p - sorted[i - 1] > 1) result.push('…');
+                result.push(p);
+            });
+            return result;
+        }
 
-                const visibleRows = rows.filter((row) => !row.classList.contains('hidden'));
-                const sortMode = sortSelect.value;
+        function makePageBtn(page) {
+            const btn = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'pg-btn' + (page === currentPage ? ' pg-active' : '');
+            btn.textContent = page;
+            btn.setAttribute('aria-label', `Page ${page}`);
+            if (page === currentPage) btn.setAttribute('aria-current', 'page');
+            btn.addEventListener('click', () => { currentPage = page; render(); });
+            return btn;
+        }
 
-                visibleRows.sort((a, b) => {
-                    if (sortMode.startsWith('places')) {
-                        const aVal = parsePlaces(a.getAttribute('data-places'));
-                        const bVal = parsePlaces(b.getAttribute('data-places'));
-                        return sortMode === 'places-asc' ? aVal - bVal : bVal - aVal;
-                    }
-                    const aDate = new Date(a.getAttribute('data-date'));
-                    const bDate = new Date(b.getAttribute('data-date'));
-                    return sortMode === 'date-asc' ? aDate - bDate : bDate - aDate;
-                });
+        function makeArrow(dir, disabled) {
+            const btn = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'pg-btn';
+            btn.disabled  = disabled;
+            btn.setAttribute('aria-label', dir === 'prev' ? 'Previous page' : 'Next page');
+            btn.innerHTML = dir === 'prev'
+                ? `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>`
+                : `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
+            btn.addEventListener('click', () => {
+                currentPage += dir === 'prev' ? -1 : 1;
+                render();
+            });
+            return btn;
+        }
 
-                visibleRows.forEach((row) => tbody.appendChild(row));
-                if (emptyState) {
-                    emptyState.classList.toggle('hidden', visibleRows.length > 0);
-                }
-            };
+        /* ── Bind events ───────────────────────────── */
+        searchInput.addEventListener('input',  applyFilterSort);
+        sortSelect.addEventListener('change',  applyFilterSort);
 
-            searchInput.addEventListener('input', applyFilterSort);
-            sortSelect.addEventListener('change', applyFilterSort);
-            applyFilterSort();
-        })();
+        // Initial render
+        applyFilterSort();
+    })();
     </script>
 {% endblock %}

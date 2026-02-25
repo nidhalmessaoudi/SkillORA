@@ -1,0 +1,605 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Rendez-vous - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-gradient-to-br from-slate-50 via-white to-harbor-50/30 dark:from-navy-950 dark:via-navy-900 dark:to-harbor-950/30 min-h-screen">
+    <div class="container-wide py-8 md:py-12">
+
+        {# Modern Hero Section #}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-harbor-600 via-harbor-500 to-cyan-500 shadow-xl mb-8 md:mb-12">
+            {# Decorative Elements #}
+            <div class="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(white,transparent_85%)]"></div>
+            <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+
+            <div class="relative px-6 py-10 md:px-12 md:py-16">
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white/90 text-sm font-medium mb-6">
+                        <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                        <span>Gestion des Rendez-vous</span>
+                    </div>
+
+                    <h1 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4 drop-shadow-lg">
+                        Mes Rendez-vous
+                    </h1>
+
+                    <p class="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8">
+                        Consultez, modifiez et gérez vos rendez-vous en toute simplicité.
+                    </p>
+
+                    <button onclick="openAddModal()"
+                        class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-harbor-600 font-semibold hover:bg-white/95 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Prendre un rendez-vous</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Flash Messages #}
+        <div id="flash-container" class="mb-6 space-y-3"></div>
+
+        {# Filter Bar #}
+        <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-4 mb-6">
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="filter" class="w-5 h-5 text-slate-500"></i>
+                    <span class="text-sm font-medium text-navy-900 dark:text-white">Filtrer:</span>
+                </div>
+
+                <div class="flex flex-wrap gap-2" id="rdv-filters">
+                    <button type="button" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="all">
+                        Tous
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="en_attente">
+                        En attente
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="confirmé">
+                        Confirmé
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="rejeté">
+                        Rejeté
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Appointments List #}
+        <div id="rdv-list" class="space-y-4">
+            {% for rdv in rendezvous_list %}
+            <div
+                class="rdv-card bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 overflow-hidden hover:shadow-md transition-all duration-300 group"
+                data-rdv-id="{{ rdv.id }}"
+                data-statut="{{ rdv.statut }}"
+            >
+                <div class="flex flex-col lg:flex-row">
+                    {# Status Indicator Bar #}
+                    <div class="h-2 lg:h-auto lg:w-2
+                        {% if rdv.statut == 'confirmé' %}bg-gradient-to-r lg:bg-gradient-to-b from-success-500 to-success-600
+                        {% elseif rdv.statut == 'rejeté' %}bg-gradient-to-r lg:bg-gradient-to-b from-danger-500 to-danger-600
+                        {% else %}bg-gradient-to-r lg:bg-gradient-to-b from-warning-500 to-warning-600{% endif %}">
+                    </div>
+
+                    <div class="flex-1 p-6">
+                        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+                            {# Left Section: Appointment Info #}
+                            <div class="flex items-start gap-4">
+                                {# Icon #}
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm
+                                    {% if rdv.statut == 'confirmé' %}bg-gradient-to-br from-success-100 to-success-50 dark:from-success-900/30 dark:to-success-900/10
+                                    {% elseif rdv.statut == 'rejeté' %}bg-gradient-to-br from-danger-100 to-danger-50 dark:from-danger-900/30 dark:to-danger-900/10
+                                    {% else %}bg-gradient-to-br from-warning-100 to-warning-50 dark:from-warning-900/30 dark:to-warning-900/10{% endif %}">
+                                    <i data-lucide="{% if rdv.statut == 'confirmé' %}check-circle{% elseif rdv.statut == 'rejeté' %}x-circle{% else %}clock{% endif %}"
+                                       class="w-7 h-7
+                                       {% if rdv.statut == 'confirmé' %}text-success-600 dark:text-success-400
+                                       {% elseif rdv.statut == 'rejeté' %}text-danger-600 dark:text-danger-400
+                                       {% else %}text-warning-600 dark:text-warning-400{% endif %}"></i>
+                                </div>
+
+                                <div class="flex-1">
+                                    <div class="flex flex-wrap items-center gap-3 mb-2">
+                                        <h3 class="text-xl font-display font-bold text-navy-900 dark:text-white">
+                                            Rendez-vous {{ rdv.id }}
+                                        </h3>
+
+                                        <span class="rdv-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                                            {% if rdv.statut == 'confirmé' %}bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 ring-1 ring-success-500/20
+                                            {% elseif rdv.statut == 'rejeté' %}bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 ring-1 ring-danger-500/20
+                                            {% else %}bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400 ring-1 ring-warning-500/20{% endif %}">
+                                            {% if rdv.statut == 'confirmé' %}
+                                                <span class="w-1.5 h-1.5 rounded-full bg-success-500"></span>
+                                                Confirmé
+                                            {% elseif rdv.statut == 'rejeté' %}
+                                                <span class="w-1.5 h-1.5 rounded-full bg-danger-500"></span>
+                                                Rejeté
+                                            {% else %}
+                                                <span class="w-1.5 h-1.5 rounded-full bg-warning-500 animate-pulse"></span>
+                                                En attente
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    {% if rdv.slot %}
+                                    <div class="space-y-2 mb-3">
+                                        <div class="flex flex-wrap items-center gap-4 text-sm">
+                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-navy-800 text-navy-700 dark:text-navy-300">
+                                                <i data-lucide="calendar" class="w-4 h-4 text-harbor-500"></i>
+                                                <span class="font-semibold">{{ rdv.slot.startAt|date('d/m/Y') }}</span>
+                                            </div>
+
+                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-navy-800 text-navy-700 dark:text-navy-300">
+                                                <i data-lucide="clock" class="w-4 h-4 text-harbor-500"></i>
+                                                <span class="font-semibold">{{ rdv.slot.startAt|date('H:i') }}</span>
+                                                <span class="text-slate-400">→</span>
+                                                <span class="font-semibold">{{ rdv.slot.endAt|date('H:i') }}</span>
+                                            </div>
+
+                                            <div class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                                                <i data-lucide="timer" class="w-4 h-4"></i>
+                                                <span class="text-sm">
+                                                    {% set duration = (rdv.slot.endAt.timestamp - rdv.slot.startAt.timestamp) / 60 %}
+                                                    {{ duration|round }} minutes
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                        <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                                        <span>Créé le {{ rdv.createdAt|date('d/m/Y à H:i') }}</span>
+                                        {% if rdv.slot %}
+                                            <span class="mx-1">•</span>
+                                            <span>Slot {{ rdv.slot.id }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Right Section: Actions #}
+                            <div class="flex flex-wrap items-center gap-2 pl-0 xl:pl-4">
+                                {% if rdv.statut == 'en_attente' %}
+                                    <button onclick="openEditModal({{ rdv.id }}, {{ rdv.slot ? rdv.slot.id : 'null' }}, '{{ rdv.slot ? rdv.slot.startAt|date('d/m/Y H:i') : '' }}', '{{ rdv.slot ? rdv.slot.endAt|date('d/m/Y H:i') : '' }}')"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-harbor-600 dark:text-harbor-400 bg-harbor-50 dark:bg-harbor-900/20 hover:bg-harbor-100 dark:hover:bg-harbor-900/40 border border-harbor-200 dark:border-harbor-800 transition-all hover:scale-105"
+                                        title="Modifier le créneau">
+                                        <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                                        <span>Modifier</span>
+                                    </button>
+
+                                    {% if is_granted('ROLE_INSTRUCTOR') or is_granted('ROLE_ADMIN') %}
+                                    <button onclick="updateStatus({{ rdv.id }}, 'confirmé')"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20 hover:bg-success-100 dark:hover:bg-success-900/40 border border-success-200 dark:border-success-800 transition-all hover:scale-105"
+                                        title="Confirmer">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                        <span>Confirmer</span>
+                                    </button>
+
+                                    <button onclick="updateStatus({{ rdv.id }}, 'rejeté')"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/20 hover:bg-danger-100 dark:hover:bg-danger-900/40 border border-danger-200 dark:border-danger-800 transition-all hover:scale-105"
+                                        title="Rejeter">
+                                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                        <span>Rejeter</span>
+                                    </button>
+                                    {% endif %}
+                                {% elseif rdv.statut == 'confirmé' %}
+                                    <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                        <span>Confirmé</span>
+                                    </div>
+                                {% else %}
+                                    <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800">
+                                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                        <span>Rejeté</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            {# Empty State #}
+            <div id="empty-state" class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-12 lg:p-16 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-harbor-100 to-harbor-50 dark:from-harbor-900/30 dark:to-harbor-900/10 rounded-3xl flex items-center justify-center shadow-sm">
+                        <i data-lucide="calendar-x" class="w-10 h-10 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-navy-900 dark:text-white mb-3">Aucun rendez-vous</h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">Vous n'avez pas encore de rendez-vous. Prenez-en un maintenant !</p>
+                    <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Prendre un rendez-vous</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# ===== MODAL: Add Appointment ===== #}
+<div id="add-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity" onclick="closeAddModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+            {# Modal Header #}
+            <div class="relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="calendar-plus" class="w-5 h-5"></i>
+                        </div>
+                        Nouveau rendez-vous
+                    </h2>
+                    <button onclick="closeAddModal()" class="w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            {# Modal Body #}
+            <div class="p-6">
+                <div id="add-error" class="hidden mb-4 p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm flex items-start gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                    <span id="add-error-text"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-3" for="add-slot-select">
+                        <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                        Sélectionnez un créneau disponible
+                    </label>
+                    <select id="add-slot-select"
+                        class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all appearance-none cursor-pointer">
+                        <option value="">Choisissez un créneau...</option>
+                        {% for slot in available_slots %}
+                        <option value="{{ slot.id }}">
+                            {{ slot.startAt|date('d/m/Y') }} • {{ slot.startAt|date('H:i') }} - {{ slot.endAt|date('H:i') }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if available_slots|length == 0 %}
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 text-warning-700 dark:text-warning-300 text-sm">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold mb-1">Aucun créneau disponible</p>
+                        <p class="text-xs text-warning-600 dark:text-warning-400">Veuillez revenir plus tard.</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-harbor-50 dark:bg-harbor-900/20 border border-harbor-200 dark:border-harbor-800 text-harbor-700 dark:text-harbor-300 text-sm">
+                    <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold mb-1">{{ available_slots|length }} créneaux disponibles</p>
+                        <p class="text-xs text-harbor-600 dark:text-harbor-400">Sélectionnez l'horaire qui vous convient</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# Modal Footer #}
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-navy-800 bg-slate-50 dark:bg-navy-800/50">
+                <button onclick="closeAddModal()"
+                    class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                    Annuler
+                </button>
+                <button onclick="submitAddRdv()" id="add-submit-btn"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    {{ available_slots|length == 0 ? 'disabled' : '' }}>
+                    <i data-lucide="check" class="w-4 h-4 inline mr-1"></i>
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ===== MODAL: Edit Appointment ===== #}
+<div id="edit-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity" onclick="closeEditModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+            {# Modal Header #}
+            <div class="relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                        </div>
+                        Modifier le créneau <span id="edit-rdv-id" class="font-mono"></span>
+                    </h2>
+                    <button onclick="closeEditModal()" class="w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            {# Modal Body #}
+            <div class="p-6 space-y-4">
+                <div id="edit-error" class="hidden mb-4 p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm flex items-start gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                    <span id="edit-error-text"></span>
+                </div>
+
+                <input type="hidden" id="edit-rdv-hidden-id">
+
+                <div id="edit-current-slot-info" class="p-4 rounded-xl bg-harbor-50 dark:bg-harbor-900/20 border border-harbor-200 dark:border-harbor-800">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="clock" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-harbor-700 dark:text-harbor-300 mb-1">Créneau actuel</p>
+                            <p class="text-sm text-harbor-600 dark:text-harbor-400" id="edit-current-slot-text"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-3" for="edit-slot-select">
+                        <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                        Nouveau créneau
+                    </label>
+                    <select id="edit-slot-select"
+                        class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all appearance-none cursor-pointer">
+                        <option value="">Choisissez un nouveau créneau...</option>
+                        {% for slot in available_slots %}
+                        <option value="{{ slot.id }}">
+                            {{ slot.startAt|date('d/m/Y') }} • {{ slot.startAt|date('H:i') }} - {{ slot.endAt|date('H:i') }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {# Modal Footer #}
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-navy-800 bg-slate-50 dark:bg-navy-800/50">
+                <button onclick="closeEditModal()"
+                    class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                    Annuler
+                </button>
+                <button onclick="submitEditRdv()"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all">
+                    <i data-lucide="save" class="w-4 h-4 inline mr-1"></i>
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+    // ===== TOAST NOTIFICATION SYSTEM =====
+    function showToast(msg, type) {
+        const container = document.getElementById('flash-container');
+        const colors = {
+            success: 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800 text-success-700 dark:text-success-300',
+            error: 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-300',
+        };
+        const icons = { success: 'check-circle', error: 'x-circle' };
+
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-3 p-4 rounded-xl border shadow-sm animate-slide-down ' + (colors[type] || colors.success);
+        div.innerHTML = `
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center ${type === 'success' ? 'bg-success-100 dark:bg-success-900/30' : 'bg-danger-100 dark:bg-danger-900/30'}">
+                <i data-lucide="${icons[type] || 'info'}" class="w-5 h-5"></i>
+            </div>
+            <span class="text-sm font-medium flex-1">${msg}</span>
+        `;
+
+        container.prepend(div);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        setTimeout(() => {
+            div.style.opacity = '0';
+            div.style.transform = 'translateY(-10px)';
+            setTimeout(() => div.remove(), 300);
+        }, 5000);
+    }
+
+    // ===== ADD APPOINTMENT MODAL =====
+    window.openAddModal = function() {
+        document.getElementById('add-modal').classList.remove('hidden');
+        document.getElementById('add-error').classList.add('hidden');
+        document.getElementById('add-slot-select').value = '';
+    };
+
+    window.closeAddModal = function() {
+        document.getElementById('add-modal').classList.add('hidden');
+    };
+
+    window.submitAddRdv = function() {
+        const select = document.getElementById('add-slot-select');
+        const errorEl = document.getElementById('add-error');
+        const errorText = document.getElementById('add-error-text');
+        const slotId = select.value;
+
+        if (!slotId) {
+            errorText.textContent = 'Veuillez sélectionner un créneau.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        errorEl.classList.add('hidden');
+        const body = new FormData();
+        body.append('slot_id', slotId);
+
+        fetch('{{ path("public_rendezvous_create") }}', { method: 'POST', body })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeAddModal();
+                    showToast('✓ Rendez-vous créé avec succès !', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    errorText.textContent = data.error || 'Erreur inconnue.';
+                    errorEl.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                errorText.textContent = 'Erreur réseau.';
+                errorEl.classList.remove('hidden');
+            });
+    };
+
+    // ===== EDIT APPOINTMENT MODAL =====
+    window.openEditModal = function(id, slotId, slotStart, slotEnd) {
+        document.getElementById('edit-rdv-hidden-id').value = id;
+        document.getElementById('edit-rdv-id').textContent = String(id); // no "#"
+        document.getElementById('edit-error').classList.add('hidden');
+
+        const currentSlotText = document.getElementById('edit-current-slot-text');
+        const currentSlotInfo = document.getElementById('edit-current-slot-info');
+
+        if (slotId && slotStart) {
+            currentSlotText.textContent = slotStart + ' → ' + slotEnd;
+            currentSlotInfo.classList.remove('hidden');
+        } else {
+            currentSlotInfo.classList.add('hidden');
+        }
+
+        const select = document.getElementById('edit-slot-select');
+        select.querySelectorAll('.current-slot-option').forEach(el => el.remove());
+
+        if (slotId) {
+            const opt = document.createElement('option');
+            opt.value = slotId;
+            opt.textContent = slotStart + ' → ' + slotEnd + ' (actuel)';
+            opt.className = 'current-slot-option';
+            opt.selected = true;
+            select.insertBefore(opt, select.options[1]);
+        } else {
+            select.value = '';
+        }
+
+        document.getElementById('edit-modal').classList.remove('hidden');
+    };
+
+    window.closeEditModal = function() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    };
+
+    window.submitEditRdv = function() {
+        const id = document.getElementById('edit-rdv-hidden-id').value;
+        const slotId = document.getElementById('edit-slot-select').value;
+        const errorEl = document.getElementById('edit-error');
+        const errorText = document.getElementById('edit-error-text');
+
+        if (!slotId) {
+            errorText.textContent = 'Veuillez sélectionner un créneau.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        errorEl.classList.add('hidden');
+
+        const body = new FormData();
+        body.append('slot_id', slotId);
+
+        fetch('/rendezvous/api/' + id + '/update', { method: 'POST', body })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeEditModal();
+                    showToast('✓ Créneau modifié avec succès !', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    errorText.textContent = data.error || 'Erreur.';
+                    errorEl.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                errorText.textContent = 'Erreur réseau.';
+                errorEl.classList.remove('hidden');
+            });
+    };
+
+    // ===== STATUS UPDATE (INSTRUCTOR/ADMIN) =====
+    window.updateStatus = function(id, statut) {
+        const body = new FormData();
+        body.append('statut', statut);
+
+        fetch('/rendezvous/api/' + id + '/status', { method: 'POST', body })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const label = statut === 'confirmé' ? 'confirmé' : 'rejeté';
+                    showToast('✓ Rendez-vous ' + label + ' !', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast('✗ ' + (data.error || 'Erreur.'), 'error');
+                }
+            })
+            .catch(() => {
+                showToast('✗ Erreur réseau.', 'error');
+            });
+    };
+
+    // ===== FILTERS =====
+    (function initFilters() {
+        const list = document.getElementById('rdv-list');
+        const filtersWrap = document.getElementById('rdv-filters');
+        if (!list || !filtersWrap) return;
+
+        const buttons = Array.from(filtersWrap.querySelectorAll('.filter-btn'));
+
+        function setActive(btn) {
+            buttons.forEach(b => {
+                b.className = 'filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700';
+            });
+            btn.className = 'filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-300 hover:bg-harbor-200 dark:hover:bg-harbor-900/50';
+        }
+
+        function applyFilter(value) {
+            const v = value === 'all' ? null : value;
+            const cards = Array.from(list.querySelectorAll('.rdv-card'));
+
+            let visible = 0;
+            cards.forEach(card => {
+                const statut = card.dataset.statut;
+                const show = !v || statut === v;
+                card.classList.toggle('hidden', !show);
+                if (show) visible++;
+            });
+
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) {
+                emptyState.classList.toggle('hidden', visible !== 0);
+            }
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setActive(btn);
+                applyFilter(btn.dataset.filter);
+            });
+        });
+
+        // default active
+        const defaultBtn = buttons.find(b => b.dataset.filter === 'all') || buttons[0];
+        if (defaultBtn) {
+            setActive(defaultBtn);
+            applyFilter(defaultBtn.dataset.filter);
+        }
+    })();
+
+    // ===== KEYBOARD SHORTCUTS =====
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddModal();
+            closeEditModal();
+        }
+    });
+})();
+</script>
+{% endblock %}

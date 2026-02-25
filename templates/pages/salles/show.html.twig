@@ -17,9 +17,6 @@
     </div>
     
     <div class="relative inline-block">
-        
-        
-        <!-- Titre avec animation de couleurs - TAILLE AUGMENTÉE -->
         <h1 class="font-display font-bold text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-6 leading-tight animate-color-shift">
             {{ salle.name }}
         </h1>
@@ -32,30 +29,167 @@
 
 <style>
     @keyframes color-shift {
-        0%, 100% {
-            color: #1e293b; /* Noir/Slate-800 */
-        }
-        50% {
-            color: #2563eb; /* Bleu-600 */
-        }
+        0%, 100% { color: #1e293b; }
+        50% { color: #2563eb; }
     }
-    
     @keyframes color-shift-dark {
-        0%, 100% {
-            color: #ffffff; /* Blanc */
-        }
-        50% {
-            color: #60a5fa; /* Bleu-400 */
-        }
+        0%, 100% { color: #ffffff; }
+        50% { color: #60a5fa; }
     }
-    
     .animate-color-shift {
         animation: color-shift 4s ease-in-out infinite;
     }
-    
     .dark .animate-color-shift {
         animation: color-shift-dark 4s ease-in-out infinite;
     }
+
+    /* ============================
+       VISION TEST MODAL STYLES
+       ============================ */
+    #vision-test-modal {
+        font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    }
+
+    @keyframes vt-pop-in {
+        from { opacity: 0; transform: scale(0.75) translateY(20px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes vt-letter-appear {
+        from { opacity: 0; transform: scale(0.6); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes vt-fade-in {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes vt-pulse-ring {
+        0%   { transform: scale(1); opacity: 0.6; }
+        100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .vt-modal-content {
+        animation: vt-pop-in 0.35s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    .vt-letter {
+        display: inline-block;
+        font-weight: 700;
+        line-height: 1;
+        color: #1e3a5f;
+        transition: font-size 0.45s cubic-bezier(.4,0,.2,1);
+    }
+    .vt-letter.animate {
+        animation: vt-letter-appear 0.4s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    .vt-result {
+        animation: vt-fade-in 0.4s ease forwards;
+    }
+    .vt-btn-yes {
+        background: #1e3a5f;
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 36px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 16px rgba(30,58,95,0.18);
+        letter-spacing: 0.02em;
+    }
+    .vt-btn-yes:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(37,99,235,0.22);
+    }
+    .vt-btn-no {
+        background: #fff;
+        color: #e63946;
+        border: 2px solid #e63946;
+        border-radius: 50px;
+        padding: 14px 36px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+        letter-spacing: 0.02em;
+    }
+    .vt-btn-no:hover {
+        background: #e63946;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(230,57,70,0.18);
+    }
+    .vt-progress-bar {
+        height: 5px;
+        border-radius: 3px;
+        background: #e2e8f0;
+        overflow: hidden;
+    }
+    .vt-progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #e63946, #2563eb);
+        transition: width 0.5s ease;
+    }
+    .vt-level-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .vt-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        transition: background 0.3s;
+    }
+    .vt-dot.done  { background: #2563eb; }
+    .vt-dot.current { background: #e63946; box-shadow: 0 0 0 3px rgba(230,57,70,0.2); }
+
+    .vt-result-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 28px 24px;
+        border-left: 5px solid #2563eb;
+        text-align: left;
+        line-height: 1.7;
+    }
+    .vt-result-card.warning {
+        border-left-color: #e63946;
+        background: #fff5f5;
+    }
+    .vt-restart-btn {
+        background: #1e3a5f;
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 28px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+        margin-top: 12px;
+    }
+    .vt-restart-btn:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    /* Trigger button */
+    #vision-test-trigger-btn {
+        position: relative;
+        overflow: hidden;
+    }
+    #vision-test-trigger-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #60a5fa, #e63946);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    #vision-test-trigger-btn:hover::before { opacity: 0.12; }
 </style>
 
     <div class="card p-8 space-y-6 bg-gradient-to-br from-white to-navy-50 dark:from-navy-800 dark:to-navy-900 border border-navy-100 dark:border-navy-700 shadow-lg">
@@ -67,6 +201,18 @@
                 </svg>
             </div>
             <h2 class="font-display font-semibold text-display-sm text-navy-800 dark:text-white">Salle Details</h2>
+
+            <!-- 👁️ BOUTON TEST VUE -->
+            <div class="ml-auto">
+                <button id="vision-test-trigger-btn"
+                    class="group inline-flex items-center gap-2 bg-white dark:bg-navy-800 text-navy-800 dark:text-white border-2 border-blue-400 dark:border-blue-500 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:border-blue-500">
+                    <svg class="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span>Test de Vue</span>
+                </button>
+            </div>
         </div>
 
         <!-- Grille d'informations -->
@@ -144,8 +290,6 @@
                 {% endif %}
             </div>
         </div>
-
-        
     </div>
 </div>
 
@@ -155,25 +299,17 @@
                     ? rawModelUrl
                     : '/uploads/salles/' ~ rawModelUrl %}
                 
-                {# Bouton pour ouvrir en plein écran #}
                <div class="text-center mb-6">
     <button id="open-fullscreen-btn" class="group relative inline-flex items-center justify-center gap-3 bg-white dark:bg-navy-900 text-navy-900 dark:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl border-2 border-primary-500 hover:border-primary-600 overflow-hidden">
-        <!-- Effet de fond animé -->
         <div class="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-        
-        <!-- Icône -->
         <svg class="relative z-10 w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
         </svg>
-        
         <span class="relative z-10">Mode Plein Écran 3D</span>
-        
-        <!-- Effet de halo au hover -->
         <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary-400/20 to-primary-600/20 blur-xl"></div>
     </button>
 </div>
 
-                {# Aperçu du modèle 3D (version normale) #}
                 <div class="relative bg-navy-900 rounded-lg overflow-hidden" style="height: 500px;">
                     <model-viewer
                         id="model-viewer-preview"
@@ -191,16 +327,13 @@
                         alt="Modèle 3D de {{ salle.name }}"
                         loading="eager">
                         
-                        {# Bouton AR (réalité augmentée) si supporté #}
                         <button slot="ar-button" class="hidden md:block absolute bottom-4 right-4 bg-white text-navy-900 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100">
                             👓 Voir en AR
                         </button>
                         
-                        {# Indicateur de chargement #}
                         <div slot="progress-bar" class="absolute inset-0 flex items-center justify-center bg-navy-900/90">
                             <div class="text-center">
                                 <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
-                               
                             </div>
                         </div>
                     </model-viewer>
@@ -228,15 +361,12 @@
                         </div>
                     </div>
                     
-                    {# Instructions #}
                     <div class="absolute bottom-4 left-4 bg-navy-800/90 text-white px-4 py-2 rounded-lg text-sm">
                         🖱️ Cliquez et faites glisser pour tourner | 🔍 Molette pour zoomer
                     </div>
                 </div>
 
-                {# Modal plein écran avec contrôles ZQSD #}
                 <div id="fullscreen-modal" class="fixed inset-0 z-50 bg-black hidden">
-                    {# En-tête #}
                     <div class="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent z-20 p-4">
                         <div class="flex items-center justify-between">
                             <div>
@@ -249,15 +379,11 @@
                         </div>
                     </div>
 
-                    
-
-                    {# Stats en temps réel #}
                     <div id="camera-stats" class="absolute top-20 right-4 bg-navy-800/95 text-white p-4 rounded-lg z-20 text-sm font-mono">
                         <div>Position: <span id="camera-position">-</span></div>
                         <div>Zoom: <span id="camera-zoom">-</span></div>
                     </div>
 
-                    {# Model Viewer plein écran #}
                     <model-viewer
                         id="model-viewer-fullscreen"
                         src="{{ modelUrl }}"
@@ -291,13 +417,131 @@
         </div>
     </div>
 </div>
+
+
+<!-- ============================================================
+     VISION TEST MODAL
+     ============================================================ -->
+<div id="vision-test-modal"
+     class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden"
+     role="dialog" aria-modal="true" aria-label="Test de vue">
+
+    <!-- Backdrop -->
+    <div id="vt-backdrop"
+         class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+         style="cursor:pointer"></div>
+
+    <!-- Card -->
+    <div class="vt-modal-content relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+         style="max-height:90vh; overflow-y:auto;">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-8 pt-8 pb-5 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl bg-blue-50">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 style="font-weight:700;font-size:1.15rem;color:#1e3a5f;margin:0;">Vision Test</h2>
+                    <p style="font-size:0.8rem;color:#94a3b8;margin:0;">Assess your visual acuity</p>
+                </div>
+            </div>
+            <button id="vt-close-btn"
+                    style="background:#f1f5f9;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1.1rem;color:#64748b;display:flex;align-items:center;justify-content:center;transition:background .2s;"
+                    onmouseover="this.style.background='#fee2e2';this.style.color='#e63946';"
+                    onmouseout="this.style.background='#f1f5f9';this.style.color='#64748b';">✕</button>
+        </div>
+
+        <!-- TEST SCREEN -->
+        <div id="vt-test-screen" class="px-8 py-8">
+
+            <!-- Progress -->
+            <div style="margin-bottom:20px;">
+                <div class="vt-progress-bar">
+                    <div class="vt-progress-fill" id="vt-progress-fill" style="width:0%"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                    <span style="font-size:0.78rem;color:#94a3b8;" id="vt-step-label">Step 1 / 10</span>
+                    <div class="vt-level-dots" id="vt-dots"></div>
+                </div>
+            </div>
+
+            <!-- Instruction -->
+            <p style="text-align:center;font-size:0.92rem;color:#64748b;margin-bottom:20px;line-height:1.6;">
+                Sit at a comfortable distance from the screen.<br>
+                Can you identify the letter shown below?
+            </p>
+
+            <!-- Letter display area -->
+            <div style="min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px;">
+                <span class="vt-letter" id="vt-letter">A</span>
+            </div>
+
+            <!-- Size label -->
+            <p style="text-align:center;font-size:0.78rem;color:#cbd5e1;margin-bottom:28px;" id="vt-size-label">Level 1</p>
+
+            <!-- Buttons -->
+            <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+                <button class="vt-btn-yes" id="vt-btn-yes">✓ Yes, I can see it</button>
+                <button class="vt-btn-no"  id="vt-btn-no">✗ No, I cannot see it</button>
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="vt-result-screen" class="px-8 py-8 vt-result hidden">
+            <div style="text-align:center;margin-bottom:20px;">
+              
+                <h3 style="font-size:1.4rem;font-weight:700;color:#1e3a5f;margin:0 0 6px;" id="vt-result-title">Result</h3>
+                <p style="font-size:0.95rem;color:#64748b;max-width:360px;margin:0 auto;line-height:1.7;" id="vt-result-msg"></p>
+            </div>
+
+            <!-- ✅ Distance badge (shown on success only) -->
+            <div id="vt-distance-badge" style="
+                display:none;
+                background:linear-gradient(135deg,#eff6ff,#dbeafe);
+                border:1.5px solid #bfdbfe;
+                border-radius:14px;
+                padding:18px 20px;
+                margin-bottom:16px;
+                text-align:center;">
+                <p style="font-size:0.72rem;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 6px;">📏 Recommended seating distance</p>
+                <p style="font-size:2rem;font-weight:800;color:#1e3a5f;margin:0;line-height:1.1;" id="vt-distance-value">—</p>
+                <p style="font-size:0.78rem;color:#64748b;margin:5px 0 0;">from the screen</p>
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid #bfdbfe;">
+                    <p style="font-size:0.82rem;color:#475569;margin:0;line-height:1.6;" id="vt-distance-tip"></p>
+                </div>
+            </div>
+
+            <div class="vt-result-card" id="vt-result-detail"></div>
+
+            <div style="text-align:center;">
+                <button class="vt-restart-btn" id="vt-restart-btn">↩ Restart the test</button>
+            </div>
+        </div>
+
+    </div><!-- /card -->
+</div>
+<!-- END VISION TEST MODAL -->
+
 {% endblock %}
 
 {% block javascripts %}
 {% if salle.image3d %}
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+<script nomodule src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer-legacy.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        if (typeof customElements.get('model-viewer') === 'undefined') {
+            console.error('❌ Model Viewer not loaded!');
+            return;
+        }
+        
         const openBtn = document.getElementById('open-fullscreen-btn');
         const closeBtn = document.getElementById('close-fullscreen-btn');
         const modal = document.getElementById('fullscreen-modal');
@@ -305,169 +549,83 @@
         const cameraPosition = document.getElementById('camera-position');
         const cameraZoom = document.getElementById('camera-zoom');
 
-        if (!openBtn || !closeBtn || !modal || !modelViewer) {
-            console.error('❌ Éléments manquants');
-            return;
-        }
+        if (!openBtn || !closeBtn || !modal || !modelViewer) return;
 
-        // Utilitaires
         const toDeg = (rad) => (rad * 180) / Math.PI;
-        const toRad = (deg) => (deg * Math.PI) / 180;
         const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-        // 🚀 VITESSES AUGMENTÉES ET OPTIMISÉES
         let autoRotate = false;
-        const moveSpeed = 3.5;          // Vitesse de zoom (augmentée de 2.5 à 3.5)
-        const rotateSpeed = 5;          // Vitesse de rotation (augmentée de 2 à 5)
-        const smoothFactor = 0.8;       // Facteur de fluidité (0-1, plus proche de 1 = plus fluide)
+        const moveSpeed = 3.5;
+        const rotateSpeed = 5;
+        const smoothFactor = 0.8;
         
         const keysPressed = {};
         let animationId = null;
         
-        // Variables pour mouvement fluide
-        let targetRadius = 8;
-        let targetTheta = 45;
-        let targetPhi = 75;
-        let currentRadius = 8;
-        let currentTheta = 45;
-        let currentPhi = 75;
+        let targetRadius = 8, targetTheta = 45, targetPhi = 75;
+        let currentRadius = 8, currentTheta = 45, currentPhi = 75;
 
         const openModal = () => {
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
             modelViewer.focus();
-            
-            // Initialiser les valeurs de caméra
             const orbit = modelViewer.getCameraOrbit();
             currentRadius = targetRadius = orbit.radius;
             currentTheta = targetTheta = toDeg(orbit.theta);
             currentPhi = targetPhi = toDeg(orbit.phi);
-            
-            if (!animationId) {
-                animationId = requestAnimationFrame(updateCameraMovement);
-            }
+            if (!animationId) animationId = requestAnimationFrame(updateCameraMovement);
         };
 
         const closeModal = () => {
             modal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
+            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
         };
 
         openBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
 
         document.addEventListener('keydown', (e) => {
-            if (!modal || modal.classList.contains('hidden')) {
-                return;
-            }
-
+            if (!modal || modal.classList.contains('hidden')) return;
             const key = e.key.toLowerCase();
-            
-            // Éviter la répétition de touches
             if (keysPressed[key]) return;
             keysPressed[key] = true;
-
-            if (key === 'escape') {
-                closeModal();
-                return;
-            }
-
-            // Toggle auto-rotation (Espace)
+            if (key === 'escape') { closeModal(); return; }
             if (key === ' ') {
                 e.preventDefault();
                 autoRotate = !autoRotate;
-                if (autoRotate) {
-                    modelViewer.setAttribute('auto-rotate', '');
-                    modelViewer.setAttribute('rotation-per-second', '120deg'); // Rotation très rapide
-                } else {
-                    modelViewer.removeAttribute('auto-rotate');
-                }
+                autoRotate
+                    ? (modelViewer.setAttribute('auto-rotate',''), modelViewer.setAttribute('rotation-per-second','120deg'))
+                    : modelViewer.removeAttribute('auto-rotate');
             }
-
-            // Reset caméra (R)
-            if (key === 'r') {
-                targetTheta = 45;
-                targetPhi = 75;
-                targetRadius = 8;
-                modelViewer.fieldOfView = '45deg';
-            }
+            if (key === 'r') { targetTheta=45; targetPhi=75; targetRadius=8; modelViewer.fieldOfView='45deg'; }
         });
 
-        document.addEventListener('keyup', (e) => {
-            keysPressed[e.key.toLowerCase()] = false;
-        });
+        document.addEventListener('keyup', (e) => { keysPressed[e.key.toLowerCase()] = false; });
 
-        // 🎮 BOUCLE DE MOUVEMENT AMÉLIORÉE AVEC INTERPOLATION FLUIDE
         function updateCameraMovement() {
-            if (modal.classList.contains('hidden')) {
-                animationId = null;
-                return;
-            }
-
-            // Mise à jour des valeurs cibles en fonction des touches pressées
-            if (keysPressed['z']) {
-                targetRadius = clamp(targetRadius - moveSpeed, 1, 100);
-            }
-            if (keysPressed['s']) {
-                targetRadius = clamp(targetRadius + moveSpeed, 1, 100);
-            }
-            if (keysPressed['q']) {
-                targetTheta -= rotateSpeed;
-            }
-            if (keysPressed['d']) {
-                targetTheta += rotateSpeed;
-            }
-
-            // Touches supplémentaires pour contrôle vertical (optionnel)
-            if (keysPressed['w']) {
-                targetPhi = clamp(targetPhi - rotateSpeed, 5, 175);
-            }
-            if (keysPressed['x']) {
-                targetPhi = clamp(targetPhi + rotateSpeed, 5, 175);
-            }
-
-            // Limiter l'angle phi
+            if (modal.classList.contains('hidden')) { animationId = null; return; }
+            if (keysPressed['z']) targetRadius = clamp(targetRadius - moveSpeed, 1, 100);
+            if (keysPressed['s']) targetRadius = clamp(targetRadius + moveSpeed, 1, 100);
+            if (keysPressed['q']) targetTheta -= rotateSpeed;
+            if (keysPressed['d']) targetTheta += rotateSpeed;
+            if (keysPressed['w']) targetPhi = clamp(targetPhi - rotateSpeed, 5, 175);
+            if (keysPressed['x']) targetPhi = clamp(targetPhi + rotateSpeed, 5, 175);
             targetPhi = clamp(targetPhi, 5, 175);
-
-            // 🌊 INTERPOLATION FLUIDE (Lerp) pour des mouvements doux
             currentRadius += (targetRadius - currentRadius) * smoothFactor;
-            currentTheta += (targetTheta - currentTheta) * smoothFactor;
-            currentPhi += (targetPhi - currentPhi) * smoothFactor;
-
-            // Appliquer à la caméra
+            currentTheta  += (targetTheta  - currentTheta)  * smoothFactor;
+            currentPhi    += (targetPhi    - currentPhi)    * smoothFactor;
             modelViewer.cameraOrbit = `${currentTheta}deg ${currentPhi}deg ${currentRadius}m`;
-
-            // Mise à jour de l'affichage des stats
-            if (cameraPosition) {
-                cameraPosition.textContent = `θ:${currentTheta.toFixed(0)}° φ:${currentPhi.toFixed(0)}°`;
-            }
-            if (cameraZoom) {
-                cameraZoom.textContent = `${currentRadius.toFixed(1)}m`;
-            }
-
+            if (cameraPosition) cameraPosition.textContent = `θ:${currentTheta.toFixed(0)}° φ:${currentPhi.toFixed(0)}°`;
+            if (cameraZoom) cameraZoom.textContent = `${currentRadius.toFixed(1)}m`;
             animationId = requestAnimationFrame(updateCameraMovement);
         }
 
-        // 📊 Events
-        modelViewer.addEventListener('load', () => {
-            console.log('✅ Modèle 3D chargé avec succès!');
-            const dims = modelViewer.getDimensions();
-            console.log('📏 Dimensions:', dims);
-        });
-
-        modelViewer.addEventListener('error', (e) => {
-            console.error('❌ Erreur de chargement:', e);
-        });
-
-        // Synchroniser avec les changements manuels de caméra (souris)
+        modelViewer.addEventListener('load', () => console.log('✅ Modèle 3D chargé!'));
+        modelViewer.addEventListener('error', (e) => console.error('❌ Erreur:', e));
         modelViewer.addEventListener('camera-change', () => {
             const orbit = modelViewer.getCameraOrbit();
             if (!keysPressed['z'] && !keysPressed['s'] && !keysPressed['q'] && !keysPressed['d']) {
-                // Mise à jour seulement si pas de touches pressées
                 targetRadius = orbit.radius;
                 targetTheta = toDeg(orbit.theta);
                 targetPhi = toDeg(orbit.phi);
@@ -476,30 +634,28 @@
     });
 </script>
 {% endif %}
+
 <script>
+    /* =====================================================
+       SEAT RESERVATION
+       ===================================================== */
     document.addEventListener('DOMContentLoaded', () => {
-        const reserveBtn = document.getElementById('reserve-seat-btn');
+        const reserveBtn    = document.getElementById('reserve-seat-btn');
         const selectedLabel = document.getElementById('selected-seat');
         const selectedCount = document.getElementById('selected-count');
-        const baseUrl = "{{ path('reservations_new') }}";
-        const salleId = "{{ salle.id }}";
+        const baseUrl       = "{{ path('reservations_new') }}";
+        const salleId       = "{{ salle.id }}";
         const maxParticipants = "{{ salle.maxParticipants }}";
-        const eventId = "{{ salle.eventId }}";
+        const eventId       = "{{ salle.eventId }}";
 
-        if (!reserveBtn) {
-            return;
-        }
+        if (!reserveBtn) return;
 
         const selectedSeats = new Set();
 
         const updateSelectedView = () => {
             const seats = Array.from(selectedSeats).sort((a, b) => Number(a) - Number(b));
-            if (selectedLabel) {
-                selectedLabel.textContent = seats.length ? seats.join(', ') : 'None';
-            }
-            if (selectedCount) {
-                selectedCount.textContent = `(${seats.length})`;
-            }
+            if (selectedLabel) selectedLabel.textContent = seats.length ? seats.join(', ') : 'None';
+            if (selectedCount) selectedCount.textContent = `(${seats.length})`;
             reserveBtn.disabled = seats.length === 0;
         };
 
@@ -521,19 +677,179 @@
         reserveBtn.addEventListener('click', () => {
             if (selectedSeats.size === 0) return;
             const seats = Array.from(selectedSeats).sort((a, b) => Number(a) - Number(b));
-            const params = new URLSearchParams({
-                salleId,
-                seat: seats[0],
-                seats: seats.join(','),
-                maxParticipants,
-            });
-            if (eventId) {
-                params.set('eventId', eventId);
-            }
+            const params = new URLSearchParams({ salleId, seat: seats[0], seats: seats.join(','), maxParticipants });
+            if (eventId) params.set('eventId', eventId);
             window.location.href = `${baseUrl}?${params.toString()}`;
         });
 
         updateSelectedView();
     });
+
+
+    /* =====================================================
+       VISION TEST
+       ===================================================== */
+    (() => {
+        // ── Config ──────────────────────────────────────────
+        const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        const SIZES   = [160, 110, 90, 70, 52, 38, 28, 20, 14, 10]; // px
+        const TOTAL   = SIZES.length;
+
+        const DISTANCE_ADVICE = [
+            { range: 'between 50 and 100 cm',  tip: 'Your long-range vision seems limited. A consultation with an ophthalmologist is strongly recommended.' },
+            { range: 'between 40 and 80 cm',   tip: 'Moderately reduced vision. An eye examination is advisable.' },
+            { range: 'between 30 and 60 cm',   tip: 'A decent working distance. Make sure your workspace is well lit.' },
+            { range: 'between 20 and 50 cm',   tip: 'Ideal comfort distance for screen use.' },
+            { range: 'between 20 and 40 cm',   tip: 'Very good visual acuity at close range.' },
+            { range: 'between 15 and 30 cm',   tip: 'Excellent acuity! Remember to take regular breaks.' },
+            { range: 'between 10 and 25 cm',   tip: 'Remarkable acuity. Blink regularly to reduce eye strain.' },
+            { range: 'between 10 and 20 cm',   tip: 'Very fine vision. Avoid sitting too close to avoid eye fatigue.' },
+            { range: 'between 5 and 15 cm',    tip: 'Exceptionally sharp vision. Keep a healthy posture.' },
+            { range: 'less than 10 cm',        tip: 'Extraordinary near vision! Still, consider a full specialist check-up.' },
+        ];
+
+        // ── State ────────────────────────────────────────────
+        let step            = 0;      // current size index
+        let lastVisibleStep = -1;     // last step user said YES
+        let currentLetter   = '';
+
+        // ── DOM refs ─────────────────────────────────────────
+        const modal        = document.getElementById('vision-test-modal');
+        const backdrop     = document.getElementById('vt-backdrop');
+        const closeBtn     = document.getElementById('vt-close-btn');
+        const triggerBtn   = document.getElementById('vision-test-trigger-btn');
+
+        const testScreen   = document.getElementById('vt-test-screen');
+        const resultScreen = document.getElementById('vt-result-screen');
+
+        const letterEl     = document.getElementById('vt-letter');
+        const progressFill = document.getElementById('vt-progress-fill');
+        const stepLabel    = document.getElementById('vt-step-label');
+        const sizeLabel    = document.getElementById('vt-size-label');
+        const dotsEl       = document.getElementById('vt-dots');
+
+        const btnYes       = document.getElementById('vt-btn-yes');
+        const btnNo        = document.getElementById('vt-btn-no');
+        const restartBtn   = document.getElementById('vt-restart-btn');
+
+        const resultIcon    = document.getElementById('vt-result-icon');
+        const resultTitle   = document.getElementById('vt-result-title');
+        const resultMsg     = document.getElementById('vt-result-msg');
+        const resultDetail  = document.getElementById('vt-result-detail');
+        const distanceBadge = document.getElementById('vt-distance-badge');
+        const distanceValue = document.getElementById('vt-distance-value');
+        const distanceTip   = document.getElementById('vt-distance-tip');
+
+        // ── Helpers ──────────────────────────────────────────
+        function randomLetter() {
+            return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+        }
+
+        function buildDots() {
+            dotsEl.innerHTML = '';
+            for (let i = 0; i < TOTAL; i++) {
+                const d = document.createElement('div');
+                d.className = 'vt-dot' + (i < step ? ' done' : i === step ? ' current' : '');
+                dotsEl.appendChild(d);
+            }
+        }
+
+        function renderStep() {
+            currentLetter = randomLetter();
+
+            // Animate letter change
+            letterEl.classList.remove('animate');
+            void letterEl.offsetWidth; // reflow
+            letterEl.textContent  = currentLetter;
+            letterEl.style.fontSize = SIZES[step] + 'px';
+            letterEl.classList.add('animate');
+
+            progressFill.style.width = ((step / TOTAL) * 100) + '%';
+            stepLabel.textContent     = `Step ${step + 1} / ${TOTAL}`;
+            sizeLabel.textContent     = `Level ${step + 1}  —  ${SIZES[step]}px`;
+            buildDots();
+        }
+
+        function showResult() {
+            testScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('vt-result');
+            progressFill.style.width = '100%';
+
+            // Always hide badge first
+            distanceBadge.style.display = 'none';
+
+            if (lastVisibleStep === -1) {
+                // Never saw any letter
+                resultIcon.textContent  = '⚠️';
+                resultTitle.textContent = 'Vision difficulty detected';
+                resultMsg.textContent   =
+                    'You were unable to identify the letter even at its largest size. We strongly recommend consulting an ophthalmologist as soon as possible.';
+                resultDetail.className  = 'vt-result-card warning';
+                resultDetail.innerHTML  =
+                    '<strong style="color:#e63946;">Advice:</strong> Try moving closer to the screen or increasing your system\'s display size. Medical follow-up is recommended.';
+            } else {
+                const adv = DISTANCE_ADVICE[lastVisibleStep];
+                resultTitle.textContent = 'Test complete';
+                resultMsg.textContent   =
+                    `The smallest letter you identified corresponds to level ${lastVisibleStep + 1} out of ${TOTAL}.`;
+
+                // Show the distance badge
+                distanceBadge.style.display = 'block';
+                distanceValue.textContent   = adv.range;
+                distanceTip.textContent     = adv.tip;
+
+                resultDetail.className  = 'vt-result-card';
+                resultDetail.innerHTML  =
+                    `<strong style="color:#2563eb;">💡 Personalised advice:</strong><br>${adv.tip}<br><br>
+                     <span style="font-size:0.82rem;color:#94a3b8;">You can reserve your seat keeping this distance in mind for the best screen experience during the session.</span>`;
+            }
+        }
+
+        function resetTest() {
+            step            = 0;
+            lastVisibleStep = -1;
+            testScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            renderStep();
+        }
+
+        // ── Open / Close ─────────────────────────────────────
+        function openModal() {
+            resetTest();
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+
+        // ── Test logic ───────────────────────────────────────
+        btnYes.addEventListener('click', () => {
+            lastVisibleStep = step;
+            step++;
+            if (step >= TOTAL) {
+                showResult();
+            } else {
+                renderStep();
+            }
+        });
+
+        btnNo.addEventListener('click', () => {
+            showResult();
+        });
+
+        restartBtn.addEventListener('click', resetTest);
+
+    })();
 </script>
 {% endblock %}

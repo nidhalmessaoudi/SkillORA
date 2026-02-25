@@ -196,7 +196,11 @@ class ReservationController extends AbstractController
             $this->addFlash('error', 'Please fill in all required fields.');
         }
 
-       
+        return $this->render('pages/admin/reservations/new.html.twig', [
+            'events' => $events,
+            'salles' => $salles,
+            'formData' => $formData,
+        ]);
     }
 
     #[Route('/{id}', name: 'admin_reservations_show')]
@@ -285,15 +289,8 @@ class ReservationController extends AbstractController
     #[Route('/{id}/delete', name: 'admin_reservations_delete', methods: ['POST'])]
     public function delete(Reservation $reservation): Response
     {
-        $salle = null;
-        if ($reservation->getSalleId()) {
-            $salle = $this->entityManager->getRepository(Salle::class)->find($reservation->getSalleId());
-        }
-
+        // Remove only the reservation, NOT the salle
         $this->entityManager->remove($reservation);
-        if ($salle) {
-            $this->entityManager->remove($salle);
-        }
         $this->entityManager->flush();
 
         $this->addFlash('success', 'Reservation deleted successfully.');

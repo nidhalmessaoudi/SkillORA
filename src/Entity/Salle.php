@@ -51,7 +51,6 @@ class Salle
         return $this;
     }
 
-
     public function getImage3d(): ?string
     {
         return $this->image3d;

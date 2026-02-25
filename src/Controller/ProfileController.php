@@ -9,16 +9,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProfileController extends AbstractController
 {
-    #[Route('/profile', name: 'profile_index')]
-    public function index(): Response
-    {
-        // Redirect to user profile edit if logged in
-        if ($this->getUser()) {
-            return $this->redirectToRoute('user_profile_edit');
-        }
-        
-        return $this->render('pages/profile/public.html.twig');
-    }
+    // Disabled - using UserProfileController instead
+    // #[Route('/profile', name: 'profile_index')]
+    // public function index(): Response
+    // {
+    //     // Redirect to user profile if logged in
+    //     if ($this->getUser()) {
+    //         return $this->redirectToRoute('user_profile');
+    //     }
+    //     
+    //     return $this->render('pages/profile/public.html.twig');
+    // }
 
     #[Route('/profile/achievements', name: 'profile_achievements')]
     public function achievements(): Response

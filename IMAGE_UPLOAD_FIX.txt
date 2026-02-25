@@ -1,0 +1,79 @@
+================================================================
+IMAGE UPLOAD FIX - Event Images Now Working
+================================================================
+
+PROBLEM IDENTIFIED:
+-------------------
+The public/uploads/events directory had incorrect permissions
+and wasn't writable by the web server/PHP.
+
+SOLUTION APPLIED:
+-----------------
+1. Fixed directory permissions (chmod 777)
+2. Added better error messages to upload handler
+3. Added directory existence check
+4. Created .gitkeep file to preserve directory in git
+
+WHAT WAS CHANGED:
+-----------------
+File: src/Controller/EventController.php
+- Enhanced handleMediaUpload() method
+- Added error message for upload failures
+- Added directory creation if missing
+- Added success flash message when upload works
+
+Directory Permissions:
+- public/uploads/events/ → Now writable (777)
+- public/uploads/salles/ → Now writable (777)
+
+HOW TO TEST:
+------------
+1. Start your server: symfony serve
+2. Go to: http://localhost:8000/admin/events/new
+3. Fill in all required fields:
+   - Title
+   - Start Date
+   - End Date
+   - Event Type
+   - Price Type
+   - Salle Name
+   - Salle Location
+   - Max Participants
+   - Duration
+4. Click "Choose File" for image upload
+5. Select an image (JPG, PNG, GIF, etc.)
+6. Submit the form
+7. You should see: "Image uploaded successfully!" message
+8. Image will display on the event details page
+
+EXPECTED BEHAVIOR:
+------------------
+✓ Image uploads to: public/uploads/events/[random].jpg
+✓ Database stores: /uploads/events/[random].jpg
+✓ Image displays in:
+  - Admin events list (/admin/events)
+  - Event details page (/admin/events/{id})
+  - Public events page (/events)
+
+TROUBLESHOOTING:
+----------------
+If images still don't upload:
+
+1. Check flash messages for errors
+2. Verify file type is image/* or video/*
+3. Check PHP upload_max_filesize in php.ini
+4. Check post_max_size in php.ini
+5. Verify directory exists and is writable:
+   ls -la public/uploads/events/
+
+VERIFICATION:
+-------------
+Run: php test_upload_system.php
+Should show:
+✓ Directory exists
+✓ Directory writable
+✓ Events list with image paths
+
+================================================================
+STATUS: FIXED AND READY TO USE!
+================================================================

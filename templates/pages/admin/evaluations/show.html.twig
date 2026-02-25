@@ -1,0 +1,35 @@
+{# templates/evaluation/show.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Évaluation: {{ evaluation.title }}{% endblock %}
+
+{% block body %}
+<h1>{{ evaluation.title }}</h1>
+
+<p><strong>Description:</strong> {{ evaluation.description ?: 'Pas de description' }}</p>
+<p><strong>Type:</strong> {{ evaluation.type }}</p>
+<p><strong>Durée:</strong> {{ evaluation.duration }} minutes</p>
+<p><strong>Score total:</strong> {{ evaluation.totalScore }}</p>
+<p><strong>Créée le:</strong> {{ evaluation.createdAt|date('d/m/Y H:i') }}</p>
+
+<h2>Questions</h2>
+{% if evaluation.questions|length > 0 %}
+    <ul>
+        {% for question in evaluation.questions %}
+            <li>{{ question.title }} - {{ question.score }} points</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucune question pour cette évaluation.</p>
+{% endif %}
+
+<a href="{{ path('evaluation_edit', {'id': evaluation.id}) }}" class="btn btn-warning">Modifier</a>
+
+<form method="post" action="{{ path('evaluation_delete', {'id': evaluation.id}) }}" onsubmit="return confirm('Êtes-vous sûr ?');" style="display:inline-block;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evaluation.id) }}">
+    <button class="btn btn-danger">Supprimer</button>
+</form>
+
+<a href="{{ path('evaluation_default') }}" class="btn btn-secondary">Retour</a>
+{% endblock %}

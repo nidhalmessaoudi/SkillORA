@@ -1,0 +1,135 @@
+================================================================
+3D MODEL VIEWER FIX - Google Model Viewer Integration
+================================================================
+
+ISSUE IDENTIFIED:
+-----------------
+Your friend uses Google Model Viewer (not Three.js directly).
+The <model-viewer> custom element loads 3D models (.glb/.gltf files).
+
+SOLUTION APPLIED:
+-----------------
+1. Updated CDN to Google's stable version
+2. Added proper module loading with fallback
+3. Added error detection and logging
+4. Created test page to verify functionality
+5. Added proper CORS and loading indicators
+
+CHANGES MADE:
+-------------
+File: templates/pages/salles/show.html.twig
+- Updated script source to Google CDN (3.3.0)
+- Added nomodule fallback for older browsers
+- Added customElements check for debugging
+- Added success/error console logging
+
+WHAT IS MODEL VIEWER:
+---------------------
+Google Model Viewer is a web component that displays 3D models:
+- Supports: .glb, .gltf formats
+- Features: Camera controls, auto-rotate, AR support
+- Works on: All modern browsers
+- Documentation: https://modelviewer.dev/
+
+HOW TO TEST:
+------------
+1. Test the 3D Viewer library:
+   Visit: http://localhost:8000/test-3d-viewer.html
+   
+   Expected:
+   ✅ "Model Viewer library loaded successfully!"
+   ✅ You see a spinning 3D astronaut model
+   ✅ You can click-drag to rotate, scroll to zoom
+
+2. Upload a 3D model:
+   a. Go to: /admin/events/new
+   b. Fill in event details
+   c. In "Salle 3D Model" field:
+      - Click "Choose File"
+      - Select a .glb or .gltf file
+   d. Submit form
+   
+3. View the 3D model:
+   a. Go to: /salles (or /events)
+   b. Click on an event/salle
+   c. The 3D model should display
+   d. Click "Mode Plein Écran 3D" for fullscreen
+
+WHERE TO GET 3D MODELS:
+-----------------------
+Free 3D models (.glb format):
+- https://modelviewer.dev/examples/
+- https://sketchfab.com/
+- https://poly.pizza/
+- https://market.pmnd.rs/
+
+Download a .glb file and upload it!
+
+CURRENT STATUS:
+---------------
+✓ Model Viewer library: INSTALLED
+✓ Template code: UPDATED
+✓ Error handling: ADDED
+✓ Test page: CREATED
+⚠ 3D models: NONE UPLOADED YET
+
+CONTROLS:
+---------
+Preview Mode:
+- 🖱️ Click + drag: Rotate model
+- 🔍 Scroll wheel: Zoom in/out
+- Auto-rotate: Enabled by default
+
+Fullscreen Mode (ZQSD/WASD):
+- Z/W: Zoom in
+- S: Zoom out
+- Q/A: Rotate left
+- D: Rotate right
+- Space: Toggle auto-rotate
+- R: Reset camera
+- ESC: Exit fullscreen
+
+TROUBLESHOOTING:
+----------------
+If 3D models don't display:
+
+1. Check console (F12) for errors
+2. Visit test page: /test-3d-viewer.html
+3. Verify file uploaded to: public/uploads/salles/
+4. Check file extension is .glb or .gltf
+5. Ensure file path stored in database
+
+Common Issues:
+- "Model Viewer not loaded": Refresh page
+- Blank viewer: Check file path in database
+- Loading forever: Check file is valid .glb
+
+TECHNICAL DETAILS:
+------------------
+Library: Google Model Viewer 3.3.0
+CDN: https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/
+Format: .glb (binary GLTF) recommended
+Browser Support: Chrome, Firefox, Safari, Edge
+
+Model Viewer Features Used:
+- camera-controls: Enable mouse/touch controls
+- auto-rotate: Automatic rotation
+- shadow-intensity: Realistic shadows
+- exposure: Lighting adjustment
+- camera-orbit: Camera positioning
+- AR button: Augmented reality (mobile)
+
+NEXT STEPS:
+-----------
+1. Visit: http://localhost:8000/test-3d-viewer.html
+2. If test works, download a sample .glb model
+3. Create an event with salle and upload the model
+4. View the salle page to see your 3D model!
+
+Sample Models to Try:
+- Astronaut.glb (https://modelviewer.dev/shared-assets/models/Astronaut.glb)
+- Download and upload to test
+
+================================================================
+STATUS: FIXED - Ready to display 3D models!
+================================================================

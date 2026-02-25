@@ -477,24 +477,38 @@ class EventController extends AbstractController
     private function handleMediaUpload(Request $request): ?string
     {
         $file = $request->files->get('media');
-        if (!$file instanceof UploadedFile || !$file->isValid()) {
+        
+        // If no file uploaded, return null (optional field)
+        if (!$file instanceof UploadedFile) {
+            return null;
+        }
+        
+        // Check if file is valid
+        if (!$file->isValid()) {
+            $this->addFlash('error', 'File upload error: ' . $file->getErrorMessage());
             return null;
         }
 
         $mimeType = (string) $file->getClientMimeType();
         if (!str_starts_with($mimeType, 'image/') && !str_starts_with($mimeType, 'video/')) {
-            $this->addFlash('error', 'Only image or video files are allowed.');
+            $this->addFlash('error', 'Only image or video files are allowed. Uploaded: ' . $mimeType);
             return null;
         }
 
         $extension = $file->getClientOriginalExtension() ?: 'bin';
         $filename = bin2hex(random_bytes(16)) . '.' . $extension;
         $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events';
+        
+        // Ensure directory exists
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
 
         try {
             $file->move($targetDir, $filename);
-        } catch (FileException) {
-            $this->addFlash('error', 'Upload failed. Please try again.');
+            $this->addFlash('success', 'Image uploaded successfully!');
+        } catch (FileException $e) {
+            $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
             return null;
         }
 
@@ -504,23 +518,37 @@ class EventController extends AbstractController
     private function handleSalleModelUpload(Request $request): ?string
     {
         $file = $request->files->get('salle_image_3d');
-        if (!$file instanceof UploadedFile || !$file->isValid()) {
+        
+        // If no file uploaded, return null (optional field)
+        if (!$file instanceof UploadedFile) {
+            return null;
+        }
+        
+        // Check if file is valid
+        if (!$file->isValid()) {
+            $this->addFlash('error', '3D model upload error: ' . $file->getErrorMessage());
             return null;
         }
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         if (!in_array($extension, ['glb', 'gltf'], true)) {
-            $this->addFlash('error', 'Only .glb or .gltf files are allowed for 3D models.');
+            $this->addFlash('error', 'Only .glb or .gltf files are allowed for 3D models. Uploaded: .' . $extension);
             return null;
         }
 
         $filename = bin2hex(random_bytes(16)) . '.' . $extension;
         $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/salles';
+        
+        // Ensure directory exists
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
 
         try {
             $file->move($targetDir, $filename);
-        } catch (FileException) {
-            $this->addFlash('error', '3D upload failed. Please try again.');
+            $this->addFlash('success', '3D model uploaded successfully!');
+        } catch (FileException $e) {
+            $this->addFlash('error', '3D upload failed: ' . $e->getMessage());
             return null;
         }
 

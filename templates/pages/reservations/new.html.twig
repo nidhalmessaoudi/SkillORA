@@ -4,18 +4,27 @@
 
 {% block body %}
 <div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+    
     <div class="container-wide py-10 max-w-3xl">
         <div class="mb-8">
             <h1 class="font-display font-bold text-display-md text-navy-900 dark:text-white mb-2">Reservation</h1>
             <p class="text-body-md text-navy-600 dark:text-navy-400">Reserve your seat for an event.</p>
         </div>
-
+         
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+        <style>
+            /* Ensure Leaflet stays behind modals */
+            .leaflet-container, .leaflet-control-container, .leaflet-top, .leaflet-bottom { z-index: 0 !important; }
+            #adresse-map { z-index: 0; }
+        </style>
 
         <form method="post" class="card p-6 space-y-4">
             <input type="hidden" name="max_participants" value="{{ form_data.max_participants|default('') }}">
             <input type="hidden" name="seat_locked" value="{{ form_data.seat_locked ? '1' : '' }}">
             <input type="hidden" name="seats" value="{{ form_data.seats|default('') }}">
+              
+            {# ===== Event & Salle ===== #}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="event_id">Event</label>
@@ -65,41 +74,58 @@
                 </div>
             </div>
 
+            {# ===== Prénom & Nom ===== #}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="prenom">First Name</label>
                     {% if errors.prenom is defined %}
                         <p class="text-red-600 text-sm mt-1">{{ errors.prenom }}</p>
                     {% endif %}
-                    <input id="prenom" name="prenom" type="text" class="input" value="{{ form_data.prenom|default('') }}">
+                    <input id="prenom" name="prenom" type="text" class="input transition-all duration-300"
+                           value="{{ form_data.prenom|default('') }}" placeholder="Ex: Mohamed">
                 </div>
                 <div>
                     <label class="input-label" for="nom">Last Name</label>
                     {% if errors.nom is defined %}
                         <p class="text-red-600 text-sm mt-1">{{ errors.nom }}</p>
                     {% endif %}
-                    <input id="nom" name="nom" type="text" class="input" value="{{ form_data.nom|default('') }}">
+                    <input id="nom" name="nom" type="text" class="input transition-all duration-300"
+                           value="{{ form_data.nom|default('') }}" placeholder="Ex: Ben Ali">
                 </div>
             </div>
+            <div class="flex items-center gap-3">
+                <button type="button" id="btnOpenCamera"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-sm font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all shadow-sm">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                    </svg>
+                    Réservation Caméra
+                </button>
+                <span class="text-xs text-navy-400 dark:text-navy-500">Remplissez les champs par écriture gestuelle</span>
+            </div>
 
+            {# ===== Téléphone & Seats ===== #}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="input-label" for="telephone">Phone</label>
                     {% if errors.telephone is defined %}
                         <p class="text-red-600 text-sm mt-1">{{ errors.telephone }}</p>
                     {% endif %}
-                    <input id="telephone" name="telephone" type="text" class="input" value="{{ form_data.telephone|default('') }}">
+                    <input id="telephone" name="telephone" type="text" class="input transition-all duration-300"
+                           value="{{ form_data.telephone|default('') }}" placeholder="Ex: 55123456">
                 </div>
                 <div>
                     {% if form_data.seats %}
                         <label class="input-label" for="seats_display">Seats</label>
-                        <input id="seats_display" name="seats_display" type="text" class="input" value="{{ form_data.seats|default('') }}" readonly>
+                        <input id="seats_display" name="seats_display" type="text" class="input"
+                               value="{{ form_data.seats|default('') }}" readonly>
                     {% else %}
                         <label class="input-label" for="nombre_places">Seat</label>
                         {% if errors.nombre_places is defined %}
                             <p class="text-red-600 text-sm mt-1">{{ errors.nombre_places }}</p>
                         {% endif %}
-                        <input id="nombre_places" name="nombre_places" type="number" min="1" class="input" value="{{ form_data.nombre_places|default('') }}" {{ form_data.seat_locked ? 'readonly' : '' }}>
+                        <input id="nombre_places" name="nombre_places" type="number" min="1" class="input"
+                               value="{{ form_data.nombre_places|default('') }}" {{ form_data.seat_locked ? 'readonly' : '' }}>
                     {% endif %}
                     {% if form_data.max_participants %}
                         <p class="text-caption text-navy-500 dark:text-navy-400 mt-1">Max seats: {{ form_data.max_participants }}</p>
@@ -107,125 +133,1217 @@
                 </div>
             </div>
 
+            {# ===== Adresse + Carte ===== #}
             {% set address_locked = form_data.salle_id and form_data.adresse %}
             <div>
                 <label class="input-label" for="adresse">Address</label>
-                <input id="adresse" name="adresse" type="text" class="input {{ address_locked ? 'bg-navy-50 dark:bg-navy-800 cursor-not-allowed' : '' }}" value="{{ form_data.adresse|default('') }}" {{ address_locked ? 'readonly data-locked=true' : '' }}>
+                <input id="adresse" name="adresse" type="text"
+                       class="input {{ address_locked ? 'bg-navy-50 dark:bg-navy-800 cursor-not-allowed' : '' }}"
+                       value="{{ form_data.adresse|default('') }}"
+                       {{ address_locked ? 'readonly data-locked=true' : '' }}>
                 <div id="adresse-suggestions" class="mt-2 space-y-1"></div>
                 <div id="adresse-map" class="mt-3 h-64 w-full rounded-xl border border-navy-200 dark:border-navy-700 overflow-hidden"></div>
-                <p class="input-hint">{{ address_locked ? 'Address is locked to the salle location.' : 'Type an address or click on the map to set it.' }}</p>
+                <p class="input-hint">
+                    {{ address_locked ? 'Address is locked to the salle location.' : 'Type an address or click on the map to set it.' }}
+                </p>
             </div>
 
+            {# ===== Date ===== #}
             <div>
                 <label class="input-label" for="date_reservation">Reservation Date</label>
-                <input id="date_reservation" name="date_reservation" type="datetime-local" class="input" value="{{ form_data.date_reservation|default('') }}" readonly>
+                <input id="date_reservation" name="date_reservation" type="datetime-local" class="input"
+                       value="{{ form_data.date_reservation|default('') }}" readonly>
                 <p class="text-caption text-navy-500 dark:text-navy-400 mt-1">Set automatically to the current time.</p>
             </div>
 
-            <div class="flex items-center gap-3">
+            {# ===== Actions + Bouton Vocal ===== #}
+            <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" class="btn-primary">Submit Reservation</button>
+
+                <button type="button" class="btn-secondary flex items-center gap-2" id="ajoute-voix-btn">
+                    <span id="voix-icon">🎙️</span>
+                    <span id="voix-label">Voice Input</span>
+                </button>
+
+
+               
+
                 <a href="{{ path('events_index') }}" class="btn-ghost btn-sm">Cancel</a>
             </div>
+
+            {# Zone de feedback vocal — remplie dynamiquement par JS #}
+            <div id="vocal-feedback" class="hidden mt-2 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
         </form>
     </div>
 </div>
+    {# ══════════════════════════════════════════════════════════════════════
+       MODALE CAMÉRA — Écriture gestuelle + OCR Claude Vision
+       ══════════════════════════════════════════════════════════════════════ #}
+    <div id="cameraModal" class="fixed inset-0 flex items-center justify-center hidden" style="z-index:11000;">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="cameraBackdrop" style="z-index:11010;"></div>
+
+        <div class="relative w-full max-w-2xl mx-4 rounded-2xl shadow-2xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 flex flex-col" style="z-index:11020; max-height:95vh; overflow-y:auto;">
+
+            {# ── Header ── #}
+            <div class="flex items-center justify-between px-5 py-3 border-b border-navy-100 dark:border-navy-800 bg-navy-50 dark:bg-navy-950 flex-shrink-0 rounded-t-2xl sticky top-0 z-10">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                    <span class="font-semibold text-sm text-navy-900 dark:text-white">Caméra — Écriture gestuelle</span>
+                    <span class="text-xs text-navy-400 dark:text-navy-500 ml-1">+ OCR IA</span>
+                </div>
+                <button id="btnCloseCamera" type="button"
+                    class="text-navy-400 hover:text-red-500 transition-colors text-xl leading-none font-bold">✕</button>
+            </div>
+
+            {# ── Sélecteur de champ ── #}
+            <div class="flex gap-2 px-5 py-2.5 border-b border-navy-100 dark:border-navy-800 bg-white dark:bg-navy-900 flex-shrink-0">
+                <span class="text-xs text-navy-500 dark:text-navy-400 self-center mr-1">Champ actif :</span>
+                <button type="button" class="cam-field-btn px-4 py-1.5 rounded-lg text-xs font-bold border transition-all border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" data-field="prenom">✍ First Name</button>
+                <button type="button" class="cam-field-btn px-4 py-1.5 rounded-lg text-xs font-bold border transition-all border-navy-200 text-navy-500 bg-transparent dark:border-navy-700 dark:text-navy-400" data-field="nom">✍ Last Name</button>
+                <button type="button" class="cam-field-btn px-4 py-1.5 rounded-lg text-xs font-bold border transition-all border-navy-200 text-navy-500 bg-transparent dark:border-navy-700 dark:text-navy-400" data-field="telephone">✍ Phone</button>
+            </div>
+
+            {# ── Zone vidéo + canvas ── #}
+            <div id="camWrap" class="relative bg-black flex-shrink-0" style="aspect-ratio:4/3; min-height:200px; overflow:hidden;">
+                <video id="camVideo" autoplay muted playsinline
+                    class="absolute inset-0 w-full h-full object-cover"
+                    style="transform:scaleX(-1); z-index:1;"></video>
+                <canvas id="camDraw" class="absolute inset-0 w-full h-full"
+                    style="z-index:2; pointer-events:none;"></canvas>
+                <canvas id="camOut" class="absolute inset-0 w-full h-full"
+                    style="transform:scaleX(-1); z-index:3; pointer-events:none;"></canvas>
+
+                {# Pinch meter #}
+                <div class="absolute top-3 right-3 flex flex-col items-center gap-1" style="z-index:4;">
+                    <span class="text-xs text-white/50 font-mono">pinch</span>
+                    <div class="w-2 h-16 rounded-full bg-white/20 overflow-hidden flex flex-col-reverse">
+                        <div id="pinchBar" class="w-full bg-green-400 rounded-full" style="height:0%;"></div>
+                    </div>
+                    <span id="pinchVal" class="text-xs text-white/50 font-mono">—</span>
+                </div>
+
+                {# Overlay OCR loading #}
+                <div id="ocrOverlay" class="absolute inset-0 hidden items-center justify-center" style="z-index:6; background:rgba(0,0,0,0.65);">
+                    <div class="flex flex-col items-center gap-3">
+                        <svg class="w-10 h-10 text-cyan-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        <span class="text-white text-sm font-semibold">Reconnaissance en cours…</span>
+                    </div>
+                </div>
+
+                <div id="camStatus"
+                    class="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-semibold bg-black/70 text-cyan-300 backdrop-blur whitespace-nowrap"
+                    style="z-index:5;">Initialisation…</div>
+            </div>
+
+            {# ── Barre live ── #}
+            <div class="px-5 py-2 border-t border-navy-100 dark:border-navy-800 bg-navy-50 dark:bg-navy-950 flex items-center gap-2 min-h-[36px] flex-shrink-0">
+                <span id="drawIndicator" class="text-xs font-bold text-red-500 hidden">● TRACÉ ACTIF</span>
+                <span id="liveInfo" class="text-xs text-navy-400 dark:text-navy-500 italic flex-1 truncate">Pincez pouce + index pour tracer</span>
+            </div>
+
+            {# ══════════════════════════════════════════════════════════
+               ZONE OCR — résultat reconnu + confirmation
+            ══════════════════════════════════════════════════════════ #}
+            <div id="ocrResultZone" class="hidden px-5 py-3 border-t border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 flex-shrink-0">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Texte reconnu pour <span id="ocrFieldLabel" class="text-blue-600 dark:text-blue-400"></span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="ocrTextInput"
+                        class="flex-1 px-3 py-2 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-navy-900 text-navy-900 dark:text-white text-base font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Texte reconnu…">
+                    <button type="button" id="btnOcrConfirm"
+                        class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                        ✓ Confirmer
+                    </button>
+                    <button type="button" id="btnOcrCancel"
+                        class="px-3 py-2 rounded-lg border border-navy-200 dark:border-navy-700 text-navy-500 dark:text-navy-400 text-xs font-bold hover:text-red-500 hover:border-red-400 transition-all">
+                        ✕
+                    </button>
+                </div>
+                <p class="text-xs text-blue-500 dark:text-blue-400 mt-1.5">Modifiez si besoin, puis confirmez pour mémoriser.</p>
+            </div>
+
+            {# ══════════════════════════════════════════════════════════
+               RÉCAP DES VALEURS EN ATTENTE
+            ══════════════════════════════════════════════════════════ #}
+            <div class="px-5 pt-3 pb-1 flex-shrink-0">
+                <div class="text-xs font-semibold text-navy-500 dark:text-navy-400 mb-1.5 uppercase tracking-wide">Valeurs à enregistrer</div>
+                <div class="grid grid-cols-3 gap-2">
+
+                    <div class="pending-card rounded-lg border border-navy-100 dark:border-navy-700 bg-navy-50 dark:bg-navy-800 px-3 py-2 flex flex-col gap-1 min-h-[52px]" data-field="prenom">
+                        <span class="text-xs text-navy-400 dark:text-navy-500 font-medium">First Name</span>
+                        <div class="flex items-center justify-between gap-1">
+                            <span id="badge-prenom" class="text-sm font-bold truncate flex-1 italic text-navy-300 dark:text-navy-600">—</span>
+                            <button type="button" id="clear-prenom" class="hidden text-navy-300 hover:text-red-400 transition-colors flex-shrink-0 text-xs" title="Effacer">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="pending-card rounded-lg border border-navy-100 dark:border-navy-700 bg-navy-50 dark:bg-navy-800 px-3 py-2 flex flex-col gap-1 min-h-[52px]" data-field="nom">
+                        <span class="text-xs text-navy-400 dark:text-navy-500 font-medium">Last Name</span>
+                        <div class="flex items-center justify-between gap-1">
+                            <span id="badge-nom" class="text-sm font-bold truncate flex-1 italic text-navy-300 dark:text-navy-600">—</span>
+                            <button type="button" id="clear-nom" class="hidden text-navy-300 hover:text-red-400 transition-colors flex-shrink-0 text-xs" title="Effacer">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="pending-card rounded-lg border border-navy-100 dark:border-navy-700 bg-navy-50 dark:bg-navy-800 px-3 py-2 flex flex-col gap-1 min-h-[52px]" data-field="telephone">
+                        <span class="text-xs text-navy-400 dark:text-navy-500 font-medium">Phone</span>
+                        <div class="flex items-center justify-between gap-1">
+                            <span id="badge-telephone" class="text-sm font-bold truncate flex-1 italic text-navy-300 dark:text-navy-600">—</span>
+                            <button type="button" id="clear-telephone" class="hidden text-navy-300 hover:text-red-400 transition-colors flex-shrink-0 text-xs" title="Effacer">✕</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {# ══════════════════════════════════════════════════════════
+               CONTRÔLES
+            ══════════════════════════════════════════════════════════ #}
+            <div class="border-t border-navy-100 dark:border-navy-800 bg-white dark:bg-navy-900 flex-shrink-0 mt-3">
+
+                {# Rangée 1 : Effacer | Reconnaître (OCR) | Sensibilité #}
+                <div class="flex items-center gap-2 px-5 pt-3 pb-2 flex-wrap">
+                    <button type="button" id="btnClearDraw"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-navy-200 dark:border-navy-700 text-xs font-bold text-navy-600 dark:text-navy-300 hover:border-red-400 hover:text-red-500 transition-all">
+                        ⌫ Effacer
+                    </button>
+                    <button type="button" id="btnOCR"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm">
+                        🔍 Reconnaître le texte
+                    </button>
+                    <div class="flex items-center gap-1.5 ml-auto">
+                        <label class="text-xs text-navy-400 whitespace-nowrap">Sensibilité</label>
+                        <input type="range" id="pinchThreshold" min="4" max="15" value="8" step="1"
+                            class="w-20 accent-blue-600 cursor-pointer">
+                        <span id="pinchThresholdVal" class="text-xs font-mono text-navy-500 w-4">8</span>
+                    </div>
+                </div>
+
+                {# Rangée 2 : ENREGISTRER #}
+                <div class="px-5 pb-4">
+                    <button type="button" id="btnSaveModal"
+                        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-bold shadow transition-all opacity-40 cursor-not-allowed">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer dans le formulaire
+                    </button>
+                </div>
+            </div>
+
+            {# ── Instructions ── #}
+            <div class="px-5 py-2.5 border-t border-navy-100 dark:border-navy-800 bg-navy-50 dark:bg-navy-950 text-xs text-navy-500 dark:text-navy-400 leading-relaxed flex-shrink-0 rounded-b-2xl">
+                <strong class="text-navy-700 dark:text-navy-300">Mode d'emploi :</strong>
+                Choisissez un champ →
+                <strong>Pincez pouce + index</strong> pour tracer →
+                Relâchez →
+                <strong class="text-purple-600">🔍 Reconnaître</strong> pour lire le texte automatiquement →
+                Confirmez ou corrigez →
+                <strong class="text-green-600">Enregistrer</strong> pour transférer dans le formulaire.
+            </div>
+
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
+{{ parent() }}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
-    (function() {
-        const input = document.getElementById('adresse');
-        const suggestions = document.getElementById('adresse-suggestions');
-        const mapEl = document.getElementById('adresse-map');
-        const locked = input.dataset.locked === 'true';
 
-        if (!input || !suggestions || !mapEl || typeof L === 'undefined') {
+{# ===== Carte Leaflet ===== #}
+<script>
+(function () {
+    const input       = document.getElementById('adresse');
+    const suggestions = document.getElementById('adresse-suggestions');
+    const mapEl       = document.getElementById('adresse-map');
+    const locked      = input?.dataset.locked === 'true';
+
+    if (!input || !suggestions || !mapEl || typeof L === 'undefined') return;
+
+    const map = L.map(mapEl).setView([36.8065, 10.1815], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    const setMarker = (lat, lng) => {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+        map.setView([lat, lng], 14);
+    };
+
+    const clearSuggestions = () => { suggestions.innerHTML = ''; };
+
+    const renderSuggestions = (items) => {
+        clearSuggestions();
+        items.forEach((item) => {
+            const btn = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'w-full text-left px-3 py-2 rounded bg-navy-50 dark:bg-navy-800 text-sm hover:bg-navy-100 dark:hover:bg-navy-700';
+            btn.textContent = item.display_name;
+            btn.addEventListener('click', () => {
+                input.value = item.display_name;
+                setMarker(item.lat, item.lon);
+                clearSuggestions();
+            });
+            suggestions.appendChild(btn);
+        });
+    };
+
+    if (!locked) {
+        let debounceId = null;
+        input.addEventListener('input', () => {
+            const query = input.value.trim();
+            clearTimeout(debounceId);
+            if (query.length < 3) { clearSuggestions(); return; }
+            debounceId = setTimeout(() => {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                    .then(res => res.json())
+                    .then(data => renderSuggestions(data))
+                    .catch(() => clearSuggestions());
+            }, 250);
+        });
+
+        map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            setMarker(lat.toFixed(6), lng.toFixed(6));
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(res => res.json())
+                .then(data => { if (data?.display_name) input.value = data.display_name; })
+                .catch(() => {});
+        });
+    }
+
+    if (input.value.trim().length >= 3) {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input.value.trim())}&limit=1`)
+            .then(res => res.json())
+            .then(data => { if (data?.[0]) setMarker(data[0].lat, data[0].lon); })
+            .catch(() => {});
+    }
+})();
+</script>
+
+{# ===== Reconnaissance Vocale ===== #}
+<script>
+(function () {
+    // ─────────────────────────────────────────
+    // Éléments DOM
+    // ─────────────────────────────────────────
+    const btn        = document.getElementById('ajoute-voix-btn');
+    const resBtn     = document.getElementById('reservation-voix-btn');
+    const voixIcon   = document.getElementById('voix-icon');
+    const voixLabel  = document.getElementById('voix-label');
+    const feedbackEl = document.getElementById('vocal-feedback');
+
+    const fieldNom       = document.getElementById('nom');
+    const fieldPrenom    = document.getElementById('prenom');
+    const fieldTelephone = document.getElementById('telephone');
+
+    if (!btn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        btn.disabled = true;
+        if (voixLabel) voixLabel.textContent = 'Non supporté (utilisez Chrome)';
+        return;
+    }
+
+    // ─────────────────────────────────────────
+    // 🌍 Langue UI
+    // ─────────────────────────────────────────
+    const UI_LANG = document.documentElement.lang?.slice(0, 2) || 'fr';
+
+    const MESSAGES = {
+        fr: {
+            last_name:   'Dites votre nom de famille',
+            first_name:  'Dites votre prénom',
+            phone:       'Dites votre numéro de téléphone',
+            recorded:    'Informations enregistrées ! Vérifiez et soumettez le formulaire.',
+            cancelled:   'Enregistrement annulé.',
+            no_speech:   'Aucune parole détectée.',
+            mic_denied:  'Microphone refusé. Autorisez l\'accès dans votre navigateur.',
+            incomplete:  'Numéro incomplet ou invalide.',
+            too_short:   'Valeur trop courte.',
+            try_again:   'Je n\'ai pas compris.',
+            step:        'Étape',
+            too_many:    'Trop de tentatives. Veuillez saisir manuellement.',
+            listening:   '🎤 Écoute en cours…',
+            confirm_nom: 'Nom',
+            confirm_pre: 'Prénom',
+            confirm_tel: 'Téléphone',
+            success_tpl: (n, p, t) => `✅ <strong>Informations enregistrées !</strong> — Nom\u00a0: <strong>${n}</strong> | Prénom\u00a0: <strong>${p}</strong> | Tél\u00a0: <strong>${t}</strong>`,
+        },
+        en: {
+            last_name:   'Say your last name',
+            first_name:  'Say your first name',
+            phone:       'Say your phone number',
+            recorded:    'Information recorded! Please review and submit.',
+            cancelled:   'Recording cancelled.',
+            no_speech:   'No speech detected.',
+            mic_denied:  'Microphone denied. Allow access in your browser.',
+            incomplete:  'Incomplete or invalid number.',
+            too_short:   'Value too short.',
+            try_again:   'I did not understand.',
+            step:        'Step',
+            too_many:    'Too many attempts. Please type manually.',
+            listening:   '🎤 Listening…',
+            confirm_nom: 'Last name',
+            confirm_pre: 'First name',
+            confirm_tel: 'Phone',
+            success_tpl: (n, p, t) => `✅ <strong>Information recorded!</strong> — Last Name: <strong>${n}</strong> | First Name: <strong>${p}</strong> | Phone: <strong>${t}</strong>`,
+        },
+    };
+    const M = MESSAGES[UI_LANG] || MESSAGES['fr'];
+
+    // ─────────────────────────────────────────
+    // 🔊 TTS — speak() retourne une Promise
+    // Le micro s'ouvre UNIQUEMENT après la fin
+    // du TTS grâce au .then() enchaîné
+    // ─────────────────────────────────────────
+    const _bestVoices = {};
+
+    function loadBestVoices() {
+        const all = speechSynthesis.getVoices();
+        if (!all.length) return;
+        const PREFS = {
+            fr: ['Microsoft Denise', 'Google français', 'Amélie', 'fr-FR'],
+            en: ['Microsoft Jenny',  'Google US English', 'Samantha', 'en-US'],
+            ar: ['Microsoft Hoda',   'ar-TN', 'ar-SA', 'ar'],
+        };
+        for (const [lang, prefs] of Object.entries(PREFS)) {
+            for (const pref of prefs) {
+                const v = all.find(v => v.name.includes(pref) || v.lang.startsWith(pref));
+                if (v) { _bestVoices[lang] = v; break; }
+            }
+            _bestVoices[lang] ??= all.find(v => v.lang.startsWith(lang)) ?? null;
+        }
+    }
+    speechSynthesis.onvoiceschanged = loadBestVoices;
+    loadBestVoices();
+
+    function speak(text, lang = UI_LANG) {
+        return new Promise(resolve => {
+            if (!window.speechSynthesis) return resolve();
+            speechSynthesis.cancel();
+            const u    = new SpeechSynthesisUtterance(text);
+            u.lang     = lang === 'fr' ? 'fr-FR' : lang === 'ar' ? 'ar-SA' : 'en-US';
+            u.rate     = 0.92;
+            u.pitch    = 1.05;
+            u.volume   = 1.0;
+            const voice = _bestVoices[lang];
+            if (voice) u.voice = voice;
+            u.onend   = () => resolve();
+            u.onerror = () => resolve();        // ne jamais bloquer
+            speechSynthesis.speak(u);
+            setTimeout(resolve, 8000);          // garde-fou Chrome
+        });
+    }
+
+    // ─────────────────────────────────────────
+    // 📞 Parsing numéro tunisien robuste
+    // ─────────────────────────────────────────
+    const SPOKEN_NUMBERS = [
+        ['vingt et un',21],['vingt-deux',22],['vingt-trois',23],['vingt-quatre',24],
+        ['vingt-cinq',25],['vingt-six',26],['vingt-sept',27],['vingt-huit',28],['vingt-neuf',29],
+        ['soixante-dix',70],['quatre-vingt-dix',90],['quatre-vingts',80],['quatre-vingt',80],
+        ['dix-sept',17],['dix-huit',18],['dix-neuf',19],
+        ['quatorze',14],['quinze',15],['seize',16],['treize',13],['douze',12],['onze',11],
+        ['soixante',60],['cinquante',50],['quarante',40],['trente',30],['vingt',20],['dix',10],
+        ['zéro',0],['zero',0],['une',1],['un',1],['deux',2],['trois',3],['quatre',4],
+        ['cinq',5],['six',6],['sept',7],['huit',8],['neuf',9],
+        ['nineteen',19],['eighteen',18],['seventeen',17],['sixteen',16],['fifteen',15],
+        ['fourteen',14],['thirteen',13],['twelve',12],['eleven',11],['ninety',90],
+        ['eighty',80],['seventy',70],['sixty',60],['fifty',50],['forty',40],['thirty',30],
+        ['twenty',20],['ten',10],['nine',9],['eight',8],['seven',7],['six',6],['five',5],
+        ['four',4],['three',3],['two',2],['one',1],
+    ];
+
+    function spokenToDigits(text) {
+        let r = text.toLowerCase();
+        for (const [word, digit] of SPOKEN_NUMBERS) {
+            r = r.replace(new RegExp(`\\b${word}\\b`, 'g'), ` ${digit} `);
+        }
+        r = r.replace(/(\d)\s+(\d)/g, '$1$2');
+        r = r.replace(/(\d)\s+(\d)/g, '$1$2'); // double passe pour groupes 3+
+        return r.trim();
+    }
+
+    function parsePhone(raw) {
+        let r = spokenToDigits(raw);
+        r = r.replace(/[^\d+]/g, '');
+        if (r.startsWith('00216'))                    r = '+216' + r.slice(5);
+        else if (r.startsWith('216') && r[0] !== '+') r = '+' + r;
+        else if (/^\d{8}$/.test(r))                   r = '+216' + r;
+        return r;
+    }
+
+    function isValidPhone(p) {
+        const d = p.replace(/\D/g, '');
+        return d.length >= 8 && d.length <= 15;
+    }
+
+    // ─────────────────────────────────────────
+    // 🎯 Normalisation noms propres
+    // ─────────────────────────────────────────
+    function normalizeName(raw) {
+        return raw
+            .replace(/\b(euh|hmm|uh|um|hm|er|alors|donc|voilà)\b/gi, '')
+            .trim()
+            .replace(/\b\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .replace(/-(\w)/g, (_, c) => '-' + c.toUpperCase());
+    }
+
+    // ─────────────────────────────────────────
+    // 🎙️ SpeechRecognition
+    // continuous = false → le micro se ferme
+    // AUTOMATIQUEMENT après la première parole
+    // détectée, sans aucune action utilisateur
+    // ─────────────────────────────────────────
+    const recognition            = new SpeechRecognition();
+    recognition.continuous       = false;   // ✅ fermeture auto dès résultat
+    recognition.interimResults   = false;   // résultats finaux seulement
+    recognition.maxAlternatives  = 3;
+
+    const STEP_LANGS = {
+        last_name:  UI_LANG === 'fr' ? 'fr-FR' : 'en-US',
+        first_name: UI_LANG === 'fr' ? 'fr-FR' : 'en-US',
+        phone:      'fr-FR',
+    };
+
+    const steps = [
+        { label: 'last_name',  field: fieldNom,       prompt: M.last_name  },
+        { label: 'first_name', field: fieldPrenom,     prompt: M.first_name },
+        { label: 'phone',      field: fieldTelephone,  prompt: M.phone      },
+    ];
+
+    let currentStep       = 0;
+    let isListening       = false;
+    let pendingAutoSubmit = false;
+    let activeBtn         = null;
+    let retryCount        = 0;
+    const MAX_RETRIES     = 3;
+
+    // ─────────────────────────────────────────
+    // UI helpers
+    // ─────────────────────────────────────────
+    const FEEDBACK_STYLES = {
+        info:    'bg-blue-50 dark:bg-blue-900/30 border border-blue-300 text-blue-800 dark:text-blue-200',
+        success: 'bg-green-50 dark:bg-green-900/30 border border-green-300 text-green-800 dark:text-green-200',
+        warning: 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 text-yellow-800 dark:text-yellow-200',
+        error:   'bg-red-50 dark:bg-red-900/30 border border-red-300 text-red-800 dark:text-red-200',
+    };
+
+    function showFeedback(html, type) {
+        feedbackEl.className = `mt-2 px-4 py-3 rounded-lg text-sm font-medium ${FEEDBACK_STYLES[type] || FEEDBACK_STYLES.info}`;
+        feedbackEl.innerHTML = html;
+        feedbackEl.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+        feedbackEl.hidden = false;
+    }
+
+    function hideFeedback() {
+        feedbackEl.hidden    = true;
+        feedbackEl.innerHTML = '';
+    }
+
+    // Indicateur visuel "micro ouvert" — animation pulse sur le bouton
+    function setMicOpen(open) {
+        if (open) {
+            voixIcon.textContent  = '🔴';
+            voixLabel.textContent = M.listening.replace('🎤 ', '');
+            btn.classList.add('animate-pulse', 'opacity-80');
+        } else {
+            voixIcon.textContent  = '🎙️';
+            voixLabel.textContent = 'Voice Input';
+            btn.classList.remove('animate-pulse', 'opacity-80');
+        }
+        btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+    }
+
+    function setBtnState(listening, targetBtn = btn) {
+        if (targetBtn === btn) {
+            // setMicOpen gère l'état du bouton principal
+            if (!listening) setMicOpen(false);
+        } else if (resBtn && targetBtn === resBtn) {
+            targetBtn.textContent = listening ? 'Arrêter' : '';
+            if (!listening) targetBtn.innerHTML = '<span>📣</span><span>Reservation par voix</span>';
+            targetBtn.classList.toggle('opacity-80', listening);
+        }
+    }
+
+    function fillField(field, value) {
+        if (!field) return;
+        // Compatible React/Alpine/Livewire/Stimulus
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype, 'value'
+        )?.set;
+        nativeSetter ? nativeSetter.call(field, value) : (field.value = value);
+        field.dispatchEvent(new Event('input',  { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        field.classList.add('ring-2', 'ring-green-400');
+        setTimeout(() => field.classList.remove('ring-2', 'ring-green-400'), 1600);
+    }
+
+    // ─────────────────────────────────────────
+    // 🔑 Fonction clé : openMic()
+    // Ouvre le micro ET affiche l'indicateur
+    // visuel. Le micro SE FERME automatiquement
+    // après détection d'un résultat (continuous=false)
+    // ─────────────────────────────────────────
+    function openMic() {
+        setMicOpen(true);
+        recognition.start();
+    }
+
+    // ─────────────────────────────────────────
+    // Flux des étapes
+    // ─────────────────────────────────────────
+    function startStep(index) {
+        if (index >= steps.length) {
+            isListening = false;
+            setMicOpen(false);
+            showFeedback(
+                M.success_tpl(
+                    fieldNom?.value       || '',
+                    fieldPrenom?.value    || '',
+                    fieldTelephone?.value || ''
+                ),
+                'success'
+            );
+            speak(M.recorded, UI_LANG);
+            retryCount = 0;
+            if (pendingAutoSubmit) {
+                pendingAutoSubmit = false;
+                setTimeout(() => document.querySelector('form')?.submit(), 900);
+            }
             return;
         }
 
-        const map = L.map(mapEl).setView([36.8065, 10.1815], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        currentStep = index;
+        retryCount  = 0;
+        const step  = steps[index];
 
-        let marker = null;
+        recognition.lang = STEP_LANGS[step.label] || (UI_LANG === 'fr' ? 'fr-FR' : 'en-US');
 
-        const setMarker = (lat, lng) => {
-            if (marker) {
-                marker.setLatLng([lat, lng]);
+        // Afficher l'invite texte
+        showFeedback(
+            `🎙️ ${M.step} ${index + 1}/3 — <strong>${step.prompt}</strong>`,
+            'info'
+        );
+
+        // 1. Parler l'invite → 2. Ouvrir le micro automatiquement
+        speak(step.prompt, UI_LANG).then(() => {
+            showFeedback(
+                `${M.listening} <small class="opacity-60">(${M.step} ${index + 1}/3 — ${step.prompt})</small>`,
+                'info'
+            );
+            openMic(); // ← micro s'ouvre APRÈS le TTS
+        });
+    }
+
+    function tryAgain(index, reason) {
+        retryCount++;
+
+        if (retryCount >= MAX_RETRIES) {
+            setMicOpen(false);
+            showFeedback(
+                `❌ Échec après ${MAX_RETRIES} tentatives sur « ${steps[index].prompt} ». Saisissez manuellement.`,
+                'error'
+            );
+            speak(M.too_many, UI_LANG).then(() => {
+                setTimeout(() => startStep(index + 1), 400);
+            });
+            return;
+        }
+
+        setMicOpen(false);
+        showFeedback(
+            `⚠️ ${reason} (${retryCount}/${MAX_RETRIES}) — <strong>${steps[index].prompt}</strong>`,
+            'warning'
+        );
+
+        // Reparler l'invite puis rouvrir le micro
+        speak(`${M.try_again} ${steps[index].prompt}`, UI_LANG).then(() => {
+            showFeedback(
+                `${M.listening} <small class="opacity-60">(tentative ${retryCount + 1}/${MAX_RETRIES})</small>`,
+                'warning'
+            );
+            openMic(); // ← micro se rouvre automatiquement pour retry
+        });
+    }
+
+    // ─────────────────────────────────────────
+    // ✅ onresult — micro déjà fermé ici
+    // (continuous=false : fermeture auto par le navigateur
+    //  dès que le résultat final est disponible)
+    // ─────────────────────────────────────────
+    recognition.onresult = function (e) {
+        setMicOpen(false); // indicateur visuel OFF (le micro est déjà fermé)
+
+        const alternatives = Array.from(e.results[0]).map(a => a.transcript.trim());
+        console.log('[Voice] Résultat reçu, micro fermé. Alternatives:', alternatives);
+
+        const step  = steps[currentStep];
+        let   value = null;
+
+        // Tester toutes les alternatives — retenir la première valide
+        for (const raw of alternatives) {
+            if (!raw || raw.length < 2) continue;
+            if (step.label === 'phone') {
+                const p = parsePhone(raw);
+                if (isValidPhone(p)) { value = p; break; }
             } else {
-                marker = L.marker([lat, lng]).addTo(map);
+                const n = normalizeName(raw);
+                if (n.length >= 2) { value = n; break; }
             }
-            map.setView([lat, lng], 14);
-        };
-
-        const clearSuggestions = () => {
-            suggestions.innerHTML = '';
-        };
-
-        const renderSuggestions = (items) => {
-            clearSuggestions();
-            items.forEach((item) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'w-full text-left px-3 py-2 rounded bg-navy-50 dark:bg-navy-800 text-sm hover:bg-navy-100 dark:hover:bg-navy-700';
-                btn.textContent = item.display_name;
-                btn.addEventListener('click', () => {
-                    input.value = item.display_name;
-                    setMarker(item.lat, item.lon);
-                    clearSuggestions();
-                });
-                suggestions.appendChild(btn);
-            });
-        };
-
-        if (!locked) {
-            let debounceId = null;
-            input.addEventListener('input', () => {
-                const query = input.value.trim();
-                clearTimeout(debounceId);
-                if (query.length < 3) {
-                    clearSuggestions();
-                    return;
-                }
-                debounceId = setTimeout(() => {
-                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
-                        .then((res) => res.json())
-                        .then((data) => {
-                            renderSuggestions(data);
-                        })
-                        .catch(() => {
-                            clearSuggestions();
-                        });
-                }, 250);
-            });
-
-            map.on('click', (event) => {
-                const { lat, lng } = event.latlng;
-                setMarker(lat.toFixed(6), lng.toFixed(6));
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                    .then((res) => res.json())
-                    .then((data) => {
-                        if (data && data.display_name) {
-                            input.value = data.display_name;
-                        }
-                    })
-                    .catch(() => {});
-            });
         }
 
-        if (input.value.trim().length >= 3) {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input.value.trim())}&limit=1`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data && data[0]) {
-                        setMarker(data[0].lat, data[0].lon);
-                    }
-                })
-                .catch(() => {});
+        if (value === null) {
+            const reason = step.label === 'phone' ? M.incomplete : M.too_short;
+            console.warn('[Voice] Aucune alternative valide:', alternatives);
+            tryAgain(currentStep, reason);
+            return;
         }
-    })();
+
+        // Ne pas écraser une valeur tapée manuellement
+        if (step.field?.value?.trim().length > 0) {
+            startStep(currentStep + 1);
+            return;
+        }
+
+        // Remplir le champ
+        fillField(step.field, value);
+
+        // Confirmation vocale → puis étape suivante automatiquement
+        const label = step.label === 'phone'      ? M.confirm_tel
+                    : step.label === 'last_name'   ? M.confirm_nom
+                    : M.confirm_pre;
+
+        speak(`${label} : ${value}`, UI_LANG).then(() => {
+            startStep(currentStep + 1); // ← enchaîne sans délai arbitraire
+        });
+    };
+
+    // ─────────────────────────────────────────
+    // Gestion erreurs STT
+    // ─────────────────────────────────────────
+    recognition.onerror = function (e) {
+        console.warn('[Voice] Erreur STT:', e.error);
+        setMicOpen(false);
+
+        if (e.error === 'no-speech') {
+            tryAgain(currentStep, M.no_speech);
+
+        } else if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+            showFeedback('❌ ' + M.mic_denied, 'error');
+            isListening = false;
+
+        } else if (e.error === 'network') {
+            // Retry silencieux après 800 ms
+            setTimeout(() => { if (isListening) openMic(); }, 800);
+
+        } else if (e.error === 'aborted') {
+            // Annulation volontaire — ne rien faire
+
+        } else {
+            tryAgain(currentStep, `Erreur : ${e.error}`);
+        }
+    };
+
+    // ─────────────────────────────────────────
+    // Clic bouton — démarrer ou annuler
+    // ─────────────────────────────────────────
+    btn.addEventListener('click', function () {
+        if (isListening) {
+            // Annulation : fermer micro + TTS
+            recognition.abort();
+            speechSynthesis.cancel();
+            isListening = false;
+            setMicOpen(false);
+            hideFeedback();
+            speak(M.cancelled, UI_LANG);
+            return;
+        }
+
+        isListening  = true;
+        activeBtn    = btn;
+        currentStep  = 0;
+        startStep(0); // lance le flux : TTS → openMic() automatique
+    });
+
+})();
+
 </script>
+
+<!-- MediaPipe Hands + Tesseract for client-side OCR -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+
+<script>
+(function () {
+
+    /* ════════════════════════════════════════════════════════════
+       DOM REFS
+    ════════════════════════════════════════════════════════════ */
+    const modal          = document.getElementById('cameraModal');
+    const backdrop       = document.getElementById('cameraBackdrop');
+    const btnOpen        = document.getElementById('btnOpenCamera');
+    const btnClose       = document.getElementById('btnCloseCamera');
+    const btnClear       = document.getElementById('btnClearDraw');
+    const btnOCR         = document.getElementById('btnOCR');
+    const btnSaveModal   = document.getElementById('btnSaveModal');
+    const videoEl        = document.getElementById('camVideo');
+    const drawCanvas     = document.getElementById('camDraw');
+    const outCanvas      = document.getElementById('camOut');
+    const statusEl       = document.getElementById('camStatus');
+    const drawIndicator  = document.getElementById('drawIndicator');
+    const liveInfo       = document.getElementById('liveInfo');
+    const pinchBar       = document.getElementById('pinchBar');
+    const pinchVal       = document.getElementById('pinchVal');
+    const pinchSlider    = document.getElementById('pinchThreshold');
+    const pinchSliderVal = document.getElementById('pinchThresholdVal');
+    const fieldBtns      = document.querySelectorAll('.cam-field-btn');
+    const ocrOverlay     = document.getElementById('ocrOverlay');
+    const ocrResultZone  = document.getElementById('ocrResultZone');
+    const ocrTextInput   = document.getElementById('ocrTextInput');
+    const ocrFieldLabel  = document.getElementById('ocrFieldLabel');
+    const btnOcrConfirm  = document.getElementById('btnOcrConfirm');
+    const btnOcrCancel   = document.getElementById('btnOcrCancel');
+
+    if (!modal || !drawCanvas || !outCanvas || !videoEl) return;
+
+    const drawCtx = drawCanvas.getContext('2d');
+    const outCtx  = outCanvas.getContext('2d');
+
+    /* ════════════════════════════════════════════════════════════
+       ÉTAT
+    ════════════════════════════════════════════════════════════ */
+    const LABELS = { prenom: 'First Name', nom: 'Last Name', telephone: 'Phone' };
+    const FIELDS = ['prenom', 'nom', 'telephone'];
+
+    let activeField   = 'prenom';
+    let isDrawing     = false;
+    let lastPt        = null;
+    let canvasW = 0, canvasH = 0;
+    let cameraInst = null, handsInst = null, cameraRunning = false;
+    let PINCH_ON = 0.08, PINCH_OFF = 0.11;
+
+    /* Buffer temporaire — valeurs reconnues, pas encore dans le formulaire */
+    const pendingValues = { prenom: '', nom: '', telephone: '' };
+
+    /* ════════════════════════════════════════════════════════════
+       HELPERS UI
+    ════════════════════════════════════════════════════════════ */
+    const setStatus = msg => { if (statusEl) statusEl.textContent = msg; };
+    const setInfo   = msg => { if (liveInfo) liveInfo.textContent = msg; };
+
+    const flashInput = el => {
+        if (!el) return;
+        el.classList.add('ring-2', 'ring-green-400');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-green-400'), 1500);
+    };
+
+    let _infoTimer = null;
+    const showMessage = (msg, timeout = 3000) => {
+        setInfo(msg);
+        if (_infoTimer) clearTimeout(_infoTimer);
+        if (timeout > 0) _infoTimer = setTimeout(() => setInfo('Pincez pouce + index pour tracer'), timeout);
+    };
+
+    /* ════════════════════════════════════════════════════════════
+       BADGES VISUELS
+    ════════════════════════════════════════════════════════════ */
+    function updateBadges() {
+        const hasAny = FIELDS.some(f => pendingValues[f]);
+
+        FIELDS.forEach(field => {
+            const badgeEl  = document.getElementById('badge-' + field);
+            const clearBtn = document.getElementById('clear-' + field);
+            const cardEl   = document.querySelector('.pending-card[data-field="' + field + '"]');
+            const val      = pendingValues[field];
+
+            if (badgeEl) {
+                badgeEl.textContent = val || '—';
+                if (val) {
+                    badgeEl.classList.remove('italic', 'text-navy-300', 'dark:text-navy-600');
+                    badgeEl.classList.add('text-navy-900', 'dark:text-white');
+                } else {
+                    badgeEl.classList.add('italic', 'text-navy-300', 'dark:text-navy-600');
+                    badgeEl.classList.remove('text-navy-900', 'dark:text-white');
+                }
+            }
+            if (clearBtn) val ? clearBtn.classList.remove('hidden') : clearBtn.classList.add('hidden');
+            if (cardEl) {
+                if (val) {
+                    cardEl.classList.add('border-green-400', 'bg-green-50', 'dark:bg-green-900/20');
+                    cardEl.classList.remove('border-navy-100', 'dark:border-navy-700', 'bg-navy-50', 'dark:bg-navy-800');
+                } else {
+                    cardEl.classList.remove('border-green-400', 'bg-green-50', 'dark:bg-green-900/20');
+                    cardEl.classList.add('border-navy-100', 'dark:border-navy-700', 'bg-navy-50', 'dark:bg-navy-800');
+                }
+            }
+        });
+
+        /* Bouton Enregistrer — actif seulement si au moins une valeur */
+        if (btnSaveModal) {
+            if (hasAny) {
+                btnSaveModal.classList.remove('opacity-40', 'cursor-not-allowed');
+            } else {
+                btnSaveModal.classList.add('opacity-40', 'cursor-not-allowed');
+            }
+        }
+    }
+
+    /* Boutons ✕ par champ */
+    FIELDS.forEach(field => {
+        const cb = document.getElementById('clear-' + field);
+        if (cb) cb.addEventListener('click', () => {
+            pendingValues[field] = '';
+            updateBadges();
+            showMessage(`${LABELS[field]} effacé`, 2000);
+        });
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       OCR via Tesseract.js (client-side)
+    ════════════════════════════════════════════════════════════ */
+    async function runOCR() {
+        try {
+            const px = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height).data;
+            const hasContent = px.some((v, i) => i % 4 === 3 && v > 10);
+            if (!hasContent) {
+                showMessage('⚠️ Tracez d\'abord votre texte avec le geste pince', 3000);
+                setStatus('⚠️ Canvas vide — tracez d\'abord');
+                return;
+            }
+
+            if (ocrOverlay) { ocrOverlay.classList.remove('hidden'); ocrOverlay.classList.add('flex'); }
+            if (btnOCR) { btnOCR.disabled = true; btnOCR.textContent = '⏳ Analyse…'; }
+            setStatus('Reconnaissance en cours (local)…');
+            hideOcrResult();
+
+            const offscreen = document.createElement('canvas');
+            offscreen.width = drawCanvas.width; offscreen.height = drawCanvas.height;
+            const offCtx = offscreen.getContext('2d');
+            offCtx.fillStyle = '#ffffff'; offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+            offCtx.drawImage(drawCanvas, 0, 0);
+
+            if (typeof Tesseract === 'undefined' || !Tesseract.createWorker) {
+                throw new Error('Tesseract.js introuvable');
+            }
+
+            const worker = Tesseract.createWorker({ logger: m => console.debug('[Tesseract]', m) });
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+
+            const { data: { text } } = await worker.recognize(offscreen);
+            await worker.terminate();
+
+            const recognized = (text || '').replace(/\s+/g, ' ').trim();
+            if (!recognized) {
+                showMessage('⚠️ Aucun texte reconnu — corrigez manuellement', 3000);
+                setStatus('Aucun texte détecté');
+                showOcrResult('');
+            } else {
+                showOcrResult(recognized);
+                setStatus(`Reconnu : "${recognized}" — confirmez ou corrigez`);
+            }
+
+        } catch (err) {
+            console.error('[OCR]', err);
+            showMessage('❌ Erreur OCR locale — saisissez le texte manuellement', 4000);
+            setStatus('❌ OCR échoué — saisissez manuellement');
+            showOcrResult('');
+        } finally {
+            if (ocrOverlay) { ocrOverlay.classList.add('hidden'); ocrOverlay.classList.remove('flex'); }
+            if (btnOCR) { btnOCR.disabled = false; btnOCR.innerHTML = '🔍 Reconnaître le texte'; }
+        }
+    }
+
+    function showOcrResult(text) {
+        if (!ocrResultZone || !ocrTextInput || !ocrFieldLabel) return;
+        ocrFieldLabel.textContent = LABELS[activeField];
+        ocrTextInput.value = text;
+        ocrResultZone.classList.remove('hidden');
+        setTimeout(() => ocrTextInput.focus(), 50);
+    }
+
+    function hideOcrResult() {
+        if (ocrResultZone) ocrResultZone.classList.add('hidden');
+        if (ocrTextInput)  ocrTextInput.value = '';
+    }
+
+    function confirmOcrResult() {
+        const val = (ocrTextInput?.value || '').trim();
+        if (!val) {
+            showMessage('⚠️ Le texte est vide — saisissez quelque chose', 3000);
+            ocrTextInput?.focus();
+            return;
+        }
+        pendingValues[activeField] = val;
+        try {
+            const inputEl = document.getElementById(activeField);
+            if (inputEl) { inputEl.value = val; flashInput(inputEl); }
+        } catch (_) {}
+        updateBadges();
+        hideOcrResult();
+        clearDraw();
+        showMessage(`✅ "${val}" enregistré pour ${LABELS[activeField]}`, 3000);
+        setStatus(`"${val}" mémorisé — choisissez le prochain champ`);
+    }
+
+    btnOCR        && btnOCR.addEventListener('click', runOCR);
+    btnOcrConfirm && btnOcrConfirm.addEventListener('click', confirmOcrResult);
+    btnOcrCancel  && btnOcrCancel.addEventListener('click', () => {
+        hideOcrResult();
+        showMessage('Annulé', 1500);
+    });
+
+    ocrTextInput && ocrTextInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); confirmOcrResult(); }
+    });
+
+    function saveToForm() {
+        const hasAny = FIELDS.some(f => pendingValues[f]);
+        if (!hasAny) {
+            showMessage('⚠️ Tracez puis cliquez 🔍 Reconnaître, confirmez, puis Enregistrer', 4000);
+            return;
+        }
+
+        FIELDS.forEach(field => {
+            if (pendingValues[field]) {
+                const el = document.getElementById(field);
+                if (el) { el.value = pendingValues[field]; flashInput(el); }
+                pendingValues[field] = '';
+            }
+        });
+
+        updateBadges();
+        closeModal();
+
+        setTimeout(() => {
+            const form = document.querySelector('form');
+            if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+    }
+
+    btnSaveModal && btnSaveModal.addEventListener('click', e => {
+        e.preventDefault();
+        saveToForm();
+    });
+
+    function resizeCanvases() {
+        const wrap = document.getElementById('camWrap');
+        if (!wrap) return;
+        const r = wrap.getBoundingClientRect();
+        canvasW = Math.round(r.width); canvasH = Math.round(r.height);
+        if (!canvasW || !canvasH) return;
+        drawCanvas.width = canvasW; drawCanvas.height = canvasH;
+        outCanvas.width  = canvasW; outCanvas.height  = canvasH;
+    }
+
+    function clearDraw() {
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        isDrawing = false; lastPt = null;
+        if (drawIndicator) drawIndicator.classList.add('hidden');
+        setInfo('Pincez pouce + index pour tracer');
+        setStatus(`Champ : ${LABELS[activeField]} — Pincez pour tracer`);
+    }
+
+    function setActiveField(field) {
+        if (!field) return;
+        activeField = field;
+        fieldBtns.forEach(btn => {
+            const on = btn.dataset.field === field;
+            btn.className = on
+                ? 'cam-field-btn px-4 py-1.5 rounded-lg text-xs font-bold border transition-all border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'cam-field-btn px-4 py-1.5 rounded-lg text-xs font-bold border transition-all border-navy-200 text-navy-500 bg-transparent dark:border-navy-700 dark:text-navy-400';
+        });
+        clearDraw();
+        hideOcrResult();
+        const cur = pendingValues[field];
+        setStatus(cur
+            ? `Champ : ${LABELS[field]} — Déjà mémorisé : "${cur}"`
+            : `Champ : ${LABELS[field]} — Pincez pour tracer`
+        );
+    }
+    fieldBtns.forEach(btn => btn.addEventListener('click', () => setActiveField(btn.dataset.field)));
+
+    pinchSlider && pinchSlider.addEventListener('input', () => {
+        const v = parseInt(pinchSlider.value, 10);
+        PINCH_ON  = v / 100;
+        PINCH_OFF = (v + 3) / 100;
+        if (pinchSliderVal) pinchSliderVal.textContent = v;
+    });
+
+    function onHandResults(results) {
+        outCtx.clearRect(0, 0, outCanvas.width, outCanvas.height);
+
+        if (!results.multiHandLandmarks?.length) {
+            isDrawing = false; lastPt = null;
+            if (pinchBar) { pinchBar.style.height = '0%'; pinchBar.style.background = '#4ade80'; }
+            if (pinchVal) pinchVal.textContent = '—';
+            if (drawIndicator) drawIndicator.classList.add('hidden');
+            return;
+        }
+
+        const lm    = results.multiHandLandmarks[0];
+        const tip   = lm[8];
+        const thumb = lm[4];
+
+        if (typeof drawConnectors !== 'undefined' && typeof HAND_CONNECTIONS !== 'undefined') {
+            drawConnectors(outCtx, lm, HAND_CONNECTIONS, { color: 'rgba(99,179,237,0.4)', lineWidth: 2 });
+            drawLandmarks(outCtx,  lm, { color: 'rgba(99,179,237,0.85)', lineWidth: 1, radius: 3 });
+        }
+
+        const pinchDist = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
+
+        if (pinchBar && pinchVal) {
+            pinchBar.style.height     = Math.min(100, (1 - pinchDist / 0.20) * 100) + '%';
+            pinchBar.style.background = pinchDist < PINCH_ON ? '#f87171' : '#4ade80';
+            pinchVal.textContent      = (pinchDist * 100).toFixed(0);
+        }
+
+        const W = drawCanvas.width || canvasW;
+        const H = drawCanvas.height || canvasH;
+        const drawX = (1 - tip.x) * W;
+        const drawY = tip.y * H;
+        const curX  = tip.x * W;
+        const curY  = tip.y * H;
+        const color = pinchDist < PINCH_ON ? '#f87171' : '#63b3ed';
+
+        outCtx.beginPath(); outCtx.arc(curX, curY, 10, 0, Math.PI * 2);
+        outCtx.strokeStyle = color; outCtx.lineWidth = 2.5; outCtx.stroke();
+        outCtx.beginPath(); outCtx.arc(curX, curY, 4, 0, Math.PI * 2);
+        outCtx.fillStyle = color; outCtx.fill();
+
+        if (!isDrawing && pinchDist < PINCH_ON) {
+            isDrawing = true; lastPt = { x: drawX, y: drawY };
+            drawCtx.beginPath(); drawCtx.moveTo(drawX, drawY);
+            if (drawIndicator) drawIndicator.classList.remove('hidden');
+            setStatus('✍ Tracé actif — relâchez pour lever le crayon');
+
+        } else if (isDrawing && pinchDist > PINCH_OFF) {
+            isDrawing = false; lastPt = null;
+            if (drawIndicator) drawIndicator.classList.add('hidden');
+            setStatus(`Tracé terminé — cliquez 🔍 Reconnaître`);
+
+        } else if (isDrawing && lastPt) {
+            const moved = Math.hypot(drawX - lastPt.x, drawY - lastPt.y);
+            if (moved > 1.5) {
+                drawCtx.beginPath();
+                drawCtx.moveTo(lastPt.x, lastPt.y);
+                drawCtx.lineTo(drawX, drawY);
+                drawCtx.strokeStyle = '#ef4444';
+                drawCtx.lineWidth = 4;
+                drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+                drawCtx.stroke();
+                lastPt = { x: drawX, y: drawY };
+            }
+        }
+
+        if (isDrawing) {
+            outCtx.beginPath(); outCtx.arc(curX, curY, 18, 0, Math.PI * 2);
+            outCtx.strokeStyle = 'rgba(239,68,68,0.6)';
+            outCtx.lineWidth = 2.5; outCtx.stroke();
+        }
+    }
+
+    async function startCamera() {
+        setStatus('Chargement du modèle IA…');
+        try {
+            if (typeof Hands === 'undefined' || typeof Camera === 'undefined')
+                throw new Error('MediaPipe non disponible');
+
+            handsInst = new Hands({
+                locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}`
+            });
+            handsInst.setOptions({
+                maxNumHands: 1, modelComplexity: 1,
+                minDetectionConfidence: 0.65, minTrackingConfidence: 0.5
+            });
+            handsInst.onResults(onHandResults);
+
+            cameraInst = new Camera(videoEl, {
+                onFrame: async () => { if (handsInst) await handsInst.send({ image: videoEl }); },
+                width: 640, height: 480
+            });
+            await cameraInst.start();
+            cameraRunning = true;
+
+            const waitForSize = () => {
+                const wrap = document.getElementById('camWrap');
+                const rect = wrap ? wrap.getBoundingClientRect() : { width: 0 };
+                if (rect.width > 0) { resizeCanvases(); setStatus(`Prêt — Champ : ${LABELS[activeField]}`); }
+                else requestAnimationFrame(waitForSize);
+            };
+            waitForSize();
+        } catch (e) {
+            setStatus('❌ Caméra inaccessible — vérifiez les permissions');
+            console.error('[Camera]', e);
+        }
+    }
+
+    function stopCamera() {
+        try { cameraInst?.stop(); } catch (_) {}
+        cameraInst = null;
+        try { videoEl.srcObject?.getTracks().forEach(t => t.stop()); } catch (_) {}
+        videoEl.srcObject = null;
+        cameraRunning = false;
+    }
+
+    async function openModal() {
+        FIELDS.forEach(f => { pendingValues[f] = ''; });
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(async () => {
+            resizeCanvases();
+            setActiveField('prenom');
+            updateBadges();
+            hideOcrResult();
+            setInfo('Pincez pouce + index pour tracer');
+            await startCamera();
+        });
+    }
+
+    function closeModal() {
+        stopCamera();
+        clearDraw();
+        hideOcrResult();
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    btnOpen  && btnOpen.addEventListener('click',  openModal);
+    btnClose && btnClose.addEventListener('click', closeModal);
+    backdrop && backdrop.addEventListener('click', closeModal);
+    btnClear && btnClear.addEventListener('click', clearDraw);
+
+    window.addEventListener('resize',  () => { if (cameraRunning) resizeCanvases(); });
+    window.addEventListener('keydown', e  => { if (e.key === 'Escape') closeModal(); });
+
+    updateBadges();
+
+})();
+
+</script>
+
+    <script src="https://cdn.botpress.cloud/webchat/v3.6/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2026/02/24/22/20260224223650-PWVWHXAY.js" defer></script>
+    
+
 {% endblock %}
