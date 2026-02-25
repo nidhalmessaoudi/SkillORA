@@ -1,6 +1,10 @@
 {% extends 'layouts/base.html.twig' %}
 
 {% block title %}{{ course.title }} - SkillORA{% endblock %}
+{% block head %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
 
 {% block body %}
 <div class="bg-navy-950 text-white">
@@ -20,8 +24,8 @@
       {% endif %}
     {% endfor %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-      <div class="max-w-xl">
+    <div class="course-hero-grid">
+      <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2 mb-4">
           {% if course.category %}
             <span class="badge bg-navy-800 text-navy-200">{{ course.category }}</span>
@@ -67,6 +71,27 @@
           </span>
         </div>
 
+        {% if app.user and is_enrolled %}
+          <div class="rounded-2xl border border-white/15 bg-white/5 p-4 mb-6">
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <p class="text-body-sm font-semibold text-white">Your course progress</p>
+              <span class="text-body-sm font-semibold text-harbor-300">{{ course_progress }}%</span>
+            </div>
+            <div class="h-2.5 rounded-full bg-white/15 overflow-hidden mb-2">
+              <div class="h-full bg-gradient-to-r from-harbor-400 to-harbor-500 rounded-full" style="width: {{ course_progress }}%"></div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-caption text-navy-200">
+              <span>{{ completed_lessons }} / {{ total_lessons }} lessons completed</span>
+              {% if certificate %}
+                <a href="{{ path('certificate_download', {certificateCode: certificate.certificateCode}) }}" class="inline-flex items-center gap-1.5 underline hover:text-white">
+                  <i data-lucide="badge-check" class="w-4 h-4"></i>
+                  Download certificate
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
         <div class="flex flex-wrap gap-3">
           {% if app.user %}
             {% if is_enrolled %}
@@ -109,15 +134,34 @@
         </div>
       </div>
 
-      <div class="hidden lg:block"></div>
+      <div class="course-hero-media">
+        <div class="h-full rounded-3xl overflow-hidden border border-white/10 bg-navy-900/50">
+          {% if course.thumbnail %}
+            <img
+              src="{{ course.thumbnail }}"
+              alt="{{ course.title }} thumbnail"
+              class="w-full h-full object-cover"
+            >
+          {% else %}
+            <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-navy-800 to-navy-900">
+              <div class="text-center px-6">
+                <div class="mx-auto mb-3 w-14 h-14 rounded-2xl bg-harbor-500/20 flex items-center justify-center">
+                  <i data-lucide="image" class="w-7 h-7 text-harbor-300"></i>
+                </div>
+                <p class="text-body-sm text-navy-300">No course thumbnail</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="content" class="container-wide py-10">
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <aside class="lg:col-span-4 xl:col-span-3">
-      <div class="card p-4 sticky top-24">
+    <section class="lg:col-span-12">
+      <div class="card p-4">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-display font-semibold">
             Course content
@@ -180,60 +224,330 @@
           </div>
         {% endif %}
       </div>
-    </aside>
+    </section>
 
-    <main class="lg:col-span-8 xl:col-span-9 space-y-6">
-      <section class="card p-6">
-        <h2 class="font-display font-semibold text-xl mb-3">
-          About this course
-        </h2>
-
-        {% if course.description %}
-          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap break-words">
-            {{ course.description|nl2br }}
+    <section class="lg:col-span-12 card p-6 why-insights-shell" id="why-course-insights" data-endpoint="{{ path('course_insights', {courseId: course.id}) }}">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p class="text-caption uppercase tracking-[0.18em] text-harbor-600 dark:text-harbor-300">Helpful Signals</p>
+            <h2 class="font-display font-semibold text-xl mt-1">Why choose this course?</h2>
+            <p class="text-body-sm text-navy-600 dark:text-navy-400 mt-1">
+              Clear and simple indicators showing how practical and supported this topic is.
+            </p>
           </div>
-        {% else %}
-          <p class="text-body-md text-navy-600 dark:text-navy-400">
-            No description yet.
-          </p>
-        {% endif %}
+          <button type="button" id="load-course-insights-btn" class="why-insights-btn inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shrink-0 self-center sm:self-center">
+            <span class="why-orb" aria-hidden="true"></span>
+            <span class="btn-label">Show Insights</span>
+          </button>
+        </div>
+
+        <div id="insights-loading" class="mt-5 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for _ in 1..4 %}
+              <div class="rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4">
+                <div class="skeleton-line w-40 mb-3"></div>
+                <div class="skeleton-line w-24 mb-2"></div>
+                <div class="skeleton-line w-full"></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div id="insights-error" class="mt-5 hidden rounded-xl border border-danger-200 dark:border-danger-800 bg-danger-50/70 dark:bg-danger-900/20 p-4 text-body-sm text-danger-700 dark:text-danger-300"></div>
+
+        <div id="insights-result" class="mt-5 hidden">
+          <div class="mt-6 rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4 mb-4">
+            <p class="text-caption uppercase tracking-wide text-navy-500 mb-1">Main Topic Detected</p>
+            <p id="insights-keyword" class="font-semibold text-harbor-700 dark:text-harbor-300"></p>
+          </div>
+
+          <div id="insights-cards" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+          <div class="mt-8 rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-semibold">Topic Strength Snapshot</h3>
+              <span class="text-caption text-navy-500">easy 0–100 scale</span>
+            </div>
+            <div class="relative h-72">
+              <canvas id="course-insights-chart"></canvas>
+            </div>
+          </div>
+        </div>
       </section>
-
-      {% if app.user and is_enrolled %}
-      <section class="card p-6">
-        <div class="flex items-center justify-between gap-4 mb-4">
-          <h2 class="font-display font-semibold text-xl">
-            Your Progress
-          </h2>
-          <span class="text-body-sm font-semibold text-harbor-600 dark:text-harbor-400">
-            {{ course_progress }}%
-          </span>
-        </div>
-
-        <div class="h-3 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden mb-3">
-          <div class="h-full bg-gradient-to-r from-harbor-500 to-harbor-600 rounded-full" style="width: {{ course_progress }}%"></div>
-        </div>
-
-        <p class="text-body-sm text-navy-600 dark:text-navy-400">
-          {{ completed_lessons }} / {{ total_lessons }} lessons completed
-        </p>
-
-        <div class="flex flex-wrap gap-3 mt-5">
-          <a href="{{ path('my_courses') }}" class="btn-secondary btn-sm">
-            <i data-lucide="book-check" class="w-4 h-4"></i>
-            My Courses
-          </a>
-
-          {% if certificate %}
-            <a href="{{ path('certificate_download', {certificateCode: certificate.certificateCode}) }}" class="btn-primary btn-sm">
-              <i data-lucide="badge-check" class="w-4 h-4"></i>
-              Download Certificate
-            </a>
-          {% endif %}
-        </div>
-      </section>
-      {% endif %}
-    </main>
   </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  (function() {
+    const wrapper = document.getElementById('why-course-insights');
+    if (!wrapper) return;
+
+    const endpoint = wrapper.dataset.endpoint;
+    const loadButton = document.getElementById('load-course-insights-btn');
+    const buttonLabel = loadButton ? loadButton.querySelector('.btn-label') : null;
+    const loadingBox = document.getElementById('insights-loading');
+    const errorBox = document.getElementById('insights-error');
+    const resultBox = document.getElementById('insights-result');
+    const keywordEl = document.getElementById('insights-keyword');
+    const cardsEl = document.getElementById('insights-cards');
+    const chartCanvas = document.getElementById('course-insights-chart');
+    if (!endpoint || !loadButton || !loadingBox || !errorBox || !resultBox || !keywordEl || !cardsEl || !chartCanvas) return;
+
+    let chartInstance = null;
+
+    const setLoading = function(isLoading) {
+      loadButton.disabled = isLoading;
+      if (buttonLabel) {
+        buttonLabel.textContent = isLoading ? 'Loading...' : 'Show Insights';
+      }
+      loadingBox.classList.toggle('hidden', !isLoading);
+    };
+
+    const escapeHtml = function(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const renderCards = function(reasons) {
+      cardsEl.innerHTML = '';
+      reasons.forEach(function(reason) {
+        const card = document.createElement('article');
+        card.className = 'rounded-xl border border-navy-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-4';
+
+        const safeTitle = escapeHtml(reason.title || 'Insight');
+        const safeValue = escapeHtml(reason.value || 'Unavailable');
+        const safeDetail = escapeHtml(reason.detail || '');
+        const link = typeof reason.link === 'string' ? reason.link.trim() : '';
+        const safeLink = escapeHtml(link);
+        const linkHtml = link !== ''
+          ? '<a href="' + safeLink + '" target="_blank" rel="noopener" class="text-caption text-harbor-600 dark:text-harbor-300 hover:underline mt-3 inline-flex">Learn more</a>'
+          : '';
+
+        card.innerHTML = ''
+          + '<h3 class="text-body-sm uppercase tracking-wide text-navy-500 mb-2">' + safeTitle + '</h3>'
+          + '<p class="text-lg font-semibold text-navy-900 dark:text-white mb-2">' + safeValue + '</p>'
+          + '<p class="text-body-sm text-navy-600 dark:text-navy-400">' + safeDetail + '</p>'
+          + linkHtml;
+
+        cardsEl.appendChild(card);
+      });
+    };
+
+    const renderChart = function(chartData) {
+      if (typeof Chart === 'undefined') return;
+
+      const labels = Array.isArray(chartData.labels) ? chartData.labels : [];
+      const normalized = Array.isArray(chartData.normalized) ? chartData.normalized : [];
+      const rawValues = Array.isArray(chartData.values) ? chartData.values : [];
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      const rawValueLabelPlugin = {
+        id: 'rawValueLabelPlugin',
+        afterDatasetsDraw(chart) {
+          const {ctx} = chart;
+          const datasetMeta = chart.getDatasetMeta(0);
+          ctx.save();
+          ctx.fillStyle = '#334155';
+          ctx.font = '600 11px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+
+          datasetMeta.data.forEach(function(bar, index) {
+            const raw = Number(rawValues[index] || 0);
+            const label = raw.toLocaleString();
+            const minY = chart.chartArea.top + 10;
+            const labelY = Math.max(minY, bar.y - 8);
+            ctx.fillText(label, bar.x, labelY);
+          });
+          ctx.restore();
+        }
+      };
+
+      chartInstance = new Chart(chartCanvas.getContext('2d'), {
+        type: 'bar',
+        plugins: [rawValueLabelPlugin],
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Strength score',
+            data: normalized,
+            backgroundColor: ['#0ea5e9', '#0284c7', '#10b981', '#14b8a6'],
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 900,
+            easing: 'easeOutQuart'
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 110,
+              grid: { color: 'rgba(148, 163, 184, 0.2)' },
+              ticks: {
+                color: '#64748b',
+                callback: function(value) {
+                  return value <= 100 ? value : '';
+                }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b' }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const normalizedValue = context.parsed.y || 0;
+                  let level = 'Growing';
+                  if (normalizedValue >= 75) {
+                    level = 'Very strong';
+                  } else if (normalizedValue >= 50) {
+                    level = 'Strong';
+                  }
+                  const raw = Number(rawValues[context.dataIndex] || 0).toLocaleString();
+                  return 'Strength: ' + normalizedValue + '/100 (' + level + ') · Real value: ' + raw;
+                }
+              }
+            }
+          }
+        }
+      });
+    };
+
+    loadButton.addEventListener('click', async function() {
+      errorBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
+      errorBox.textContent = '';
+      setLoading(true);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        const raw = await response.text();
+        let data = null;
+        try {
+          data = JSON.parse(raw);
+        } catch (_e) {
+          throw new Error('Unexpected server response. Please refresh and try again.');
+        }
+
+        if (!response.ok || !data.ok || !data.insights) {
+          throw new Error(data && data.message ? data.message : 'Unable to load insights right now.');
+        }
+
+        keywordEl.textContent = data.insights.keyword || 'N/A';
+        renderCards(Array.isArray(data.insights.reasons) ? data.insights.reasons : []);
+        renderChart(data.insights.chart || { labels: [], values: [], normalized: [] });
+        resultBox.classList.remove('hidden');
+      } catch (error) {
+        errorBox.textContent = error instanceof Error ? error.message : 'Unable to load insights right now.';
+        errorBox.classList.remove('hidden');
+      } finally {
+        setLoading(false);
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+    });
+  })();
+</script>
+
+<style>
+  .why-insights-shell{
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(14, 165, 233, .10), transparent 60%),
+      linear-gradient(160deg, rgba(248, 252, 255, .96), rgba(255, 255, 255, .98));
+  }
+  .dark .why-insights-shell{
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(14, 165, 233, .14), transparent 60%),
+      linear-gradient(160deg, rgba(13, 25, 40, .95), rgba(11, 22, 36, .98));
+  }
+  .why-insights-btn{
+    background: linear-gradient(120deg, #0ea5e9, #0284c7 52%, #10b981);
+    box-shadow: 0 8px 22px rgba(2, 132, 199, .26);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .why-insights-btn:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(2, 132, 199, .34);
+    filter: saturate(1.08);
+  }
+  .why-insights-btn:disabled{
+    opacity: .72;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .why-orb{
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 0 0 rgba(255,255,255,.8);
+    animation: whyOrbPulse 1.8s infinite ease-out;
+  }
+  .skeleton-line{
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(148,163,184,.18), rgba(148,163,184,.34), rgba(148,163,184,.18));
+    background-size: 220% 100%;
+    animation: whySkeleton 1.1s ease-in-out infinite;
+  }
+  #insights-cards{
+    row-gap: 1.5rem;
+    column-gap: 1.5rem;
+  }
+  .course-hero-grid{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    align-items: stretch;
+  }
+  .course-hero-media{
+    display: none;
+  }
+  @media (min-width: 1024px){
+    .course-hero-grid{
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 3rem;
+    }
+    .course-hero-media{
+      display: block;
+      min-height: 100%;
+    }
+  }
+  @keyframes whyOrbPulse{
+    0%{ box-shadow: 0 0 0 0 rgba(255,255,255,.7); }
+    75%{ box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  }
+  @keyframes whySkeleton{
+    0%{ background-position: 100% 0; }
+    100%{ background-position: -100% 0; }
+  }
+</style>
 {% endblock %}
