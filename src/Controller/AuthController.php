@@ -191,35 +191,40 @@ class AuthController extends AbstractController
      */
     private function sendVerificationEmail(User $user): void
     {
+        // Generate verification token
+        $token = bin2hex(random_bytes(32));
+        $user->setVerificationToken($token);
+        
+        // Set expiration to 24 hours from now
+        $expiresAt = new \DateTime('+24 hours');
+        $user->setVerificationTokenExpiresAt($expiresAt);
+        
+        $this->entityManager->flush();
+        
+        // Generate verification URL
+        $verificationUrl = $this->generateUrl('auth_verify_email', [
+            'token' => $token
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        // Log for debugging
+        error_log('====== EMAIL VERIFICATION DEBUG ======');
+        error_log('Attempting to send verification email to: ' . $user->getEmail());
+        error_log('Verification URL: ' . $verificationUrl);
+        error_log('User ID: ' . $user->getId());
+        error_log('User Name: ' . $user->getFullName());
+        
+        // Get mailer configuration
+        $fromAddress = $_ENV['MAILER_FROM_ADDRESS'] ?? 'alarezgui98@gmail.com';
+        $fromName = $_ENV['MAILER_FROM_NAME'] ?? 'SkillHarbor';
+        
+        error_log('From address: ' . $fromAddress);
+        error_log('From name: ' . $fromName);
+        error_log('Mailer DSN set: ' . (isset($_ENV['MAILER_DSN']) ? 'YES' : 'NO'));
+        
         try {
-            // Generate verification token
-            $token = bin2hex(random_bytes(32));
-            $user->setVerificationToken($token);
-            
-            // Set expiration to 24 hours from now
-            $expiresAt = new \DateTime('+24 hours');
-            $user->setVerificationTokenExpiresAt($expiresAt);
-            
-            $this->entityManager->flush();
-            
-            // Generate verification URL
-            $verificationUrl = $this->generateUrl('auth_verify_email', [
-                'token' => $token
-            ], UrlGeneratorInterface::ABSOLUTE_URL);
-            
-            // Log for debugging
-            error_log('Attempting to send verification email to: ' . $user->getEmail());
-            error_log('Verification URL: ' . $verificationUrl);
-            
-            // Get mailer configuration
-            $fromAddress = $_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com';
-            $fromName = $_ENV['MAILER_FROM_NAME'] ?? 'SkillHarbor';
-            
-            error_log('From address: ' . $fromAddress);
-            
-            // Create and send email
+            // Create and send email using Symfony Mailer
             $email = (new TemplatedEmail())
-                ->from($fromAddress)
+                ->from(new \Symfony\Component\Mime\Address($fromAddress, $fromName))
                 ->to($user->getEmail())
                 ->subject('Verify Your Email - SkillHarbor')
                 ->htmlTemplate('emails/verify-email.html.twig')
@@ -229,12 +234,21 @@ class AuthController extends AbstractController
                     'expirationDate' => $expiresAt,
                 ]);
             
+            error_log('Email object created successfully');
+            error_log('About to send email via Symfony Mailer...');
+            
             $this->mailer->send($email);
             
-            error_log('Verification email sent successfully to: ' . $user->getEmail());
+            error_log('✓ Verification email sent successfully to: ' . $user->getEmail());
+            error_log('======================================');
             
         } catch (\Exception $e) {
-            error_log('Failed to send verification email: ' . $e->getMessage());
+            error_log('✗ FAILED to send verification email');
+            error_log('Error type: ' . get_class($e));
+            error_log('Error message: ' . $e->getMessage());
+            error_log('Error file: ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            error_log('======================================');
             throw $e;
         }
     }
@@ -611,19 +625,37 @@ class AuthController extends AbstractController
             'token' => $token
         ], UrlGeneratorInterface::ABSOLUTE_URL);
         
-        // Create and send email
-        $email = (new TemplatedEmail())
-            ->from($_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com')
-            ->to($user->getEmail())
-            ->subject('Reset Your Password - SkillHarbor')
-            ->htmlTemplate('emails/reset-password.html.twig')
-            ->context([
-                'user' => $user,
-                'resetUrl' => $resetUrl,
-                'expirationDate' => $expiresAt,
-            ]);
+        // Log for debugging
+        error_log('====== PASSWORD RESET EMAIL DEBUG ======');
+        error_log('Sending password reset email to: ' . $user->getEmail());
+        error_log('Reset URL: ' . $resetUrl);
         
-        $this->mailer->send($email);
+        // Get mailer configuration
+        $fromAddress = $_ENV['MAILER_FROM_ADDRESS'] ?? 'alarezgui98@gmail.com';
+        $fromName = $_ENV['MAILER_FROM_NAME'] ?? 'SkillHarbor';
+        
+        try {
+            // Create and send email
+            $email = (new TemplatedEmail())
+                ->from(new \Symfony\Component\Mime\Address($fromAddress, $fromName))
+                ->to($user->getEmail())
+                ->subject('Reset Your Password - SkillHarbor')
+                ->htmlTemplate('emails/reset-password.html.twig')
+                ->context([
+                    'user' => $user,
+                    'resetUrl' => $resetUrl,
+                    'expirationDate' => $expiresAt,
+                ]);
+            
+            $this->mailer->send($email);
+            error_log('✓ Password reset email sent successfully');
+            error_log('======================================');
+        } catch (\Exception $e) {
+            error_log('✗ FAILED to send password reset email');
+            error_log('Error: ' . $e->getMessage());
+            error_log('======================================');
+            throw $e;
+        }
     }
 
     #[Route('/reset-password/{token}', name: 'auth_reset_password', methods: ['GET'])]
