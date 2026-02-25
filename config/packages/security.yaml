@@ -24,6 +24,7 @@ security:
                 check_path: auth_login
                 success_handler: App\Security\LoginSuccessHandler
                 enable_csrf: true
+                csrf_parameter: _csrf_token
             logout:
                 path: auth_logout
                 target: app_home

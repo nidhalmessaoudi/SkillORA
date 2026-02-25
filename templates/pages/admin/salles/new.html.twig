@@ -9,6 +9,7 @@
 </div>
 
 <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_salle_new') }}">
     <div class="card p-6 space-y-4">
         <div>
             <label class="input-label" for="name">Name</label>

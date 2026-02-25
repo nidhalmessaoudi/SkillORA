@@ -11,6 +11,7 @@
         </div>
 
         <form method="post" class="card p-6 space-y-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('salle_new') }}">
             <div>
                 <label class="input-label" for="name">Name</label>
                 <input id="name" name="name" type="text" class="input" value="{{ form_data.name|default('') }}" required>

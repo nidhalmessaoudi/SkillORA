@@ -1,0 +1,11 @@
+# Development-specific framework configuration
+framework:
+    session:
+        # 🔥 FIX: Désactiver cookie_secure en développement
+        # Auto peut causer des problèmes avec les redirects en HTTP
+        cookie_secure: false
+        cookie_httponly: true
+        cookie_samesite: 'lax'
+        name: 'PHPSESSID'
+        # Augmenter la durée de vie de la session
+        gc_maxlifetime: 86400  # 24h

@@ -180,8 +180,17 @@ class EvaluationController extends AbstractController
             throw $this->createNotFoundException('Not a QUIZ evaluation');
         }
 
-        if (!$this->isCsrfTokenValid('ai_gen_quiz_' . $evaluation->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
+        $topic = (string) $request->request->get('topic', $evaluation->getTitle() ?: 'Symfony framework');
+        $count = (int) $request->request->get('count', 5);
+        $selectedType = (string) $request->request->get('selectedType', '');
+
+        $csrfToken = (string) ($request->request->get('_token') ?? $request->request->get('_csrf_token') ?? '');
+        if (!$this->isCsrfTokenValid('ai_gen_quiz_' . $evaluation->getId(), $csrfToken)) {
+            $this->addFlash('danger', 'Invalid CSRF token. Recharge la page puis reessaye.');
+            return $this->redirectToRoute('evaluation_index', [
+                'type' => $selectedType ?: null,
+                'evaluationId' => $evaluation->getId(),
+            ]);
         }
 
         // ✅ Anti spam / anti double-submit (30 secondes) via Session
@@ -192,18 +201,14 @@ class EvaluationController extends AbstractController
         if (time() < $lockedUntil) {
             $this->addFlash('warning', 'Génération déjà lancée. Réessaie dans quelques secondes.');
             return $this->redirectToRoute('evaluation_index', [
-                'type' => $request->request->get('selectedType') ?: null,
+                'type' => $selectedType ?: null,
                 'evaluationId' => $evaluation->getId(),
                 'topic' => $topic,
-    'count' => $count,
+                'count' => $count,
             ]);
         }
 
         $session->set($lockKey, time() + 30);
-
-        $topic = (string) $request->request->get('topic', 'Symfony framework');
-        $count = (int) $request->request->get('count', 5);
-        $selectedType = (string) $request->request->get('selectedType', '');
 
         try {
             $created = $generator->generateMcq($evaluation, $topic, $count);

@@ -262,10 +262,13 @@
                                 <i data-lucide="settings" class="w-4 h-4"></i>
                                 <span>Settings</span>
                             </a>
-                            <a href="{{ path('auth_logout') }}" class="dropdown-item text-danger-500">
+                            <form method="POST" action="{{ path('auth_logout') }}" style="display: none;" id="logout-form">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                            </form>
+                            <button onclick="document.getElementById('logout-form').submit();" class="dropdown-item text-danger-500 w-full text-left">
                                 <i data-lucide="log-out" class="w-4 h-4"></i>
                                 <span>Sign Out</span>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>

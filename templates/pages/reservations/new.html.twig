@@ -13,6 +13,7 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
         <form method="post" class="card p-6 space-y-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('reservation_new') }}">
             <input type="hidden" name="max_participants" value="{{ form_data.max_participants|default('') }}">
             <input type="hidden" name="seat_locked" value="{{ form_data.seat_locked ? '1' : '' }}">
             <input type="hidden" name="seats" value="{{ form_data.seats|default('') }}">

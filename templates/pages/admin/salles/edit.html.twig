@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
 <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_salle_edit') }}">
     <div class="card p-6 space-y-4">
         <div>
             <label class="input-label" for="name">Name</label>

@@ -47,6 +47,7 @@
                 </h2>
             </div>
             <form method="post" action="{{ path('user_profile_edit') }}" class="p-6 space-y-6">
+                <input type="hidden" name="_token" value="{{ csrf_token('user_profile_edit') }}">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="first_name" class="input-label">First Name</label>
@@ -124,6 +125,7 @@
             This action cannot be undone. All your data will be permanently deleted.
         </p>
         <form method="post" action="{{ path('user_profile_delete') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('user_profile_delete') }}">
             <label for="delete_password" class="input-label">Enter your password to confirm</label>
             <input type="password" id="delete_password" name="password" class="input mb-4" required>
             <div class="flex items-center gap-3">

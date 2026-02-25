@@ -9,6 +9,7 @@
 </div>
 
 <form method="post" class="space-y-6">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_reservation_edit') }}">
     <div class="card p-6 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

@@ -11,6 +11,7 @@
         {% set er = errors|default({}) %}
 
         <form method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('slot_new') }}">
             <div class="mb-4">
                 <label class="input-label" for="start_date">Date de début</label>
                 <input

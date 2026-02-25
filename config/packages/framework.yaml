@@ -5,8 +5,13 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session:
         handler_id: null
+        # 🔥 CSRF Token Fix: Always use 'lax' SameSite policy for better compatibility
         cookie_secure: auto
-        cookie_samesite: lax
+        cookie_httponly: true
+        cookie_samesite: 'lax'
+        name: 'PHPSESSID'
+        cookie_lifetime: 86400
+        gc_maxlifetime: 86400
         storage_factory_id: session.storage.factory.native
 
     #esi: true
