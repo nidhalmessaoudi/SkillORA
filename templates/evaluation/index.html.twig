@@ -114,29 +114,29 @@
             {% if selectedEvaluation.type == 'QUIZ' %}
               <div class="flex flex-wrap items-center gap-2">
 
-                <form method="post"
-                      action="{{ path('admin_eval_ai_generate_quiz', {id: selectedEvaluation.id}) }}"
-                      class="flex items-center gap-2"
-                      onsubmit="document.getElementById('ai-generate-btn').disabled=true; document.getElementById('ai-generate-btn').innerText='Génération...';">
-                  <input type="hidden" name="_token" value="{{ csrf_token('ai_gen_quiz_' ~ selectedEvaluation.id) }}">
-                  <input type="hidden" name="selectedType" value="{{ selectedType }}">
+               <form method="post"
+      action="{{ path('admin_eval_ai_generate_quiz', {id: selectedEvaluation.id}) }}"
+      class="flex items-center gap-2">
+      
+  <input name="topic"
+         value="{{ app.request.get('topic') ?? 'General knowledge' }}"
+         class="w-40 border border-gray-300 rounded-md px-2 py-1 text-xs"
+         placeholder="Topic">
 
-                <input name="topic"
-       value="{{ app.request.get('topic') ?? 'General knowledge' }}"
-       class="w-40 border rounded-lg px-2 py-1 text-xs"
-       placeholder="Topic (e.g. Python, Probability, Java)">
+  <input name="count"
+         type="number"
+         value="5"
+         min="1"
+         max="20"
+         class="w-16 border border-gray-300 rounded-md px-2 py-1 text-xs">
 
-                  <input name="count"
-                         type="number"
-                         value="5"
-                         min="1"
-                         max="20"
-                         class="w-16 border rounded-lg px-2 py-1 text-xs">
+<button id="ai-generate-btn"
+        type="submit"
+        style="background:#2563EB;color:white;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;">
+  Générer IA
+</button>
 
-                  <button id="ai-generate-btn" class="btn-primary btn-sm" type="submit">
-                    Générer IA
-                  </button>
-                </form>
+</form>
 
               <div class="d-flex justify-content-end align-items-center small gap-3">
     
