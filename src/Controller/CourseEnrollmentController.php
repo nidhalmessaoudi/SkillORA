@@ -56,8 +56,6 @@ class CourseEnrollmentController extends AbstractController
         $em->persist($enrollment);
         $em->flush();
 
-        $this->addFlash('success', 'Enrollment successful. You can now start learning.');
-
         return $this->redirectToRoute('course_show', ['courseId' => $course->getId()]);
     }
 }

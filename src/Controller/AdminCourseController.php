@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Form\CourseType;
+use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,15 +54,30 @@ class AdminCourseController extends AbstractController
     }
 
     #[Route("/{courseId}", name: "admin_courses_show", methods: ["GET"])]
-    public function show(int $courseId, EntityManagerInterface $em): Response
+    public function show(
+        int $courseId,
+        EntityManagerInterface $em,
+        EnrollmentRepository $enrollmentRepository,
+    ): Response
     {
         $course = $em->getRepository(Course::class)->find($courseId);
         if (!$course) {
             throw $this->createNotFoundException("Course not found");
         }
 
+        $enrollmentCount = $enrollmentRepository->countByCourse($course);
+        $completionCount = $enrollmentRepository->countCompletedByCourse($course);
+        $activeCount = max(0, $enrollmentCount - $completionCount);
+        $completionRate = $enrollmentCount > 0
+            ? (int) round(($completionCount / $enrollmentCount) * 100)
+            : 0;
+
         return $this->render("pages/admin/courses/show.html.twig", [
             "course" => $course,
+            "enrollment_count" => $enrollmentCount,
+            "completion_count" => $completionCount,
+            "active_count" => $activeCount,
+            "completion_rate" => $completionRate,
         ]);
     }
 

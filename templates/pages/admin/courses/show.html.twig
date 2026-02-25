@@ -138,6 +138,103 @@
         </table>
       </div>
     </div>
+
+    <div class="card mt-6 overflow-hidden">
+      <div class="p-6 border-b border-navy-100 dark:border-navy-800">
+        <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">
+          Learning Analytics
+        </h2>
+        <p class="text-body-sm text-navy-500 mt-1">Live stats for enrollments and completions in this course.</p>
+      </div>
+
+      <div class="p-6 bg-gradient-to-br from-harbor-50 to-white dark:from-navy-900 dark:to-navy-900/70">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="rounded-2xl border border-harbor-100 dark:border-harbor-900/40 bg-white/90 dark:bg-navy-900/70 p-4">
+            <p class="text-caption uppercase tracking-wide text-navy-500">Enrollments</p>
+            <p class="mt-2 text-3xl font-bold text-harbor-700 dark:text-harbor-300">{{ enrollment_count }}</p>
+          </div>
+          <div class="rounded-2xl border border-success-100 dark:border-success-900/40 bg-white/90 dark:bg-navy-900/70 p-4">
+            <p class="text-caption uppercase tracking-wide text-navy-500">Completed</p>
+            <p class="mt-2 text-3xl font-bold text-success-700 dark:text-success-300">{{ completion_count }}</p>
+          </div>
+          <div class="rounded-2xl border border-navy-200 dark:border-navy-700 bg-white/90 dark:bg-navy-900/70 p-4">
+            <p class="text-caption uppercase tracking-wide text-navy-500">In Progress</p>
+            <p class="mt-2 text-3xl font-bold text-navy-800 dark:text-navy-100">{{ active_count }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div class="flex items-center justify-center">
+            <div class="relative w-44 h-44">
+              {% set chart_circumference = 2 * 3.14159 * 66 %}
+              {% set chart_offset = chart_circumference * (1 - (completion_rate / 100)) %}
+              <svg viewBox="0 0 160 160" class="w-full h-full -rotate-90">
+                <circle cx="80" cy="80" r="66" fill="none" stroke="currentColor" stroke-width="14" class="text-navy-200 dark:text-navy-800"></circle>
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="66"
+                  fill="none"
+                  stroke="url(#completionGradient)"
+                  stroke-width="14"
+                  stroke-linecap="round"
+                  stroke-dasharray="{{ chart_circumference }}"
+                  stroke-dashoffset="{{ chart_circumference }}"
+                  class="completion-ring transition-all duration-1000 ease-out"
+                  data-target-offset="{{ chart_offset }}"
+                ></circle>
+                <defs>
+                  <linearGradient id="completionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#0ea5e9"></stop>
+                    <stop offset="100%" stop-color="#10b981"></stop>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="text-caption uppercase tracking-wide text-navy-500">Completion</span>
+                <span class="text-4xl font-bold text-navy-900 dark:text-white">{{ completion_rate }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            {% set enrollment_bar = enrollment_count > 0 ? 100 : 0 %}
+            {% set completion_bar = enrollment_count > 0 ? (completion_count / enrollment_count) * 100 : 0 %}
+            {% set active_bar = enrollment_count > 0 ? (active_count / enrollment_count) * 100 : 0 %}
+
+            <div>
+              <div class="flex items-center justify-between text-body-sm mb-2">
+                <span class="text-navy-600 dark:text-navy-300">Total Enrollments</span>
+                <span class="font-semibold text-navy-900 dark:text-white">{{ enrollment_count }}</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden">
+                <div class="analytics-bar h-full rounded-full bg-harbor-500" data-target-width="{{ enrollment_bar }}"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between text-body-sm mb-2">
+                <span class="text-navy-600 dark:text-navy-300">Completions</span>
+                <span class="font-semibold text-navy-900 dark:text-white">{{ completion_count }}</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden">
+                <div class="analytics-bar h-full rounded-full bg-success-500" data-target-width="{{ completion_bar|round(1) }}"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between text-body-sm mb-2">
+                <span class="text-navy-600 dark:text-navy-300">Still In Progress</span>
+                <span class="font-semibold text-navy-900 dark:text-white">{{ active_count }}</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-navy-100 dark:bg-navy-800 overflow-hidden">
+                <div class="analytics-bar h-full rounded-full bg-coral-400" data-target-width="{{ active_bar|round(1) }}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="lg:col-span-1">
@@ -156,6 +253,14 @@
           <span class="text-navy-500">Created</span>
           <span class="font-medium text-navy-900 dark:text-white">{{ course.createdAt ? course.createdAt|date('M d, Y') : '-' }}</span>
         </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Enrollments</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ enrollment_count }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-navy-500">Completions</span>
+          <span class="font-medium text-navy-900 dark:text-white">{{ completion_count }}</span>
+        </div>
       </div>
 
       <div class="mt-6">
@@ -167,4 +272,30 @@
     </div>
   </div>
 </div>
+
+<style>
+  .analytics-bar {
+    width: 0;
+    transition: width 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.analytics-bar').forEach(function (bar) {
+      const target = Number(bar.dataset.targetWidth || 0);
+      requestAnimationFrame(function () {
+        bar.style.width = Math.max(0, Math.min(100, target)) + '%';
+      });
+    });
+
+    const ring = document.querySelector('.completion-ring');
+    if (ring) {
+      const targetOffset = Number(ring.dataset.targetOffset || 0);
+      requestAnimationFrame(function () {
+        ring.style.strokeDashoffset = String(targetOffset);
+      });
+    }
+  });
+</script>
 {% endblock %}

@@ -40,4 +40,30 @@ class EnrollmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countByCourse(Course $course): int
+    {
+        $count = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.course = :course')
+            ->setParameter('course', $course)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
+
+    public function countCompletedByCourse(Course $course): int
+    {
+        $count = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.course = :course')
+            ->andWhere('e.status = :completedStatus OR e.progressPercent >= 100')
+            ->setParameter('course', $course)
+            ->setParameter('completedStatus', Enrollment::STATUS_COMPLETED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
 }

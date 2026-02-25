@@ -26,8 +26,6 @@ class LessonSummaryService
         private readonly HttpClientInterface $httpClient,
         #[Autowire('%env(string:GROQ_API_KEY)%')]
         private readonly string $groqApiKey,
-        #[Autowire('%env(string:GROQ_MODEL)%')]
-        private readonly string $groqModel,
     ) {
     }
 
@@ -96,8 +94,8 @@ class LessonSummaryService
     {
         $isPdf = $lesson->getType() === 'pdf';
 
-        // PDFs can be long/noisy. Start with lighter settings to avoid Groq free-tier saturation.
-        $primaryModel = $isPdf ? self::FALLBACK_MODEL : $this->groqModel;
+        // Use the most reliable lightweight model for all requests.
+        $primaryModel = self::FALLBACK_MODEL;
         $primaryInputChars = $isPdf ? self::PDF_PRIMARY_INPUT_CHARS : mb_strlen($sourceText);
         $primaryInput = mb_substr($sourceText, 0, $primaryInputChars);
         $primaryTimeout = $isPdf ? 22 : self::PRIMARY_TIMEOUT_SECONDS;
@@ -200,8 +198,12 @@ class LessonSummaryService
             || str_contains($message, 'network')
             || str_contains($message, 'rate limit')
             || str_contains($message, 'too many requests')
+            || str_contains($message, '429')
             || str_contains($message, '503')
-            || str_contains($message, 'busy');
+            || str_contains($message, 'busy')
+            || str_contains($message, 'overloaded')
+            || str_contains($message, 'temporarily unavailable')
+            || str_contains($message, 'try again');
     }
 
     private function sanitizeText(string $text): string
