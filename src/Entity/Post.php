@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use DateTimeInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'post')]
@@ -33,10 +34,10 @@ class Post
     private User $author;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTime $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'posts', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'post_tag')]
@@ -63,6 +64,18 @@ class Post
         $this->updatedAt = new \DateTime();
     }
 
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTime();
+    }
+
     // Getters / Setters
 
     public function getId(): ?int { return $this->id; }
@@ -82,8 +95,8 @@ class Post
     public function getAuthor(): User { return $this->author; }
     public function setAuthor(User $author): self { $this->author = $author; return $this; }
 
-    public function getCreatedAt(): \DateTime { return $this->createdAt; }
-    public function getUpdatedAt(): ?\DateTime { return $this->updatedAt; }
+    public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
+    public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
 
     /** @return Collection|Tag[] */
     public function getTags(): Collection { return $this->tags; }

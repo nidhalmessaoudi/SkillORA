@@ -6,7 +6,7 @@ namespace App\Service;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class AIGeneratorGroqService
+class AIGeneratorService
 {
     private const GROQ_BASE = 'https://api.groq.com/openai/v1/chat/completions';
     private const TIMEOUT = 60;

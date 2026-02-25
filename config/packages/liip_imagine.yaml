@@ -1,0 +1,52 @@
+# Documentation on how to configure the bundle can be found at: https://symfony.com/doc/current/bundles/LiipImagineBundle/basic-usage.html
+liip_imagine:
+    # valid drivers options include "gd" or "gmagick" or "imagick"
+    driver: "gd"
+    
+    # Storage for cached images
+    cache: default
+    
+    # Base web path for original uploaded images
+    resolvers:
+        default:
+            web_path:
+                web_root: '%kernel.project_dir%/public'
+                cache_prefix: 'media/cache'
+    
+    # Image filter sets for community posts
+    filter_sets:
+        # Thumbnail - small preview (200x150)
+        community_thumb:
+            quality: 75
+            filters:
+                thumbnail:
+                    size: [200, 150]
+                    mode: outbound
+                strip: ~
+        
+        # Medium - for post content (800x600)
+        community_medium:
+            quality: 85
+            filters:
+                thumbnail:
+                    size: [800, 600]
+                    mode: inset
+                strip: ~
+        
+        # Large - full size but optimized (1200x900)
+        community_large:
+            quality: 90
+            filters:
+                thumbnail:
+                    size: [1200, 900]
+                    mode: inset
+                strip: ~
+        
+        # Square thumbnail for avatars/previews (150x150)
+        community_square:
+            quality: 75
+            filters:
+                thumbnail:
+                    size: [150, 150]
+                    mode: outbound
+                strip: ~

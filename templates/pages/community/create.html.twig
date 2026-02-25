@@ -2,6 +2,13 @@
 
 {% block title %}Create Post - Community | SkillHarbor{% endblock %}
 
+{% block head %}
+    {{ parent() }}
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+{% endblock %}
+
 {% block body %}
 <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -397,6 +404,14 @@ Markdown supported:
     color: rgb(248 250 252);
 }
 
+.ai-box {
+    margin-top: 10px;
+    padding: 12px;
+    background: #f4f6f9;
+    border-left: 4px solid #4f46e5;
+    font-size: 14px;
+}
+
 /* Prose styles */
 .prose { font-size: 0.875rem; line-height: 1.6; }
 .prose p { margin: 0.5em 0; }
@@ -478,14 +493,24 @@ Markdown supported:
             });
 
             const data = await response.json();
+            
             if (data.ok && data.url) {
                 const textarea = document.getElementById('content');
                 const cursorPos = textarea.selectionStart;
                 textarea.value = textarea.value.substring(0, cursorPos) + `\n![Image](${data.url})\n` + textarea.value.substring(cursorPos);
                 if (contentCount) contentCount.textContent = textarea.value.length;
+                alert('Image uploaded successfully!');
+            } else if (data.redirect) {
+                // Not logged in, redirect to login
+                if (confirm(data.error + '\n\nRedirect to login page?')) {
+                    window.location.href = data.redirect;
+                }
+            } else {
+                alert('Upload failed: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
-            alert('Upload failed');
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
         }
         event.target.value = '';
     });
@@ -496,7 +521,25 @@ Markdown supported:
         const previewContent = document.getElementById('preview-content');
 
         if (panel.classList.contains('hidden')) {
-            if (typeof marked !== 'undefined') previewContent.innerHTML = marked.parse(content);
+            if (typeof marked !== 'undefined') {
+                previewContent.innerHTML = marked.parse(content);
+                
+                // Optimize images in preview - use LiipImagine medium filter
+                const images = previewContent.querySelectorAll('img');
+                images.forEach(img => {
+                    const src = img.getAttribute('src');
+                    if (src && src.includes('/uploads/community/')) {
+                        // Use LiipImagine resolve URL - remove leading slash
+                        const imagePath = src.startsWith('/') ? src.substring(1) : src;
+                        const optimizedSrc = `/media/cache/resolve/community_medium/${imagePath}`;
+                        img.setAttribute('src', optimizedSrc);
+                        
+                        // Add styling
+                        img.classList.add('max-w-full', 'h-auto', 'rounded-xl', 'shadow-lg', 'border-2', 'border-slate-200', 'dark:border-navy-700', 'my-4');
+                        img.setAttribute('loading', 'lazy');
+                    }
+                });
+            }
             panel.classList.remove('hidden');
             lucide.createIcons();
         } else {
@@ -594,5 +637,39 @@ Markdown supported:
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAIModal();
     });
+
+    const textarea = document.getElementById("post-content");
+const suggestionBox = document.getElementById("ai-suggestions");
+
+let timeout = null;
+
+textarea.addEventListener("input", function () {
+
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+
+        const text = textarea.value;
+
+        if (text.length < 20) return;
+
+        fetch("/ai/suggest", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ text })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                suggestionBox.innerHTML =
+                    "<strong>AI Suggestions:</strong><br>" +
+                    data.result;
+            }
+        });
+
+    }, 600); // debounce 600ms
+});
 </script>
 {% endblock %}

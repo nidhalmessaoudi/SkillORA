@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  mercure:
+    image: dunglas/mercure
+    container_name: mercure
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: 'super-secret-key'
+      MERCURE_SUBSCRIBER_JWT_KEY: 'super-secret-key'
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins *

@@ -153,7 +153,7 @@
 
                 {# Posts List #}
                 <div class="space-y-4">
-                    {% for post in posts %}
+                    {% for post in pagination %}
                         {% set postData = reactionData[post.id]|default({'userReaction': null, 'counts': {}, 'total': 0}) %}
                     <article class="card p-6 hover:shadow-lg transition-all duration-300">
                         <div class="flex gap-4">
@@ -175,10 +175,27 @@
                                     </h2>
                                 </a>
 
-                                {# Preview Text - Strip markdown #}
-                                <p class="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4">
-                                    {{ post.content|striptags|slice(0, 250) }}{% if post.content|length > 250 %}...{% endif %}
-                                </p>
+                                {# Extract first image from content if exists #}
+                                {% set firstImage = post.content|extract_first_image %}
+                                
+                                <div class="flex gap-4 mb-4">
+                                    <div class="flex-1">
+                                        {# Preview Text - Strip markdown #}
+                                        <p class="text-slate-600 dark:text-slate-400 text-sm line-clamp-3">
+                                            {{ post.content|striptags|slice(0, 200) }}{% if post.content|length > 200 %}...{% endif %}
+                                        </p>
+                                    </div>
+                                    
+                                    {# Thumbnail if image exists #}
+                                    {% if firstImage %}
+                                        <a href="{{ path('community_post', {id: post.id}) }}" class="flex-shrink-0">
+                                            <img src="{{ firstImage|imagine_filter('community_thumb') }}" 
+                                                 alt="Post thumbnail"
+                                                 class="w-32 h-24 rounded-xl object-cover border-2 border-slate-200 dark:border-navy-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+                                                 loading="lazy">
+                                        </a>
+                                    {% endif %}
+                                </div>
 
                                 {# Post Footer #}
                                 <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
@@ -193,48 +210,16 @@
                                         <span>{{ post.author.fullName }}</span>
                                     </div>
                                     <span class="text-slate-300 dark:text-slate-600">•</span>
-                                    <span>{{ post.createdAt ? post.createdAt|date('M j, Y') : '' }}</span>
+                                    <span>{{ post.createdAt ? post.createdAt|ago : '' }}</span>
                                     <span class="text-slate-300 dark:text-slate-600">•</span>
-                                    <a href="{{ path('community_post', {id: post.id}) }}" class="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                                        <i data-lucide="message-square" class="w-4 h-4"></i>
-                                        {{ post.replies|length }} {{ post.replies|length == 1 ? 'reply' : 'replies' }}
+                                    <a href="{{ path('community_post', {id: post.id}) }}">
+                                        <twig:ReplyCount postId="{{ post.id }}" />
                                     </a>
 
-                                    {# Reactions Summary #}
-                                    {% if app.user %}
-                                        <div class="ml-auto flex items-center gap-2">
-                                            <div class="reaction-trigger relative" data-post-id="{{ post.id }}">
-                                                {% if postData.userReaction %}
-                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
-                                                        <span class="reaction-emoji">{{ emojiMap[postData.userReaction] }}</span>
-                                                        <span class="reaction-count">{{ postData.total }}</span>
-                                                    </button>
-                                                {% else %}
-                                                    <button class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium">
-                                                        <span class="reaction-emoji">👍</span>
-                                                        {% if postData.total > 0 %}
-                                                            <span class="reaction-count">{{ postData.total }}</span>
-                                                        {% endif %}
-                                                    </button>
-                                                {% endif %}
-
-                                                {# Reaction Picker #}
-                                                <div class="reaction-picker hidden absolute bottom-full right-0 mb-2 bg-white dark:bg-navy-800 rounded-full shadow-xl border border-slate-200 dark:border-navy-700 p-2 flex items-center gap-1 z-10">
-                                                    {% for reactionType, emoji in emojiMap %}
-                                                        <button 
-                                                            class="reaction-btn hover:scale-125 transition-transform p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-700"
-                                                            data-url="{{ path('community_react_post', {'id': post.id}) }}"
-                                                            data-type="{{ reactionType }}"
-                                                            data-post-id="{{ post.id }}"
-                                                            title="{{ reactionType|capitalize }}"
-                                                        >
-                                                            <span class="text-2xl">{{ emoji }}</span>
-                                                        </button>
-                                                    {% endfor %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endif %}
+                                    {# Live Reaction Component #}
+                                    <div class="ml-auto">
+                                        <twig:PostReaction postId="{{ post.id }}" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -251,6 +236,81 @@
                     </div>
                     {% endfor %}
                 </div>
+
+                {# Pagination #}
+                {% if pagination.pageCount > 1 %}
+                    <div class="mt-8 flex justify-center">
+                        <nav class="flex items-center gap-2">
+                            {# Previous Button #}
+                            {% if pagination.currentPageNumber > 1 %}
+                                <a href="{{ path('community_index', {'page': pagination.currentPageNumber - 1, 'tab': current_tab, 'topic': current_topic, 'q': searchQuery}) }}" 
+                                   class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors font-medium">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </a>
+                            {% else %}
+                                <span class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-800 text-slate-400 dark:text-slate-600 cursor-not-allowed">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </span>
+                            {% endif %}
+
+                            {# Page Numbers #}
+                            {% set startPage = max(1, pagination.currentPageNumber - 2) %}
+                            {% set endPage = min(pagination.pageCount, pagination.currentPageNumber + 2) %}
+
+                            {% if startPage > 1 %}
+                                <a href="{{ path('community_index', {'page': 1, 'tab': current_tab, 'topic': current_topic, 'q': searchQuery}) }}" 
+                                   class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors font-medium">
+                                    1
+                                </a>
+                                {% if startPage > 2 %}
+                                    <span class="px-2 text-slate-400">...</span>
+                                {% endif %}
+                            {% endif %}
+
+                            {% for page in startPage..endPage %}
+                                {% if page == pagination.currentPageNumber %}
+                                    <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-md">
+                                        {{ page }}
+                                    </span>
+                                {% else %}
+                                    <a href="{{ path('community_index', {'page': page, 'tab': current_tab, 'topic': current_topic, 'q': searchQuery}) }}" 
+                                       class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors font-medium">
+                                        {{ page }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if endPage < pagination.pageCount %}
+                                {% if endPage < pagination.pageCount - 1 %}
+                                    <span class="px-2 text-slate-400">...</span>
+                                {% endif %}
+                                <a href="{{ path('community_index', {'page': pagination.pageCount, 'tab': current_tab, 'topic': current_topic, 'q': searchQuery}) }}" 
+                                   class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors font-medium">
+                                    {{ pagination.pageCount }}
+                                </a>
+                            {% endif %}
+
+                            {# Next Button #}
+                            {% if pagination.currentPageNumber < pagination.pageCount %}
+                                <a href="{{ path('community_index', {'page': pagination.currentPageNumber + 1, 'tab': current_tab, 'topic': current_topic, 'q': searchQuery}) }}" 
+                                   class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors font-medium">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </a>
+                            {% else %}
+                                <span class="px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-navy-800 text-slate-400 dark:text-slate-600 cursor-not-allowed">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </span>
+                            {% endif %}
+                        </nav>
+                    </div>
+
+                    {# Page Info #}
+                    <div class="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
+                        Showing {{ ((pagination.currentPageNumber - 1) * pagination.itemNumberPerPage) + 1 }} 
+                        to {{ min(pagination.currentPageNumber * pagination.itemNumberPerPage, pagination.totalItemCount) }} 
+                        of {{ pagination.totalItemCount }} posts
+                    </div>
+                {% endif %}
             </div>
 
             {# Sidebar #}
@@ -293,7 +353,7 @@
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Community Stats</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
-                            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ posts|length }}</p>
+                            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ resultCount }}</p>
                             <p class="text-xs text-slate-500 dark:text-slate-400">Posts</p>
                         </div>
                         <div class="text-center p-3 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">

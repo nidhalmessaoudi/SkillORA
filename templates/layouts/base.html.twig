@@ -18,6 +18,21 @@
     {# Icons - Lucide #}
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+    {# Stimulus & Live Components #}
+    <script type="module">
+        import { Application, Controller } from 'https://cdn.skypack.dev/@hotwired/stimulus';
+        import { registerReactControllerComponents } from 'https://cdn.skypack.dev/@symfony/ux-live-component';
+        
+        window.Stimulus = Application.start();
+        
+        // Register Live Components controller
+        const liveComponentConfig = { fetchDebounce: 50 };
+        import('https://cdn.skypack.dev/@symfony/ux-live-component').then(module => {
+            Stimulus.register('live', module.default);
+        });
+    </script>
+
+
     {# Theme initialization (prevent flash) #}
     <script>
         (function() {

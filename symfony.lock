@@ -35,6 +35,12 @@
             "./migrations/.gitignore"
         ]
     },
+    "knplabs/knp-paginator-bundle": {
+        "version": "v6.10.0"
+    },
+    "knplabs/knp-time-bundle": {
+        "version": "2.5.0"
+    },
     "knpuniversity/oauth2-client-bundle": {
         "version": "2.20",
         "recipe": {
@@ -43,6 +49,19 @@
             "version": "1.20",
             "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
         }
+    },
+    "liip/imagine-bundle": {
+        "version": "2.17",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.8",
+            "ref": "d1227d002b70d1a1f941d91845fcd7ac7fbfc929"
+        },
+        "files": [
+            "./config/packages/liip_imagine.yaml",
+            "./config/routes/liip_imagine.yaml"
+        ]
     },
     "symfony/asset-mapper": {
         "version": "6.4",
@@ -124,6 +143,18 @@
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
     },
+    "symfony/mercure-bundle": {
+        "version": "0.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.3",
+            "ref": "528285147494380298f8f991ee8c47abebaf79db"
+        },
+        "files": [
+            "./config/packages/mercure.yaml"
+        ]
+    },
     "symfony/routing": {
         "version": "6.4",
         "recipe": {
@@ -164,6 +195,19 @@
             "./assets/controllers/hello_controller.js"
         ]
     },
+    "symfony/translation": {
+        "version": "6.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.3",
+            "ref": "620a1b84865ceb2ba304c8f8bf2a185fbf32a843"
+        },
+        "files": [
+            "./config/packages/translation.yaml",
+            "./translations/.gitignore"
+        ]
+    },
     "symfony/twig-bundle": {
         "version": "6.4",
         "recipe": {
@@ -175,6 +219,30 @@
         "files": [
             "./config/packages/twig.yaml",
             "./templates/base.html.twig"
+        ]
+    },
+    "symfony/ux-live-component": {
+        "version": "2.32",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.6",
+            "ref": "b7130b7b5ddc2f8994bd6149d7c093b184782f0c"
+        },
+        "files": [
+            "./config/routes/ux_live_component.yaml"
+        ]
+    },
+    "symfony/ux-twig-component": {
+        "version": "2.32",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.13",
+            "ref": "f367ae2a1faf01c503de2171f1ec22567febeead"
+        },
+        "files": [
+            "./config/packages/twig_component.yaml"
         ]
     },
     "symfony/validator": {

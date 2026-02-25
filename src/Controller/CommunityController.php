@@ -17,13 +17,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Service\ModerationService;
-use App\Service\AIGeneratorGroqService;
+use App\Service\AIGeneratorService;
+use Knp\Component\Pager\PaginatorInterface;
 
 class CommunityController extends AbstractController
 {
     private EntityManagerInterface $em;
     private ModerationService $moderationService;
-    private AIGeneratorGroqService $aiGenerator;
+    private AIGeneratorService $aiGenerator;
+    private PaginatorInterface $paginator;
 
     // Validation constants
     private const TITLE_MIN_LENGTH = 5;
@@ -39,16 +41,21 @@ class CommunityController extends AbstractController
 
     private const ALLOWED_POST_TYPES = ['question', 'discussion', 'article'];
 
-    public function __construct(EntityManagerInterface $em, ModerationService $moderationService, AIGeneratorGroqService $aiGenerator)
-    {
+    public function __construct(
+        EntityManagerInterface $em,
+        ModerationService $moderationService,
+        AIGeneratorService $aiGenerator,
+        PaginatorInterface $paginator
+    ) {
         $this->em = $em;
         $this->moderationService = $moderationService;
         $this->aiGenerator = $aiGenerator;
+        $this->paginator = $paginator;
     }
 
     #[Route('/community/ai-generate-reply', name: 'community_ai_generate_reply', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function aiGenerateReply(Request $request, AIGeneratorGroqService $aiGenerator): JsonResponse
+    public function aiGenerateReply(Request $request, AIGeneratorService $aiGenerator): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $postId = (int) ($data['postId'] ?? 0);
@@ -197,11 +204,16 @@ class CommunityController extends AbstractController
                 break;
         }
 
-        $posts = $qb->getQuery()->getResult();
+        // Paginate the results (15 items per page)
+        $pagination = $this->paginator->paginate(
+            $qb,
+            $request->query->getInt('page', 1),
+            5
+        );
 
         // Get current user for reactions
         $currentUser = $this->getUser();
-        $reactionData = ($currentUser instanceof User) ? $this->getPostsReactionData($posts, $currentUser) : [];
+        $reactionData = ($currentUser instanceof User) ? $this->getPostsReactionData($pagination->getItems(), $currentUser) : [];
 
         // Get topics for dropdown
         $topicsQ = $this->em->getRepository(Post::class)
@@ -215,13 +227,13 @@ class CommunityController extends AbstractController
         $topics = array_values(array_filter(array_map(fn($r) => $r['topic'] ?? null, $topicsQ)));
 
         return $this->render('pages/community/index.html.twig', [
-            'posts' => $posts,
+            'pagination' => $pagination,
             'current_tab' => $tab,
             'current_topic' => $topic,
             'topics' => $topics,
             'reactionData' => $reactionData,
             'searchQuery' => $searchQuery,
-            'resultCount' => count($posts),
+            'resultCount' => $pagination->getTotalItemCount(),
         ]);
     }
 
@@ -386,32 +398,36 @@ class CommunityController extends AbstractController
     }
 
     #[Route('/community/upload-image', name: 'community_upload_image', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
     public function uploadImage(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            return $this->json(['ok' => false, 'error' => 'Unauthorized'], 401);
-        }
-
-        $file = $request->files->get('image');
-
-        if (!$file) {
-            return $this->json(['ok' => false, 'error' => 'No file uploaded'], 400);
-        }
-
-        // Validate file type
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!in_array($file->getMimeType(), $allowedMimes)) {
-            return $this->json(['ok' => false, 'error' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'], 400);
-        }
-
-        // Validate file size (max 5MB)
-        if ($file->getSize() > 5 * 1024 * 1024) {
-            return $this->json(['ok' => false, 'error' => 'File size exceeds 5MB limit'], 400);
-        }
-
         try {
+            // Check authentication first and return JSON for AJAX requests
+            $user = $this->getUser();
+            if (!$user instanceof User) {
+                return $this->json([
+                    'ok' => false, 
+                    'error' => 'You must be logged in to upload images',
+                    'redirect' => '/auth/login'
+                ], 401);
+            }
+
+            $file = $request->files->get('image');
+
+            if (!$file) {
+                return $this->json(['ok' => false, 'error' => 'No file uploaded'], 400);
+            }
+
+            // Validate file type
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($file->getMimeType(), $allowedMimes)) {
+                return $this->json(['ok' => false, 'error' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'], 400);
+            }
+
+            // Validate file size (max 5MB)
+            if ($file->getSize() > 5 * 1024 * 1024) {
+                return $this->json(['ok' => false, 'error' => 'File size exceeds 5MB limit'], 400);
+            }
+
             // Generate unique filename
             $extension = $file->guessExtension();
             $filename = uniqid('post_img_', true) . '.' . $extension;
@@ -426,16 +442,22 @@ class CommunityController extends AbstractController
 
             $file->move($uploadDir, $filename);
 
-            // Return URL path (not full URL, just the path from /uploads/)
+            // Return URL path (original image - LiipImagine will handle optimization on-demand)
             $url = '/uploads/community/' . $filename;
 
             return $this->json([
                 'ok' => true,
                 'url' => $url,
-                'filename' => $filename
+                'filename' => $filename,
+                'filters' => [
+                    'thumb' => '/media/cache/community_thumb/uploads/community/' . $filename,
+                    'medium' => '/media/cache/community_medium/uploads/community/' . $filename,
+                    'large' => '/media/cache/community_large/uploads/community/' . $filename,
+                    'square' => '/media/cache/community_square/uploads/community/' . $filename,
+                ]
             ]);
         } catch (\Exception $e) {
-            return $this->json(['ok' => false, 'error' => 'Failed to upload image: ' . $e->getMessage()], 500);
+            return $this->json(['ok' => false, 'error' => 'Upload failed: ' . $e->getMessage()], 500);
         }
     }
 

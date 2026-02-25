@@ -1,0 +1,102 @@
+<div {{ attributes }}>
+    {% if app.user %}
+        <div class="reaction-trigger relative">
+            {% if userReaction %}
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="{{ userReaction }}"
+                    class="reaction-current-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium"
+                >
+                    <span class="reaction-emoji">
+                        {% if userReaction == 'like' %}👍
+                        {% elseif userReaction == 'love' %}❤️
+                        {% elseif userReaction == 'haha' %}😂
+                        {% elseif userReaction == 'wow' %}😮
+                        {% elseif userReaction == 'sad' %}😢
+                        {% elseif userReaction == 'angry' %}😡
+                        {% endif %}
+                    </span>
+                    <span class="reaction-count">{{ total }}</span>
+                </button>
+            {% else %}
+                <button 
+                    class="reaction-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors text-sm font-medium"
+                    onclick="this.nextElementSibling.classList.toggle('hidden')"
+                >
+                    <i data-lucide="smile-plus" class="w-4 h-4"></i>
+                    {% if total > 0 %}<span>{{ total }}</span>{% endif %}
+                </button>
+            {% endif %}
+            
+            {# Reaction picker #}
+            <div class="hidden reaction-picker absolute bottom-full left-0 mb-2 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-navy-700 p-2 flex gap-1 z-50">
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="like"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Like"
+                >👍</button>
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="love"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Love"
+                >❤️</button>
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="haha"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Haha"
+                >😂</button>
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="wow"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Wow"
+                >😮</button>
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="sad"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Sad"
+                >😢</button>
+                <button 
+                    data-action="live#action" 
+                    data-live-action-param="react" 
+                    data-live-type-param="angry"
+                    class="reaction-option p-2 hover:bg-slate-100 dark:hover:bg-navy-700 rounded-xl transition-all hover:scale-125" 
+                    title="Angry"
+                >😡</button>
+            </div>
+        </div>
+    {% else %}
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 text-sm">
+            <i data-lucide="smile-plus" class="w-4 h-4"></i>
+            {% if total > 0 %}<span>{{ total }}</span>{% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Close reaction picker when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.reaction-trigger')) {
+            document.querySelectorAll('.reaction-picker').forEach(picker => {
+                picker.classList.add('hidden');
+            });
+        }
+    });
+    
+    // Hide picker after selecting a reaction
+    document.querySelectorAll('.reaction-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.reaction-picker').classList.add('hidden');
+        });
+    });
+</script>

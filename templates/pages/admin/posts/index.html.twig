@@ -118,7 +118,7 @@
                                     {% if post.topic %}
                                         <span class="text-xs text-navy-500 dark:text-navy-400">{{ post.topic }}</span>
                                     {% endif %}
-                                    <span class="text-xs text-navy-400 dark:text-navy-500">{{ post.createdAt|date('M j, Y') }}</span>
+                                    <span class="text-xs text-navy-400 dark:text-navy-500">{{ post.createdAt|ago }}</span>
                                 </div>
                             </div>
                         </td>
