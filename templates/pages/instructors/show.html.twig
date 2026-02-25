@@ -1,0 +1,295 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}{{ instructor.name }} - Instructor | SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950">
+    {# Profile Header #}
+    <div class="bg-gradient-to-br from-navy-900 via-navy-800 to-harbor-900 relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-harbor-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-1/4 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+            <div class="flex flex-col lg:flex-row gap-8">
+                {# Avatar & Basic Info #}
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <div class="relative">
+                        <img src="{{ instructor.avatar }}" alt="{{ instructor.name }}" class="w-36 h-36 rounded-3xl object-cover ring-4 ring-white/20">
+                        <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center ring-4 ring-navy-900">
+                            <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="text-center sm:text-left">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+                            <span class="badge bg-harbor-500/20 text-harbor-300 border border-harbor-500/30">{{ instructor.expertise|first }}</span>
+                            <span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Verified Instructor</span>
+                        </div>
+                        <h1 class="text-3xl lg:text-4xl font-display font-bold text-white mb-2">{{ instructor.name }}</h1>
+                        <p class="text-slate-400 text-lg mb-4">{{ instructor.title|default('Senior Software Engineer & Educator') }}</p>
+
+                        {# Social Links #}
+                        <div class="flex items-center justify-center sm:justify-start gap-3">
+                            <a href="#" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                                <i data-lucide="twitter" class="w-5 h-5 text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                                <i data-lucide="linkedin" class="w-5 h-5 text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                                <i data-lucide="github" class="w-5 h-5 text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                                <i data-lucide="globe" class="w-5 h-5 text-white"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# Stats #}
+                <div class="flex-1 flex flex-wrap justify-center lg:justify-end items-start gap-6 mt-6 lg:mt-0">
+                    <div class="text-center px-6 py-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 min-w-[120px]">
+                        <p class="text-3xl font-bold text-white">{{ instructor.students_count|number_format }}</p>
+                        <p class="text-slate-400 text-sm">Students</p>
+                    </div>
+                    <div class="text-center px-6 py-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 min-w-[120px]">
+                        <p class="text-3xl font-bold text-white">{{ instructor.courses_count }}</p>
+                        <p class="text-slate-400 text-sm">Courses</p>
+                    </div>
+                    <div class="text-center px-6 py-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 min-w-[120px]">
+                        <div class="flex items-center justify-center gap-1">
+                            <i data-lucide="star" class="w-6 h-6 text-amber-500 fill-amber-500"></i>
+                            <p class="text-3xl font-bold text-white">{{ instructor.rating }}</p>
+                        </div>
+                        <p class="text-slate-400 text-sm">{{ instructor.reviews_count|number_format }} reviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid lg:grid-cols-3 gap-8">
+            {# Main Content #}
+            <div class="lg:col-span-2 space-y-8">
+                {# About #}
+                <div class="card p-6">
+                    <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white mb-4">About</h2>
+                    <div class="prose dark:prose-invert max-w-none">
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {{ instructor.bio }}
+                        </p>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed mt-4">
+                            With over 10 years of industry experience at companies like Google, Meta, and several successful startups, I bring real-world expertise to every course I create. My teaching philosophy centers on practical, hands-on learning that prepares you for actual job scenarios.
+                        </p>
+                    </div>
+
+                    {# Skills/Tags #}
+                    <div class="mt-6 pt-6 border-t border-slate-200 dark:border-navy-800">
+                        <h3 class="font-medium text-slate-900 dark:text-white mb-3">Areas of Expertise</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in instructor.expertise %}
+                            <span class="badge bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Courses #}
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">Courses ({{ instructorCourses|length }})</h2>
+                        <select class="input py-2 w-auto text-sm">
+                            <option>Sort by: Most Popular</option>
+                            <option>Sort by: Highest Rated</option>
+                            <option>Sort by: Newest</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for course in instructorCourses %}
+                        <div class="card p-4 hover:shadow-lg transition-all duration-300 group">
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <img src="{{ course.thumbnail }}" alt="{{ course.title }}" class="w-full sm:w-48 h-32 rounded-xl object-cover group-hover:scale-105 transition-transform">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between gap-4 mb-2">
+                                        <div>
+                                            <span class="badge-primary text-xs mb-2">{{ course.level }}</span>
+                                            <h3 class="font-display font-bold text-slate-900 dark:text-white group-hover:text-harbor-600 dark:group-hover:text-harbor-400 transition-colors">
+                                                {{ course.title }}
+                                            </h3>
+                                        </div>
+                                        <div class="text-right flex-shrink-0">
+                                            {% if course.original_price %}
+                                            <p class="text-sm text-slate-400 line-through">${{ course.original_price }}</p>
+                                            {% endif %}
+                                            <p class="text-xl font-bold text-slate-900 dark:text-white">${{ course.price }}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">{{ course.description }}</p>
+                                    <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                                        <div class="flex items-center gap-1">
+                                            <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                                            <span class="font-medium text-slate-900 dark:text-white">{{ course.rating }}</span>
+                                            <span>({{ course.reviews_count|number_format }})</span>
+                                        </div>
+                                        <span>{{ course.students_count|number_format }} students</span>
+                                        <span>{{ course.lessons_count }} lessons</span>
+                                        <span>{{ course.duration_hours }}h</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Reviews #}
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-display font-bold text-slate-900 dark:text-white">Student Reviews</h2>
+                        <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium">See All</a>
+                    </div>
+
+                    {# Rating Overview #}
+                    <div class="flex items-center gap-8 p-6 rounded-2xl bg-slate-50 dark:bg-navy-800/50 mb-6">
+                        <div class="text-center">
+                            <p class="text-5xl font-display font-bold text-slate-900 dark:text-white">{{ instructor.rating }}</p>
+                            <div class="flex items-center justify-center gap-1 my-2">
+                                {% for i in 1..5 %}
+                                <i data-lucide="star" class="w-5 h-5 text-amber-500 {{ i <= instructor.rating|round ? 'fill-amber-500' : '' }}"></i>
+                                {% endfor %}
+                            </div>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ instructor.reviews_count|number_format }} reviews</p>
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            {% set ratings = [85, 10, 3, 1, 1] %}
+                            {% for i in 5..1 %}
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-slate-500 dark:text-slate-400 w-3">{{ i }}</span>
+                                <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                                <div class="flex-1 bg-slate-200 dark:bg-navy-700 rounded-full h-2">
+                                    <div class="h-full bg-amber-500 rounded-full" style="width: {{ ratings[5-i] }}%"></div>
+                                </div>
+                                <span class="text-sm text-slate-500 dark:text-slate-400 w-10">{{ ratings[5-i] }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {# Review List #}
+                    <div class="space-y-6">
+                        {% for review in reviews|slice(0, 3) %}
+                        <div class="pb-6 border-b border-slate-200 dark:border-navy-800 last:border-0 last:pb-0">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white font-bold text-lg">
+                                    {{ review.user_name|slice(0, 1) }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <h4 class="font-medium text-slate-900 dark:text-white">{{ review.user_name }}</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400">{{ review.created_at }}</p>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            {% for i in 1..5 %}
+                                            <i data-lucide="star" class="w-4 h-4 text-amber-500 {{ i <= review.rating ? 'fill-amber-500' : '' }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="text-slate-600 dark:text-slate-400">{{ review.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# Sidebar #}
+            <div class="space-y-6">
+                {# Contact Card #}
+                <div class="card p-6 sticky top-24">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Get in Touch</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                        Have questions about my courses? Want to collaborate? I'd love to hear from you!
+                    </p>
+                    <button class="btn-primary w-full justify-center mb-3">
+                        <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                        Send Message
+                    </button>
+                    <button class="btn-outline w-full justify-center">
+                        <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
+                        Follow
+                    </button>
+                </div>
+
+                {# Achievements #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Achievements</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                                <i data-lucide="award" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-slate-900 dark:text-white">Top Instructor 2024</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Web Development category</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                                <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-slate-900 dark:text-white">100K Students Milestone</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Reached January 2024</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-harbor-400 to-harbor-600 flex items-center justify-center">
+                                <i data-lucide="star" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-slate-900 dark:text-white">Consistently High Rated</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">4.8+ average across all courses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Quick Stats #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Quick Stats</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Teaching since</span>
+                            <span class="font-medium text-slate-900 dark:text-white">2018</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Total content</span>
+                            <span class="font-medium text-slate-900 dark:text-white">150+ hours</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Response time</span>
+                            <span class="font-medium text-slate-900 dark:text-white">< 24 hours</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Location</span>
+                            <span class="font-medium text-slate-900 dark:text-white">San Francisco, CA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

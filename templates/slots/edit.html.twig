@@ -1,0 +1,159 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Modifier le créneau - SkillHarbor{% endblock %}
+
+{% block body %}
+{% set fd = form_data|default({}) %}
+{% set err = errors|default({}) %}
+{% set startDateValue = fd.start_date|default(slot.startAt is defined and slot.startAt ? slot.startAt|date('Y-m-d') : '') %}
+{% set startTimeValue = fd.start_time|default(slot.startAt is defined and slot.startAt ? slot.startAt|date('H:i') : '') %}
+{% set endDateValue = fd.end_date|default(slot.endAt is defined and slot.endAt ? slot.endAt|date('Y-m-d') : '') %}
+{% set endTimeValue = fd.end_time|default(slot.endAt is defined and slot.endAt ? slot.endAt|date('H:i') : '') %}
+<div class="container-wide py-10">
+    <div class="max-w-lg mx-auto bg-white dark:bg-navy-900 rounded-2xl shadow-lg p-8">
+        <h1 class="font-display font-bold text-2xl mb-6">Modifier le créneau</h1>
+        <form method="post">
+            <div class="mb-4">
+                <label class="input-label" for="start_date">Date de début</label>
+                <input type="date" id="start_date" name="start_date" class="input w-full" value="{{ startDateValue }}">
+                {% if err.start_date is defined and err.start_date %}<div class="text-danger-500 text-xs mt-1">{{ err.start_date }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="start_time">Heure de début</label>
+                <input type="time" id="start_time" name="start_time" class="input w-full" value="{{ startTimeValue }}">
+                {% if err.start_time is defined and err.start_time %}<div class="text-danger-500 text-xs mt-1">{{ err.start_time }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="end_date">Date de fin</label>
+                <input type="date" id="end_date" name="end_date" class="input w-full" value="{{ endDateValue }}">
+                {% if err.end_date is defined and err.end_date %}<div class="text-danger-500 text-xs mt-1">{{ err.end_date }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="input-label" for="end_time">Heure de fin</label>
+                <input type="time" id="end_time" name="end_time" class="input w-full" value="{{ endTimeValue }}">
+                {% if err.end_time is defined and err.end_time %}<div class="text-danger-500 text-xs mt-1">{{ err.end_time }}</div>{% endif %}
+            </div>
+
+            <div class="mb-4 relative">
+                <label class="input-label" for="slot-location-input">Lieu (optionnel)</label>
+                <input
+                    type="text"
+                    id="slot-location-input"
+                    name="location_label"
+                    class="input w-full"
+                    autocomplete="off"
+                    value="{{ fd.location_label|default('') }}"
+                    placeholder="Rechercher un lieu..."
+                >
+                <input type="hidden" id="slot-lat" name="location_lat" value="{{ fd.location_lat|default('') }}">
+                <input type="hidden" id="slot-lng" name="location_lng" value="{{ fd.location_lng|default('') }}">
+                <div id="slot-location-suggestions" class="absolute left-0 right-0 mt-1 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl shadow-lg overflow-hidden hidden z-50"></div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{{ path('slots_front') }}" class="btn-ghost">Annuler</a>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function() {
+    const input = document.getElementById('slot-location-input');
+    const suggestions = document.getElementById('slot-location-suggestions');
+    if (!input || !suggestions) return;
+
+    const latInput = document.getElementById('slot-lat');
+    const lngInput = document.getElementById('slot-lng');
+
+    let debounceTimer = null;
+    let activeController = null;
+
+    function hideSuggestions() {
+        suggestions.classList.add('hidden');
+        suggestions.innerHTML = '';
+    }
+
+    function showSuggestions(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            hideSuggestions();
+            return;
+        }
+
+        suggestions.innerHTML = items.map((item, idx) => {
+            const label = String(item.display_name || '');
+            const lat = item.lat ?? '';
+            const lon = item.lon ?? '';
+
+            return (
+                '<button type="button" ' +
+                'data-idx="' + idx + '" ' +
+                'data-label="' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '" ' +
+                'data-lat="' + String(lat).replace(/"/g, '&quot;') + '" ' +
+                'data-lng="' + String(lon).replace(/"/g, '&quot;') + '" ' +
+                'class="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-navy-800 text-sm text-navy-900 dark:text-white">' +
+                label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                '</button>'
+            );
+        }).join('');
+
+        suggestions.classList.remove('hidden');
+    }
+
+    function fetchSuggestions(query) {
+        if (activeController) activeController.abort();
+        activeController = new AbortController();
+
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'json');
+        url.searchParams.set('limit', '6');
+        url.searchParams.set('q', query);
+
+        fetch(url.toString(), {
+            signal: activeController.signal,
+            headers: { 'Accept': 'application/json' },
+        })
+            .then(r => (r.ok ? r.json() : []))
+            .then(showSuggestions)
+            .catch(err => {
+                if (err && err.name === 'AbortError') return;
+                hideSuggestions();
+            });
+    }
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+
+        if (latInput) latInput.value = '';
+        if (lngInput) lngInput.value = '';
+
+        if (q.length < 3) {
+            hideSuggestions();
+            return;
+        }
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fetchSuggestions(q), 350);
+    });
+
+    suggestions.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-label]');
+        if (!btn) return;
+
+        input.value = btn.dataset.label || '';
+        if (latInput) latInput.value = btn.dataset.lat || '';
+        if (lngInput) lngInput.value = btn.dataset.lng || '';
+        hideSuggestions();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target === input) return;
+        if (suggestions.contains(e.target)) return;
+        hideSuggestions();
+    });
+})();
+</script>
+{% endblock %}

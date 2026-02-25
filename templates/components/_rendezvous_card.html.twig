@@ -1,0 +1,247 @@
+{% set rawStatus = (rdv.statut ?? 'en_attente')|lower %}
+{% set statusKey = rawStatus == 'rejeté' ? 'refusé' : rawStatus %}
+{% set isPending = statusKey == 'en_attente' %}
+{% set isConfirmed = statusKey == 'confirmé' %}
+{% set isRefused = statusKey == 'refusé' %}
+
+{% set isOnline = rdv.meetingType == 'en_ligne' %}
+{% set isInPerson = rdv.meetingType == 'en_personne' %}
+
+{% set slot = rdv.slot %}
+{% set locationLabel = rdv.locationLabel ?: (slot ? slot.locationLabel : null) %}
+{% set locationLat = rdv.locationLat is not null ? rdv.locationLat : (slot ? slot.locationLat : null) %}
+{% set locationLng = rdv.locationLng is not null ? rdv.locationLng : (slot ? slot.locationLng : null) %}
+{% set durationMinutes = slot ? ((slot.endAt|date('U') - slot.startAt|date('U')) / 60)|round(0, 'floor') : null %}
+{% set detailsHref = is_granted('ROLE_ADMIN') ? path('admin_rendezvous_show', {'id': rdv.id}) : path('public_rendezvous_show', {'id': rdv.id}) %}
+
+{% if isConfirmed %}
+  {% set statusLabel = 'Confirmé' %}
+  {% set accent = 'emerald' %}
+{% elseif isRefused %}
+  {% set statusLabel = 'Refusé' %}
+  {% set accent = 'rose' %}
+{% else %}
+  {% set statusLabel = 'En attente' %}
+  {% set accent = 'amber' %}
+{% endif %}
+
+<article
+  id="rdv-{{ rdv.id }}"
+  class="
+    group relative overflow-hidden rounded-3xl border p-5
+    bg-white/75 backdrop-blur
+    border-slate-200/70 shadow-[0_18px_55px_-32px_rgba(2,6,23,.22)]
+    transition-all duration-300
+    hover:-translate-y-1 hover:shadow-[0_26px_70px_-40px_rgba(2,6,23,.28)] hover:border-slate-300/80
+    dark:bg-white/5 dark:border-white/10
+    dark:shadow-[0_24px_70px_-40px_rgba(0,0,0,.75)]
+    dark:hover:border-white/15
+  "
+  data-rdv-id="{{ rdv.id }}"
+  data-statut="{{ rdv.statut }}"
+  data-status="{{ rdv.statut }}"
+>
+  {# Left accent rail #}
+  <div class="absolute inset-y-0 left-0 w-1.5
+    {% if accent == 'emerald' %} bg-emerald-500 dark:bg-emerald-400
+    {% elseif accent == 'rose' %} bg-rose-500 dark:bg-rose-400
+    {% else %} bg-amber-500 dark:bg-amber-400 {% endif %}
+  "></div>
+
+  {# Glow blobs #}
+  <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-50
+    {% if accent == 'emerald' %} bg-emerald-400/25
+    {% elseif accent == 'rose' %} bg-rose-400/25
+    {% else %} bg-amber-400/25 {% endif %}
+    dark:opacity-90
+  "></div>
+
+  <div class="pointer-events-none absolute -bottom-28 -left-28 h-72 w-72 rounded-full blur-3xl opacity-35
+    {% if accent == 'emerald' %} bg-cyan-400/20
+    {% elseif accent == 'rose' %} bg-fuchsia-400/20
+    {% else %} bg-orange-400/20 {% endif %}
+    dark:opacity-80
+  "></div>
+
+  <div class="relative">
+    <header class="flex items-start justify-between gap-3">
+      <h3 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+        Rendez-vous <span class="font-mono">{{ rdv.id }}</span>
+      </h3>
+
+      <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border
+        {% if accent == 'emerald' %}
+          bg-emerald-100 text-emerald-700 border-emerald-200
+          dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/25
+        {% elseif accent == 'rose' %}
+          bg-rose-100 text-rose-700 border-rose-200
+          dark:bg-rose-500/15 dark:text-rose-200 dark:border-rose-400/25
+        {% else %}
+          bg-amber-100 border-amber-300
+        {% endif %}
+      "
+      {% if accent == 'amber' %}style="background-color:#fef3c7;border-color:#f59e0b;color:#78350f;"{% endif %}
+      >
+        <span class="h-1.5 w-1.5 rounded-full
+          {% if accent == 'emerald' %} bg-emerald-500
+          {% elseif accent == 'rose' %} bg-rose-500
+          {% else %} bg-amber-500 {% endif %}
+        "
+        {% if accent == 'amber' %}style="background-color:#b45309;"{% endif %}
+        ></span>
+        {{ statusLabel }}
+      </span>
+    </header>
+
+    {# Date pill (fixed for dark/light) #}
+    <div class="mt-4 rounded-2xl border px-4 py-3
+      bg-slate-50/85 border-slate-200 text-slate-700
+      dark:bg-white/5 dark:border-white/10 dark:text-white">
+      <div class="flex items-center gap-2 text-sm font-bold">
+        <i data-lucide="calendar-days" class="h-4 w-4 text-slate-500 dark:text-slate-200"></i>
+        {% if slot %}
+          <span>{{ slot.startAt|date('d M Y') }}</span>
+          <span class="text-slate-400 dark:text-slate-500">—</span>
+          <span>{{ slot.startAt|date('H:i') }}</span>
+          <span class="text-slate-400 dark:text-slate-500">→</span>
+          <span>{{ slot.endAt|date('H:i') }}</span>
+          {% if durationMinutes is not null %}
+            <span class="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-300">({{ durationMinutes }} min)</span>
+          {% endif %}
+        {% else %}
+          Créneau non défini
+        {% endif %}
+      </div>
+    </div>
+
+    {# Info lines #}
+    <div class="mt-4 space-y-2.5">
+      <p class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
+        <i data-lucide="user-round" class="h-4 w-4 text-slate-500 dark:text-slate-200"></i>
+        <span class="font-extrabold">Professeur :</span>
+        <span class="truncate">{{ rdv.professor ? rdv.professor.fullName : 'Non défini' }}</span>
+      </p>
+
+      {% if rdv.student is defined %}
+        <p class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
+          <i data-lucide="graduation-cap" class="h-4 w-4 text-slate-500 dark:text-slate-200"></i>
+          <span class="font-extrabold">Étudiant :</span>
+          <span class="truncate">{{ rdv.student ? rdv.student.fullName : 'Non défini' }}</span>
+        </p>
+      {% endif %}
+
+      {% if rdv.course is defined and rdv.course %}
+        <p class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
+          <i data-lucide="book-open-text" class="h-4 w-4 text-slate-500 dark:text-slate-200"></i>
+          <span class="font-extrabold">Cours :</span>
+          <span class="truncate">{{ rdv.course.title }}</span>
+        </p>
+      {% endif %}
+    </div>
+
+    {# Online / In person panel #}
+    {% if isOnline and rdv.meetingLink %}
+      <div class="mt-4 rounded-2xl border px-4 py-3
+        border-teal-200 bg-teal-50/80 text-teal-900
+        dark:border-teal-400/25 dark:bg-teal-500/10 dark:text-teal-100">
+        <div class="flex items-start gap-2 text-sm font-semibold">
+          <i data-lucide="video" class="mt-0.5 h-4 w-4"></i>
+          <a href="{{ rdv.meetingLink }}" target="_blank" rel="noopener noreferrer"
+             class="break-all underline-offset-4 hover:underline">
+            {{ rdv.meetingLink }}
+          </a>
+        </div>
+      </div>
+    {% elseif isInPerson and locationLabel %}
+      <div class="mt-4 rounded-2xl border px-4 py-3
+        border-cyan-200 bg-cyan-50/80 text-cyan-900
+        dark:border-cyan-400/25 dark:bg-cyan-500/10 dark:text-cyan-100">
+        <div class="flex items-start gap-2 text-sm font-semibold">
+          <i data-lucide="map-pin" class="mt-0.5 h-4 w-4"></i>
+          <span class="line-clamp-2">{{ locationLabel }}</span>
+        </div>
+
+        {% if locationLat is not null and locationLng is not null %}
+          <a
+            href="https://www.openstreetmap.org/?mlat={{ locationLat }}&mlon={{ locationLng }}#map=16/{{ locationLat }}/{{ locationLng }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-2 inline-flex items-center gap-1 text-xs font-extrabold underline-offset-4 hover:underline"
+          >
+            <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            Voir sur OpenStreetMap
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {# Actions #}
+    <div class="mt-5 flex flex-wrap items-center gap-2">
+      {% if isPending and rdv.student and app.user and rdv.student.id == app.user.id %}
+        <button
+          type="button"
+          onclick="if(window.openEditModal){openEditModal({{ rdv.id }}, {{ slot ? slot.id : 'null' }}, '{{ slot ? slot.startAt|date('d/m/Y H:i') : '' }}', '{{ slot ? slot.endAt|date('d/m/Y H:i') : '' }}')}else{window.location.href='{{ path('public_rendezvous_index') }}#rdv-{{ rdv.id }}';}"
+          class="inline-flex items-center rounded-xl px-3 py-2 text-sm font-extrabold border border-blue-300
+            bg-blue-600 text-white hover:bg-blue-700 shadow-sm
+            dark:bg-blue-500 dark:border-blue-400/50 dark:text-white dark:hover:bg-blue-400"
+        >
+          Modifier
+        </button>
+      {% endif %}
+
+      {% if isPending and is_granted('ROLE_PROFESSOR') and rdv.professor and app.user and rdv.professor.id == app.user.id %}
+        <form method="post" action="{{ path('public_rendezvous_accept', {id: rdv.id}) }}" class="inline-flex flex-wrap items-center gap-2">
+          <input type="hidden" name="_token" value="{{ csrf_token('accept_rdv_' ~ rdv.id) }}">
+          <input
+            type="url"
+            name="meeting_link"
+            minlength="10"
+            required
+            placeholder="Lien de réunion (https://...)"
+            class="w-64 max-w-full rounded-xl border px-3 py-2 text-sm font-semibold
+              border-emerald-300/70 bg-white text-slate-900 placeholder:text-slate-400
+              focus:outline-none focus:ring-2 focus:ring-emerald-500/40
+              dark:border-emerald-400/35 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+          >
+          <button type="submit"
+            class="inline-flex items-center rounded-xl px-3 py-2 text-sm font-extrabold text-white
+                   bg-emerald-600 hover:bg-emerald-700">
+            Accepter
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onclick="openRefuseModal({{ rdv.id }}, '{{ csrf_token('refuse_rdv_' ~ rdv.id)|e('js') }}')"
+          class="inline-flex items-center rounded-xl px-3 py-2 text-sm font-extrabold text-white
+                 bg-rose-600 hover:bg-rose-700"
+        >
+          Refuser
+        </button>
+      {% endif %}
+
+      <div class="basis-full mt-3 flex justify-end">
+        <a
+          href="{{ detailsHref }}"
+          class="inline-flex items-center rounded-xl px-3 py-2 text-sm font-extrabold border
+            border-blue-700 bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-colors"
+        >
+          Voir détails
+        </a>
+      </div>
+
+      {% if rdv.coursePdfName %}
+        <a
+          href="{{ asset('uploads/cours/' ~ rdv.coursePdfName) }}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center rounded-xl px-3 py-2 text-sm font-extrabold
+            bg-slate-900 text-white hover:bg-slate-800
+            dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+        >
+          Télécharger PDF
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</article>

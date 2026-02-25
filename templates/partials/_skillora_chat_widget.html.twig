@@ -1,0 +1,48 @@
+<div id="skillora-chat-widget" class="skillora-chat" data-endpoint="/api/skillora/chat">
+    <button
+        id="skillora-chat-toggle"
+        class="skillora-chat__toggle"
+        type="button"
+        aria-label="Ouvrir Skillora Assistant"
+        aria-expanded="false"
+        aria-controls="skillora-chat-panel"
+    >
+        💬
+    </button>
+    <div id="skillora-chat-reminder" class="skillora-chat__reminder" role="status" aria-live="polite" hidden>
+        Besoin d'aide ? Utilise Skillora Assistant.
+    </div>
+
+    <section id="skillora-chat-panel" class="skillora-chat__panel" role="dialog" aria-modal="false" aria-labelledby="skillora-chat-title" hidden>
+        <header class="skillora-chat__header">
+            <h3 id="skillora-chat-title" class="skillora-chat__title">Skillora Assistant</h3>
+            <div class="skillora-chat__header-actions">
+                <button id="skillora-chat-history-toggle" class="skillora-chat__history-toggle" type="button">Historique</button>
+                <button id="skillora-chat-close" class="skillora-chat__close" type="button" aria-label="Fermer">✕</button>
+            </div>
+        </header>
+
+        <div id="skillora-chat-messages" class="skillora-chat__messages" aria-live="polite" aria-label="Messages"></div>
+
+        <section id="skillora-chat-history" class="skillora-chat__history" hidden>
+            <div class="skillora-chat__history-head">
+                <p class="skillora-chat__history-title">Conversations enregistrées</p>
+                <button id="skillora-chat-new-conversation" class="skillora-chat__history-new" type="button">Nouvelle</button>
+            </div>
+            <div id="skillora-chat-history-list" class="skillora-chat__history-list"></div>
+        </section>
+
+        <form id="skillora-chat-form" class="skillora-chat__form" autocomplete="off">
+            <input
+                id="skillora-chat-input"
+                class="skillora-chat__input"
+                type="text"
+                name="message"
+                maxlength="2000"
+                placeholder="Écris ton message..."
+                required
+            >
+            <button class="skillora-chat__send" type="submit">Envoyer</button>
+        </form>
+    </section>
+</div>

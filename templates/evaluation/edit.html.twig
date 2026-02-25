@@ -1,0 +1,28 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Evaluation{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-display-lg font-bold mb-6">Edit Evaluation</h1>
+
+<div class="card p-6 max-w-3xl">
+    {{ form_start(form) }}
+
+    <div class="space-y-5">
+        {{ form_row(form.title) }}
+        {{ form_row(form.description) }}
+
+        <div class="grid grid-cols-2 gap-4">
+            {{ form_row(form.type) }}
+            {{ form_row(form.duration) }}
+        </div>
+    </div>
+
+    <div class="mt-6 flex gap-3">
+        <button class="btn-primary">Update</button>
+        <a href="{{ path('evaluation_index') }}" class="btn-secondary">Cancel</a>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+{% endblock %}

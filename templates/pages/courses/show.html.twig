@@ -1,0 +1,182 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}{{ course.title }} - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-navy-950 text-white">
+  <div class="container-wide py-12">
+    <nav class="breadcrumb mb-8 text-navy-400">
+      <a href="{{ path('app_home') }}" class="hover:text-white">Home</a>
+      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      <a href="{{ path('courses_index') }}" class="hover:text-white">Courses</a>
+      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      <span class="text-white">{{ course.title }}</span>
+    </nav>
+
+    {% set firstLesson = null %}
+    {% for item in sections %}
+      {% if firstLesson is null and item.lessons|length > 0 %}
+        {% set firstLesson = item.lessons|first %}
+      {% endif %}
+    {% endfor %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div class="max-w-xl">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          {% if course.category %}
+            <span class="badge bg-navy-800 text-navy-200">{{ course.category }}</span>
+          {% endif %}
+          {% if course.status %}
+            <span class="badge bg-navy-800 text-navy-300">{{ course.status|capitalize }}</span>
+          {% endif %}
+        </div>
+
+        <h1 class="font-display font-bold text-4xl mb-4">
+          {{ course.title }}
+        </h1>
+
+        {% if course.description %}
+          <p class="text-lg text-navy-300 mb-6">
+            {{ course.description|striptags|slice(0, 220) }}{% if course.description|striptags|length > 220 %}...{% endif %}
+          </p>
+        {% else %}
+          <p class="text-lg text-navy-300 mb-6">
+            No description yet.
+          </p>
+        {% endif %}
+
+        <div class="flex flex-wrap items-center gap-5 text-body-sm text-navy-300 mb-6">
+          <span class="flex items-center gap-1">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+            Updated {{ (course.updatedAt ?? course.createdAt)|date('M d, Y') }}
+          </span>
+
+          {% set totalLessons = 0 %}
+          {% for item in sections %}
+            {% set totalLessons = totalLessons + (item.lessons|length) %}
+          {% endfor %}
+
+          <span class="flex items-center gap-1">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            {{ sections|length }} sections
+          </span>
+
+          <span class="flex items-center gap-1">
+            <i data-lucide="list-video" class="w-4 h-4"></i>
+            {{ totalLessons }} lessons
+          </span>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <a href="#content" class="btn-secondary">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            Content
+          </a>
+
+          {% if firstLesson %}
+            <a href="{{ path('lesson_show', {courseId: course.id, lessonId: firstLesson.id}) }}" class="btn-primary">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              Start
+            </a>
+          {% else %}
+            <button class="btn-primary opacity-60 cursor-not-allowed" disabled>
+              <i data-lucide="play" class="w-4 h-4"></i>
+              Start
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="hidden lg:block"></div>
+    </div>
+  </div>
+</div>
+
+<div id="content" class="container-wide py-10">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <aside class="lg:col-span-4 xl:col-span-3">
+      <div class="card p-4 sticky top-24">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display font-semibold">
+            Course content
+          </h2>
+        </div>
+
+        {% if sections is empty %}
+          <p class="text-body-sm text-navy-500 text-center py-6">
+            No sections yet.
+          </p>
+        {% else %}
+          <div class="divide-y divide-navy-100 dark:divide-navy-800 -mx-4">
+            {% for item in sections %}
+              <details class="group px-4" {{ loop.first ? 'open' : '' }}>
+                <summary class="flex items-center justify-between py-4 cursor-pointer select-none">
+                  <div class="min-w-0">
+                    <div class="font-medium truncate text-navy-900 dark:text-white">
+                      {{ item.section.title }}
+                    </div>
+
+                    <div class="text-caption text-navy-500 dark:text-navy-400 mt-0.5">
+                      <span class="group-open:hidden">Show lessons</span>
+                      <span class="hidden group-open:inline">Hide lessons</span>
+                      · {{ item.lessons|length }}
+                    </div>
+                  </div>
+
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-navy-400 group-open:rotate-180 transition-transform"></i>
+                </summary>
+
+                <div class="pb-4 space-y-1">
+                  {% if item.lessons is empty %}
+                    <p class="text-body-sm text-navy-500 px-2 py-2">
+                      No lessons in this section.
+                    </p>
+                  {% else %}
+                    {% for lesson in item.lessons %}
+                      <a
+                        href="{{ path('lesson_show', {courseId: course.id, lessonId: lesson.id}) }}"
+                        class="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-navy-50 dark:hover:bg-navy-800/40"
+                      >
+                        {% set t = lesson.type|default('text') %}
+                        {% if t == 'video' %}
+                          <i data-lucide="play-circle" class="w-4 h-4 text-harbor-500 shrink-0"></i>
+                        {% elseif t == 'pdf' %}
+                          <i data-lucide="file-text" class="w-4 h-4 text-navy-500 shrink-0"></i>
+                        {% else %}
+                          <i data-lucide="align-left" class="w-4 h-4 text-navy-500 shrink-0"></i>
+                        {% endif %}
+
+                        <span class="text-body-sm text-navy-700 dark:text-navy-300 line-clamp-1">
+                          {{ lesson.title }}
+                        </span>
+                      </a>
+                    {% endfor %}
+                  {% endif %}
+                </div>
+              </details>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <main class="lg:col-span-8 xl:col-span-9 space-y-6">
+      <section class="card p-6">
+        <h2 class="font-display font-semibold text-xl mb-3">
+          About this course
+        </h2>
+
+        {% if course.description %}
+          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap break-words">
+            {{ course.description|nl2br }}
+          </div>
+        {% else %}
+          <p class="text-body-md text-navy-600 dark:text-navy-400">
+            No description yet.
+          </p>
+        {% endif %}
+      </section>
+    </main>
+  </div>
+</div>
+{% endblock %}

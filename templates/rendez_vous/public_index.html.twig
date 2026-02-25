@@ -1,0 +1,589 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Rendez-vous - SkillHarbor{% endblock %}
+
+{% block body %}
+{% set can_create_rendezvous = is_granted('ROLE_USER') and not is_granted('ROLE_PROFESSOR') and not is_granted('ROLE_ADMIN') %}
+<style>
+  :root {
+    --sh-bg0: #f8fafc;
+    --sh-bg1: #eef2ff;
+    --sh-ink: #0f172a;
+    --sh-muted: rgba(15,23,42,.62);
+    --sh-glass-bg: rgba(255,255,255,.72);
+    --sh-glass-border: rgba(15,23,42,.12);
+    --sh-glass-shadow: 0 18px 55px -28px rgba(2,6,23,.22);
+    --sh-panel-border: rgba(15,23,42,.12);
+    --sh-chip-bg: rgba(15,23,42,.06);
+    --sh-chip-border: rgba(15,23,42,.10);
+    --sh-chip-text: rgba(15,23,42,.8);
+    --sh-modal-bg: #ffffff;
+    --sh-field-bg: rgba(248,250,252,.95);
+    --sh-field-border: rgba(15,23,42,.14);
+    --sh-field-text: #0f172a;
+    --sh-overlay: rgba(2,6,23,.55);
+  }
+  html.dark, body.dark {
+    --sh-bg0: #020617;
+    --sh-bg1: #020b25;
+    --sh-ink: #e2e8f0;
+    --sh-muted: rgba(226,232,240,.72);
+    --sh-glass-bg: rgba(15,23,42,.58);
+    --sh-glass-border: rgba(148,163,184,.22);
+    --sh-glass-shadow: 0 22px 70px -42px rgba(0,0,0,.70);
+    --sh-panel-border: rgba(148,163,184,.24);
+    --sh-chip-bg: rgba(148,163,184,.14);
+    --sh-chip-border: rgba(148,163,184,.22);
+    --sh-chip-text: #e2e8f0;
+    --sh-modal-bg: #0f172a;
+    --sh-field-bg: rgba(15,23,42,.65);
+    --sh-field-border: rgba(148,163,184,.28);
+    --sh-field-text: #e2e8f0;
+    --sh-overlay: rgba(2,6,23,.72);
+  }
+  .sh-rdv-page {
+    min-height: 100vh;
+    color: var(--sh-ink);
+    background:
+      radial-gradient(900px 380px at 10% -10%, rgba(59,130,246,.16), transparent 60%),
+      radial-gradient(900px 420px at 100% 5%, rgba(16,185,129,.12), transparent 60%),
+      linear-gradient(180deg, var(--sh-bg0) 0%, var(--sh-bg1) 100%);
+  }
+  .sh-glass {
+    border: 1px solid var(--sh-glass-border);
+    background: var(--sh-glass-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--sh-glass-shadow);
+  }
+  .sh-chip {
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    transition: .2s ease;
+    border: 1px solid var(--sh-chip-border);
+    background: var(--sh-chip-bg);
+    color: var(--sh-chip-text);
+  }
+  .sh-chip:hover { transform: translateY(-1px); }
+  .sh-chip-neutral { background: var(--sh-chip-bg); color: var(--sh-chip-text); }
+  .sh-chip-all { background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #fff; }
+  .sh-chip-pending { background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; }
+  .sh-chip-confirmed { background: linear-gradient(135deg, #0d9488, #14b8a6); color: #fff; }
+  .sh-chip-refused { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; }
+  .sh-btn {
+    border: 0;
+    border-radius: 14px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 800;
+    transition: .2s ease;
+  }
+  .sh-btn-primary { color: #fff; background: linear-gradient(135deg, #2563eb, #3b82f6); }
+  .sh-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -14px #2563eb; }
+  .sh-btn-ghost { color: var(--sh-ink); background: transparent; border: 1px solid var(--sh-chip-border); }
+  .sh-btn-ghost:hover { background: var(--sh-chip-bg); }
+  .sh-rdv-grid { display: grid; grid-template-columns: repeat(1, minmax(0,1fr)); gap: 18px; }
+  @media (min-width: 1280px) { .sh-rdv-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .sh-empty {
+    text-align: center;
+    padding: 36px 24px;
+    border-radius: 24px;
+    border: 1px dashed var(--sh-panel-border);
+    background: var(--sh-glass-bg);
+  }
+
+  .sh-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    opacity: 0;
+    visibility: hidden;
+    transition: .2s ease;
+  }
+  .sh-modal.show { opacity: 1; visibility: visible; }
+  .sh-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--sh-overlay);
+    backdrop-filter: blur(7px);
+  }
+  .sh-modal-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(.97);
+    width: min(680px, calc(100% - 24px));
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    border-radius: 24px;
+    border: 1px solid var(--sh-panel-border);
+    background: var(--sh-modal-bg);
+    color: var(--sh-ink);
+    transition: .2s ease;
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,.35);
+  }
+  .sh-modal.show .sh-modal-panel { transform: translate(-50%, -50%) scale(1); }
+  .sh-modal-head, .sh-modal-foot { padding: 14px 18px; }
+  .sh-modal-head { border-bottom: 1px solid var(--sh-panel-border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .sh-modal-body { padding: 16px 18px; display: grid; gap: 12px; }
+  .sh-modal-foot { border-top: 1px solid var(--sh-panel-border); display: flex; justify-content: flex-end; gap: 8px; }
+  .sh-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--sh-muted); }
+  .sh-input, .sh-select, .sh-textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--sh-field-border);
+    background: var(--sh-field-bg);
+    color: var(--sh-field-text);
+    padding: 10px 12px;
+  }
+  .sh-input:focus, .sh-select:focus, .sh-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.22);
+    border-color: rgba(59,130,246,.45);
+  }
+  .sh-textarea { min-height: 96px; resize: vertical; }
+  .sh-inline { display: flex; flex-wrap: wrap; gap: 12px; }
+  .sh-map {
+    height: 230px;
+    border-radius: 12px;
+    border: 1px solid var(--sh-field-border);
+    overflow: hidden;
+    background: var(--sh-field-bg);
+  }
+  .sh-map .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .sh-error {
+    display: none;
+    border-radius: 12px;
+    border: 1px solid rgba(248,113,113,.35);
+    background: rgba(248,113,113,.12);
+    color: #b91c1c;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  html.dark .sh-error, body.dark .sh-error {
+    background: rgba(127,29,29,.26);
+    color: #fecaca;
+  }
+</style>
+
+<div class="sh-rdv-page text-slate-900 dark:text-slate-100">
+  <div class="max-w-[1180px] mx-auto px-4 py-8">
+    <section class="relative overflow-hidden rounded-3xl border p-6 md:p-8 sh-glass">
+      <div class="absolute -top-14 -right-16 w-72 h-72 rounded-full bg-harbor-500/10 blur-3xl"></div>
+      <div class="absolute -bottom-16 -left-10 w-72 h-72 rounded-full bg-teal-500/10 blur-3xl"></div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold text-blue-700 dark:text-blue-200 border-slate-300/60 dark:border-slate-600 bg-blue-500/10">
+          <i data-lucide="calendar-check-2" class="w-4 h-4"></i>
+          Gestion des Rendez-vous
+        </div>
+        <h1 class="mt-4 text-4xl md:text-5xl font-display font-bold tracking-tight">Mes <span class="text-harbor-300">Rendez-vous</span></h1>
+        <p class="mt-2 text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-3xl">Consultez, modifiez et gérez vos rendez-vous avec une expérience plus claire et plus moderne.</p>
+        <div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="sh-glass rounded-xl p-3"><p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Total</p><p class="text-xl font-mono font-semibold">{{ count_active }}</p></div>
+          <div class="sh-glass rounded-xl p-3"><p class="text-xs uppercase tracking-wider text-amber-700 dark:text-amber-300">En attente</p><p class="text-xl font-mono font-semibold text-amber-700 dark:text-amber-300">{{ count_pending }}</p></div>
+          <div class="sh-glass rounded-xl p-3"><p class="text-xs uppercase tracking-wider text-teal-300">Confirmés</p><p class="text-xl font-mono font-semibold text-teal-300">{{ count_confirmed }}</p></div>
+          <div class="sh-glass rounded-xl p-3"><p class="text-xs uppercase tracking-wider text-rose-300">Refusés</p><p class="text-xl font-mono font-semibold text-rose-300">{{ count_refused }}</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="flash-container" class="mt-4 space-y-2"></div>
+
+    <section class="mt-5 sh-glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="filter" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i>
+        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Filtrer:</span>
+      </div>
+      <div id="rdv-filters" class="flex flex-wrap gap-2">
+        {% set current_query = app.request.query.all %}
+        <a href="{{ path('public_rendezvous_index', current_query|merge({status: 'all', page: 1})) }}" class="sh-chip {{ selected_status == 'all' ? 'sh-chip-all' : 'sh-chip-neutral' }}">Tous ({{ count_active }})</a>
+        <a href="{{ path('public_rendezvous_index', current_query|merge({status: 'en_attente', page: 1})) }}" class="sh-chip {{ selected_status == 'en_attente' ? 'sh-chip-pending' : 'sh-chip-neutral' }}">En attente ({{ count_pending }})</a>
+        <a href="{{ path('public_rendezvous_index', current_query|merge({status: 'confirmé', page: 1})) }}" class="sh-chip {{ selected_status == 'confirmé' ? 'sh-chip-confirmed' : 'sh-chip-neutral' }}">Confirmés ({{ count_confirmed }})</a>
+        <a href="{{ path('public_rendezvous_index', current_query|merge({status: 'refusé', page: 1})) }}" class="sh-chip {{ selected_status == 'refusé' ? 'sh-chip-refused' : 'sh-chip-neutral' }}">Refusés ({{ count_refused }})</a>
+      </div>
+      {% if can_create_rendezvous %}
+        <div class="flex items-center gap-2">
+          <a href="{{ path('slots_calendar') }}" class="sh-btn sh-btn-ghost">Voir les créneaux</a>
+          <button type="button" class="sh-btn sh-btn-primary" onclick="openAddModal()">Nouveau rendez-vous</button>
+        </div>
+      {% endif %}
+    </section>
+
+    <section id="rdv-list" class="sh-rdv-grid mt-8">
+      {% for rdv in rendezvous_list %}
+        {{ include('components/_rendezvous_card.html.twig', { rdv: rdv }) }}
+      {% else %}
+        <div class="sh-empty col-span-full mx-auto w-full max-w-3xl">
+          <i data-lucide="calendar-x-2" class="w-12 h-12 mx-auto text-slate-400"></i>
+          <h3 class="mt-3 text-3xl font-display font-semibold">Aucun rendez-vous</h3>
+          <p class="mt-2 text-slate-600 dark:text-slate-300">Vous n'avez pas encore de rendez-vous. Commencez en ajoutant votre premier.</p>
+          {% if can_create_rendezvous %}
+            <button type="button" class="sh-btn sh-btn-primary mt-4" onclick="openAddModal()">Nouveau rendez-vous</button>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </section>
+
+    {% if pagination is defined and pagination.total_pages > 1 %}
+      {% set start_item = ((pagination.current_page - 1) * pagination.per_page) + 1 %}
+      {% set end_item = start_item + (rendezvous_list|length) - 1 %}
+      <section class="mt-6 sh-glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+          Affichage {{ start_item }}-{{ end_item }} sur {{ pagination.total_items }}
+        </p>
+
+        <nav class="flex flex-wrap items-center gap-2" aria-label="Pagination des rendez-vous">
+          {% set page_query = app.request.query.all|merge({status: selected_status}) %}
+
+          {% if pagination.has_prev %}
+            <a href="{{ path('public_rendezvous_index', page_query|merge({page: pagination.prev_page})) }}" class="sh-chip sh-chip-neutral">Précédent</a>
+          {% else %}
+            <span class="sh-chip sh-chip-neutral opacity-50 cursor-not-allowed">Précédent</span>
+          {% endif %}
+
+          {% for p in 1..pagination.total_pages %}
+            {% if p == pagination.current_page %}
+              <span class="sh-chip sh-chip-all">{{ p }}</span>
+            {% else %}
+              <a href="{{ path('public_rendezvous_index', page_query|merge({page: p})) }}" class="sh-chip sh-chip-neutral">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if pagination.has_next %}
+            <a href="{{ path('public_rendezvous_index', page_query|merge({page: pagination.next_page})) }}" class="sh-chip sh-chip-neutral">Suivant</a>
+          {% else %}
+            <span class="sh-chip sh-chip-neutral opacity-50 cursor-not-allowed">Suivant</span>
+          {% endif %}
+        </nav>
+      </section>
+    {% endif %}
+  </div>
+</div>
+
+{# Add Modal #}
+<div id="add-modal" class="sh-modal" role="dialog" aria-modal="true">
+  <div class="sh-modal-overlay" onclick="closeAddModal()"></div>
+  <div class="sh-modal-panel">
+    <div class="sh-modal-head">
+      <h3 class="text-lg font-semibold">Nouveau rendez-vous</h3>
+      <button type="button" class="sh-btn sh-btn-ghost" onclick="closeAddModal()">Fermer</button>
+    </div>
+    <div class="sh-modal-body">
+      <div id="add-error" class="sh-error"><span id="add-error-text"></span></div>
+      <input type="hidden" id="add-csrf-token" name="_token" value="{{ csrf_token('public_rendezvous_create') }}">
+
+      <div class="sh-field">
+        <label for="add-slot-select">Créneau</label>
+        <select id="add-slot-select" class="sh-select">
+          <option value="">Choisissez un créneau...</option>
+          {% for slot in available_slots %}
+            <option
+              value="{{ slot.id }}"
+              data-location-lat="{{ slot.locationLat is not null ? slot.locationLat : '' }}"
+              data-location-lng="{{ slot.locationLng is not null ? slot.locationLng : '' }}"
+              data-location-label="{{ slot.locationLabel ? slot.locationLabel|e('html_attr') : '' }}"
+            >{{ slot.startAt|date('d/m/Y') }} • {{ slot.startAt|date('H:i') }}-{{ slot.endAt|date('H:i') }}{% if slot.professor %} — Prof. {{ slot.professor.fullName }}{% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="sh-field">
+        <label for="add-course-select">Cours (optionnel)</label>
+        <select id="add-course-select" class="sh-select">
+          <option value="">Aucun cours spécifique</option>
+          {% for course in courses|default([]) %}
+            <option value="{{ course.id }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="sh-field">
+        <label>Type de rendez-vous</label>
+        <div class="sh-inline">
+          <label><input type="radio" name="add_meeting_type" value="en_ligne" required checked onchange="toggleAddMeetingFields()"> En ligne</label>
+          <label><input type="radio" name="add_meeting_type" value="en_personne" onchange="toggleAddMeetingFields()"> En personne</label>
+        </div>
+      </div>
+
+      <div class="sh-field" id="add-online-note-wrap">
+        <label>Information</label>
+        <p class="text-xs text-slate-600 dark:text-slate-300">
+          Le professeur ajoutera le lien après confirmation.
+        </p>
+      </div>
+
+      <div class="sh-field" id="add-location-map-wrap" style="display:none;">
+        <label>Localisation du rendez-vous</label>
+        <p id="add-location-map-meta" class="text-xs text-slate-600 dark:text-slate-300 mb-2"></p>
+        <div id="add-location-map" class="sh-map"></div>
+        <p id="add-location-map-empty" class="text-xs text-amber-600 dark:text-amber-300 mt-2" style="display:none;">
+          Le créneau sélectionné n'a pas de coordonnées GPS.
+        </p>
+      </div>
+
+      <div class="sh-field">
+        <label for="add-message">Message (optionnel)</label>
+        <textarea id="add-message" class="sh-textarea"></textarea>
+      </div>
+
+      <div class="sh-field">
+        <label for="add-course-pdf">Cours PDF (optionnel)</label>
+        <input id="add-course-pdf" type="file" class="sh-input" accept="application/pdf,.pdf">
+      </div>
+    </div>
+    <div class="sh-modal-foot">
+      <button type="button" class="sh-btn sh-btn-ghost" onclick="closeAddModal()">Annuler</button>
+      <button type="button" id="add-submit-btn" class="sh-btn sh-btn-primary" onclick="submitAddRdv()" {{ available_slots|length == 0 ? 'disabled' : '' }}>Créer</button>
+    </div>
+  </div>
+</div>
+
+{# Edit Modal #}
+<div id="edit-modal" class="sh-modal" role="dialog" aria-modal="true">
+  <div class="sh-modal-overlay" onclick="closeEditModal()"></div>
+  <div class="sh-modal-panel">
+    <div class="sh-modal-head">
+      <h3 class="text-lg font-semibold">Modifier le créneau <span id="edit-rdv-id"></span></h3>
+      <button type="button" class="sh-btn sh-btn-ghost" onclick="closeEditModal()">Fermer</button>
+    </div>
+    <div class="sh-modal-body">
+      <div id="edit-error" class="sh-error"><span id="edit-error-text"></span></div>
+      <input type="hidden" id="edit-rdv-hidden-id">
+      <div id="edit-current-slot-info" class="sh-block"><strong>Créneau actuel:</strong> <span id="edit-current-slot-text"></span></div>
+      <div class="sh-field">
+        <label for="edit-slot-select">Nouveau créneau</label>
+        <select id="edit-slot-select" class="sh-select">
+          <option value="">Choisissez un nouveau créneau...</option>
+          {% for slot in available_slots %}
+            <option value="{{ slot.id }}">{{ slot.startAt|date('d/m/Y') }} • {{ slot.startAt|date('H:i') }} - {{ slot.endAt|date('H:i') }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="sh-modal-foot">
+      <button type="button" class="sh-btn sh-btn-ghost" onclick="closeEditModal()">Annuler</button>
+      <button type="button" class="sh-btn sh-btn-primary" onclick="submitEditRdv()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+{# Refuse Modal #}
+<div id="refuse-modal" class="sh-modal" role="dialog" aria-modal="true">
+  <div class="sh-modal-overlay" onclick="closeRefuseModal()"></div>
+  <div class="sh-modal-panel">
+    <div class="sh-modal-head">
+      <h3 class="text-lg font-semibold">Refuser le rendez-vous</h3>
+      <button type="button" class="sh-btn sh-btn-ghost" onclick="closeRefuseModal()">Fermer</button>
+    </div>
+    <form id="refuse-form" method="post" action="">
+      <div class="sh-modal-body">
+        <input type="hidden" id="refuse-token" name="_token" value="">
+        <div class="sh-field">
+          <label for="refuse-reason">Cause de refus</label>
+          <textarea id="refuse-reason" name="refusal_reason" class="sh-textarea" minlength="5" required></textarea>
+        </div>
+      </div>
+      <div class="sh-modal-foot">
+        <button type="button" class="sh-btn sh-btn-ghost" onclick="closeRefuseModal()">Annuler</button>
+        <button type="submit" class="sh-btn sh-btn-primary">Confirmer le refus</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  function byId(id){ return document.getElementById(id); }
+  function show(el){ if(el) el.classList.add('show'); }
+  function hide(el){ if(el) el.classList.remove('show'); }
+  var addMap = null;
+  var addMapMarker = null;
+
+  window.openAddModal = function(){ show(byId('add-modal')); var e=byId('add-error'); if(e) e.style.display='none'; toggleAddMeetingFields(); updateAddLocationMap(); };
+  window.closeAddModal = function(){ hide(byId('add-modal')); };
+  window.openEditModal = function(id, slotId, slotStart, slotEnd) {
+    show(byId('edit-modal'));
+    if(byId('edit-rdv-id')) byId('edit-rdv-id').textContent = '#' + id;
+    if(byId('edit-rdv-hidden-id')) byId('edit-rdv-hidden-id').value = id;
+    if(byId('edit-current-slot-text')) byId('edit-current-slot-text').textContent = (slotStart || '') + ' → ' + (slotEnd || '');
+    var sel = byId('edit-slot-select');
+    if(sel){
+      sel.querySelectorAll('.sh-current-slot-opt').forEach(function(o){o.remove();});
+      if(slotId){
+        var opt = document.createElement('option');
+        opt.value = slotId;
+        opt.textContent = (slotStart || '') + ' → ' + (slotEnd || '') + ' (actuel)';
+        opt.selected = true;
+        opt.className = 'sh-current-slot-opt';
+        sel.insertBefore(opt, sel.options[1] || null);
+      }
+    }
+    if(byId('edit-error')) byId('edit-error').style.display='none';
+  };
+  window.closeEditModal = function(){ hide(byId('edit-modal')); };
+  window.openRefuseModal = function(id, csrf){
+    show(byId('refuse-modal'));
+    if(byId('refuse-form')) byId('refuse-form').action = '/rendezvous/' + id + '/refuse';
+    if(byId('refuse-token')) byId('refuse-token').value = csrf || '';
+    if(byId('refuse-reason')) byId('refuse-reason').value = '';
+  };
+  window.closeRefuseModal = function(){ hide(byId('refuse-modal')); };
+
+  window.toggleAddMeetingFields = function() {
+    var type = document.querySelector('input[name=\"add_meeting_type\"]:checked');
+    var onlineNote = byId('add-online-note-wrap');
+    var online = !type || type.value === 'en_ligne';
+    if(onlineNote) onlineNote.style.display = online ? 'block' : 'none';
+    updateAddLocationMap();
+  };
+
+  function ensureAddMap() {
+    if (addMap || !window.L) { return; }
+    var mapContainer = byId('add-location-map');
+    if (!mapContainer) { return; }
+
+    addMap = L.map(mapContainer).setView([36.8065, 10.1815], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(addMap);
+    addMapMarker = L.marker([36.8065, 10.1815]).addTo(addMap);
+  }
+
+  function selectedSlotCoords() {
+    var select = byId('add-slot-select');
+    if (!select || select.selectedIndex < 0) { return null; }
+    var opt = select.options[select.selectedIndex];
+    if (!opt || !opt.value) { return null; }
+    var lat = parseFloat(opt.getAttribute('data-location-lat') || '');
+    var lng = parseFloat(opt.getAttribute('data-location-lng') || '');
+    if (!isFinite(lat) || !isFinite(lng)) { return null; }
+    return {
+      lat: lat,
+      lng: lng,
+      label: opt.getAttribute('data-location-label') || ''
+    };
+  }
+
+  function updateAddLocationMap() {
+    var type = document.querySelector('input[name=\"add_meeting_type\"]:checked');
+    var inPerson = !!type && type.value === 'en_personne';
+    var wrap = byId('add-location-map-wrap');
+    var mapEl = byId('add-location-map');
+    var emptyEl = byId('add-location-map-empty');
+    var metaEl = byId('add-location-map-meta');
+    if (!wrap) { return; }
+
+    wrap.style.display = inPerson ? 'block' : 'none';
+    if (!inPerson) { return; }
+
+    var coords = selectedSlotCoords();
+    if (!coords) {
+      if (mapEl) { mapEl.style.display = 'none'; }
+      if (metaEl) { metaEl.textContent = ''; }
+      if (emptyEl) { emptyEl.style.display = 'block'; }
+      return;
+    }
+
+    if (emptyEl) { emptyEl.style.display = 'none'; }
+    if (mapEl) { mapEl.style.display = 'block'; }
+    if (metaEl) { metaEl.textContent = coords.label ? ('Lieu: ' + coords.label) : 'Lieu sélectionné'; }
+
+    ensureAddMap();
+    if (!addMap) { return; }
+    addMap.setView([coords.lat, coords.lng], 15);
+    if (addMapMarker) {
+      addMapMarker.setLatLng([coords.lat, coords.lng]);
+      if (coords.label) {
+        addMapMarker.bindPopup(coords.label);
+      }
+    }
+    setTimeout(function(){ addMap.invalidateSize(); }, 50);
+  }
+
+  function addError(msg){ var box = byId('add-error'); var txt = byId('add-error-text'); if(txt) txt.textContent = msg; if(box) box.style.display = 'block'; }
+
+  window.submitAddRdv = function() {
+    var slot = byId('add-slot-select');
+    if(!slot || !slot.value){ addError('Veuillez sélectionner un créneau.'); return; }
+
+    var type = document.querySelector('input[name=\"add_meeting_type\"]:checked');
+    if(!type){ addError('Veuillez sélectionner le type de rendez-vous.'); return; }
+
+    var fd = new FormData();
+    fd.append('slot_id', slot.value);
+    var course = byId('add-course-select'); if(course && course.value) fd.append('course_id', course.value);
+    var msg = byId('add-message'); if(msg && msg.value.trim()) fd.append('message', msg.value.trim());
+    fd.append('meeting_type', type.value);
+    var pdf = byId('add-course-pdf'); if(pdf && pdf.files && pdf.files.length) fd.append('course_pdf', pdf.files[0]);
+    var csrf = byId('add-csrf-token'); if(csrf && csrf.value) fd.append('_token', csrf.value);
+
+    fetch('{{ path('public_rendezvous_create') }}', {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With':'XMLHttpRequest', 'Accept':'application/json' }
+    })
+    .then(function(res){
+      return res.text().then(function(raw){
+        var data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch(_) {}
+        return { ok:res.ok, data:data, raw:raw };
+      });
+    })
+    .then(function(payload){
+      if(!payload.ok || !payload.data || !payload.data.success){
+        addError((payload.data && (payload.data.message || payload.data.error)) || payload.raw || 'Erreur.');
+        return;
+      }
+      closeAddModal();
+      showToast(payload.data.message || 'Rendez-vous créé.', 'success');
+      setTimeout(function(){ location.reload(); }, 500);
+    })
+    .catch(function(){ addError('Erreur réseau.'); });
+  };
+
+  window.submitEditRdv = function(){
+    var id = byId('edit-rdv-hidden-id') ? byId('edit-rdv-hidden-id').value : '';
+    var slot = byId('edit-slot-select') ? byId('edit-slot-select').value : '';
+    var box = byId('edit-error'), txt = byId('edit-error-text');
+    if(!slot){ if(txt) txt.textContent = 'Veuillez sélectionner un créneau.'; if(box) box.style.display='block'; return; }
+    var fd = new FormData(); fd.append('slot_id', slot);
+    fetch('/rendezvous/api/' + id + '/update', { method:'POST', body:fd })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.success){ closeEditModal(); showToast('Créneau mis à jour.', 'success'); setTimeout(function(){ location.reload(); }, 450); return; }
+        if(txt) txt.textContent = (d && d.error) || 'Erreur.'; if(box) box.style.display='block';
+      })
+      .catch(function(){ if(txt) txt.textContent='Erreur réseau.'; if(box) box.style.display='block'; });
+  };
+
+  window.showToast = function(msg, type){
+    var c = byId('flash-container'); if(!c) return;
+    var e = document.createElement('div');
+    e.className = 'sh-toast ' + (type === 'error' ? 'sh-toast-error' : 'sh-toast-success');
+    e.textContent = msg;
+    c.prepend(e);
+    setTimeout(function(){ e.style.opacity='0'; e.style.transform='translateY(-6px)'; setTimeout(function(){ e.remove(); }, 220); }, 3200);
+  };
+
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    closeAddModal(); closeEditModal(); closeRefuseModal();
+  });
+
+  var addSlotSelect = byId('add-slot-select');
+  if (addSlotSelect) {
+    addSlotSelect.addEventListener('change', updateAddLocationMap);
+  }
+
+  toggleAddMeetingFields();
+  updateAddLocationMap();
+})();
+</script>
+{% endblock %}

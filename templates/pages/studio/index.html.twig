@@ -1,0 +1,291 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Instructor Studio - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-100 dark:bg-navy-950">
+    {# Studio Header #}
+    <div class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-navy-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-display font-bold text-slate-900 dark:text-white">Instructor Studio</h1>
+                    <p class="text-slate-500 dark:text-slate-400">Manage your courses and track your performance</p>
+                </div>
+                <a href="{{ path('studio_course_create') }}" class="btn-primary">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Create New Course
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {# Stats Overview #}
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                        <i data-lucide="users" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <span class="badge badge-success text-xs">+12.5%</span>
+                </div>
+                <p class="text-3xl font-display font-bold text-slate-900 dark:text-white">{{ studioStats.totalStudents|number_format }}</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Total Students</p>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <i data-lucide="dollar-sign" class="w-6 h-6 text-emerald-600 dark:text-emerald-400"></i>
+                    </div>
+                    <span class="badge badge-success text-xs">+8.3%</span>
+                </div>
+                <p class="text-3xl font-display font-bold text-slate-900 dark:text-white">${{ studioStats.totalRevenue|number_format }}</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Total Revenue</p>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <i data-lucide="star" class="w-6 h-6 text-amber-600 dark:text-amber-400"></i>
+                    </div>
+                    <span class="badge badge-warning text-xs">-0.1</span>
+                </div>
+                <p class="text-3xl font-display font-bold text-slate-900 dark:text-white">{{ studioStats.avgRating }}</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Average Rating</p>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                        <i data-lucide="book-open" class="w-6 h-6 text-violet-600 dark:text-violet-400"></i>
+                    </div>
+                    <span class="badge bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 text-xs">Active</span>
+                </div>
+                <p class="text-3xl font-display font-bold text-slate-900 dark:text-white">{{ studioStats.activeCourses }}</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Active Courses</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            {# Main Content #}
+            <div class="lg:col-span-2 space-y-8">
+                {# Revenue Chart Card #}
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-display font-bold text-slate-900 dark:text-white">Revenue Overview</h2>
+                        <select class="input py-2 w-auto text-sm">
+                            <option>Last 7 days</option>
+                            <option selected>Last 30 days</option>
+                            <option>Last 90 days</option>
+                            <option>This year</option>
+                        </select>
+                    </div>
+
+                    {# Chart Placeholder #}
+                    <div class="h-64 flex items-end justify-between gap-2 px-4">
+                        {% set months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] %}
+                        {% set heights = [45, 65, 50, 75, 60, 85] %}
+                        {% for i in 0..5 %}
+                        <div class="flex-1 flex flex-col items-center gap-2">
+                            <div class="w-full bg-harbor-100 dark:bg-harbor-900/30 rounded-t-lg relative overflow-hidden" style="height: {{ heights[i] }}%">
+                                <div class="absolute inset-0 bg-gradient-to-t from-harbor-500 to-harbor-400"></div>
+                            </div>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ months[i] }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="flex items-center justify-center gap-8 mt-6 pt-6 border-t border-slate-200 dark:border-navy-800">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-slate-900 dark:text-white">$12,450</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">This month</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-slate-900 dark:text-white">$45,890</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">This year</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Your Courses #}
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-display font-bold text-slate-900 dark:text-white">Your Courses</h2>
+                        <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium">View All</a>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for course in instructorCourses|slice(0, 4) %}
+                        <div class="card p-4 hover:shadow-lg transition-all">
+                            <div class="flex items-center gap-4">
+                                <img src="{{ course.thumbnail }}" alt="{{ course.title }}" class="w-20 h-14 rounded-xl object-cover">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-medium text-slate-900 dark:text-white truncate">{{ course.title }}</h3>
+                                    <div class="flex items-center gap-4 mt-1 text-sm">
+                                        <span class="text-slate-500 dark:text-slate-400">{{ course.students_count|number_format }} students</span>
+                                        <div class="flex items-center gap-1">
+                                            <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                                            <span class="text-slate-700 dark:text-slate-300">{{ course.rating }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-slate-900 dark:text-white">${{ (course.price * course.students_count * 0.7)|number_format }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Revenue</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-400"></i>
+                                    </button>
+                                    <button class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i>
+                                    </button>
+                                    <button class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                                        <i data-lucide="more-vertical" class="w-4 h-4 text-slate-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Recent Reviews #}
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-display font-bold text-slate-900 dark:text-white">Recent Reviews</h2>
+                        <a href="#" class="text-harbor-600 dark:text-harbor-400 text-sm font-medium">View All</a>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for review in reviews|slice(0, 3) %}
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-navy-800/50">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-harbor-500 to-harbor-600 flex items-center justify-center text-white font-bold">
+                                    {{ review.user_name|slice(0, 1) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <h4 class="font-medium text-slate-900 dark:text-white">{{ review.user_name }}</h4>
+                                        <div class="flex items-center gap-1">
+                                            {% for i in 1..5 %}
+                                            <i data-lucide="star" class="w-3 h-3 text-amber-500 {{ i <= review.rating ? 'fill-amber-500' : '' }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">{{ review.title }} • {{ review.created_at }}</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{{ review.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# Sidebar #}
+            <div class="space-y-6">
+                {# Quick Actions #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <a href="{{ path('studio_course_create') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                            <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                                <i data-lucide="plus" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                            </div>
+                            <span class="font-medium text-slate-900 dark:text-white">Create Course</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                <i data-lucide="video" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                            </div>
+                            <span class="font-medium text-slate-900 dark:text-white">Upload Lesson</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                                <i data-lucide="help-circle" class="w-5 h-5 text-violet-600 dark:text-violet-400"></i>
+                            </div>
+                            <span class="font-medium text-slate-900 dark:text-white">Create Quiz</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                <i data-lucide="megaphone" class="w-5 h-5 text-amber-600 dark:text-amber-400"></i>
+                            </div>
+                            <span class="font-medium text-slate-900 dark:text-white">Send Announcement</span>
+                        </a>
+                    </div>
+                </div>
+
+                {# Student Activity #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Recent Enrollments</h3>
+                    <div class="space-y-4">
+                        {% set enrollments = [
+                            {name: 'Sarah Wilson', course: 'React Fundamentals', time: '2 hours ago'},
+                            {name: 'Michael Brown', course: 'Advanced JavaScript', time: '5 hours ago'},
+                            {name: 'Emily Davis', course: 'React Fundamentals', time: '8 hours ago'},
+                            {name: 'James Taylor', course: 'Node.js Basics', time: 'Yesterday'}
+                        ] %}
+                        {% for enrollment in enrollments %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-harbor-400 to-harbor-600 flex items-center justify-center text-white font-medium text-sm">
+                                {{ enrollment.name|split(' ')|first|slice(0, 1) }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ enrollment.name }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ enrollment.course }}</p>
+                            </div>
+                            <span class="text-xs text-slate-400">{{ enrollment.time }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# To-Do List #}
+                <div class="card p-6">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4">To-Do List</h3>
+                    <div class="space-y-3">
+                        {% set todos = [
+                            {text: 'Respond to 3 student questions', priority: 'high'},
+                            {text: 'Upload new lesson for React course', priority: 'medium'},
+                            {text: 'Review quiz submissions', priority: 'medium'},
+                            {text: 'Update course thumbnail', priority: 'low'}
+                        ] %}
+                        {% for todo in todos %}
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 cursor-pointer transition-colors">
+                            <input type="checkbox" class="w-5 h-5 rounded-lg border-2 border-slate-300 dark:border-navy-600 text-harbor-600 focus:ring-harbor-500">
+                            <span class="flex-1 text-sm text-slate-700 dark:text-slate-300">{{ todo.text }}</span>
+                            <span class="w-2 h-2 rounded-full {{ todo.priority == 'high' ? 'bg-red-500' : (todo.priority == 'medium' ? 'bg-amber-500' : 'bg-slate-300') }}"></span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Tips #}
+                <div class="card p-6 bg-gradient-to-br from-harbor-50 to-violet-50 dark:from-harbor-900/20 dark:to-violet-900/20 border-harbor-200 dark:border-harbor-800/50">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="lightbulb" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-slate-900 dark:text-white mb-1">Pro Tip</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">
+                                Courses with preview lessons get 3x more enrollments. Consider making your first lesson free!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

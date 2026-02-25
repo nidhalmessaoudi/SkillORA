@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Votre rendez-vous est confirmé</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.6;">
+    <h2 style="margin:0 0 12px;">Rendez-vous confirmé</h2>
+    <p style="margin:0 0 14px;">
+        Bonjour {{ studentName }},<br>
+        Votre rendez-vous avec {{ profName }} est confirmé.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse: collapse; margin: 0 0 14px;">
+        <tr><td style="padding:4px 0;"><strong>Étudiant :</strong> {{ studentName }}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Professeur :</strong> {{ profName }}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Date :</strong> {{ dateLabel|default(rdv.slot ? rdv.slot.startAt|date('d/m/Y') : 'N/A') }}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Heure :</strong> {{ timeLabel|default(rdv.slot ? rdv.slot.startAt|date('H:i') ~ ' → ' ~ rdv.slot.endAt|date('H:i') : 'N/A') }}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Cours :</strong> {{ courseLabel|default(rdv.course ? rdv.course.title : 'N/A') }}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Type :</strong> {{ meetingTypeLabel|default(rdv.meetingType == 'en_personne' ? 'En personne' : 'En ligne') }}</td></tr>
+        <tr>
+            <td style="padding:4px 0;">
+                <strong>Lien :</strong>
+                {% if rdv.meetingLink %}
+                    <a href="{{ rdv.meetingLink }}" target="_blank" rel="noopener noreferrer">{{ rdv.meetingLink }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+        {% if (meetingTypeLabel|default(rdv.meetingType == 'en_personne' ? 'En personne' : 'En ligne')) == 'En personne' and (locationLabel|default(rdv.locationLabel)) %}
+            <tr><td style="padding:4px 0;"><strong>Lieu :</strong> {{ locationLabel|default(rdv.locationLabel) }}</td></tr>
+        {% endif %}
+    </table>
+
+    {% if rdvLink is defined and rdvLink %}
+        <p style="margin:0 0 14px;">
+            <a href="{{ rdvLink }}" target="_blank" rel="noopener noreferrer">Voir le rendez-vous</a>
+        </p>
+    {% endif %}
+
+    <p style="margin:0;">Merci d'utiliser SkillHarbor.</p>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer Test - SkillHarbor</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+        .viewer-container {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 10px;
+            position: relative;
+        }
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .status.success {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+        .status.info {
+            background: #2196F3;
+            color: white;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 3D Model Viewer Test</h1>
+        
+        <div class="status info" id="status">
+            ⏳ Loading Model Viewer library...
+        </div>
+
+        <div class="test-section">
+            <h2>Test 1: Sample 3D Model (External)</h2>
+            <p>Testing with a sample GLB model from the internet:</p>
+            <div class="viewer-container">
+                <model-viewer
+                    id="model-viewer-test"
+                    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                    alt="Test 3D Model"
+                    camera-controls
+                    auto-rotate
+                    shadow-intensity="1"
+                    style="width: 100%; height: 100%;">
+                    
+                    <div slot="progress-bar" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8);">
+                        <div style="text-align: center; color: white;">
+                            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                            <p>Loading 3D Model...</p>
+                        </div>
+                    </div>
+                </model-viewer>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Your Uploaded Models</h2>
+            <p>Upload directory: <code>public/uploads/salles/</code></p>
+            <div id="uploaded-models">
+                <p>Checking for uploaded models...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Instructions</h2>
+            <ul>
+                <li><strong>If Test 1 works:</strong> Model Viewer is properly loaded ✅</li>
+                <li><strong>If Test 1 fails:</strong> Check browser console for errors ❌</li>
+                <li><strong>To upload models:</strong> Go to <code>/admin/events/new</code> and upload a .glb or .gltf file</li>
+                <li><strong>Supported formats:</strong> .glb (recommended), .gltf</li>
+                <li><strong>Controls:</strong> Click and drag to rotate, scroll to zoom</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Load Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const modelViewer = document.getElementById('model-viewer-test');
+
+        // Check if model-viewer is loaded
+        setTimeout(() => {
+            if (typeof customElements.get('model-viewer') !== 'undefined') {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ Model Viewer library loaded successfully!';
+                console.log('✅ Model Viewer ready');
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ Model Viewer failed to load. Check console for errors.';
+                console.error('❌ Model Viewer not loaded');
+            }
+        }, 1000);
+
+        // Listen for model load events
+        if (modelViewer) {
+            modelViewer.addEventListener('load', () => {
+                console.log('✅ 3D Model loaded successfully!');
+                const statusDiv2 = document.createElement('div');
+                statusDiv2.className = 'status success';
+                statusDiv2.innerHTML = '✅ Test model loaded successfully! Your 3D viewer is working.';
+                document.querySelector('.test-section').appendChild(statusDiv2);
+            });
+
+            modelViewer.addEventListener('error', (e) => {
+                console.error('❌ Model load error:', e);
+                const statusDiv2 = document.createElement('div');
+                statusDiv2.className = 'status error';
+                statusDiv2.innerHTML = '❌ Failed to load test model. Error: ' + (e.detail?.message || 'Unknown error');
+                document.querySelector('.test-section').appendChild(statusDiv2);
+            });
+        }
+
+        // Check uploaded models via fetch
+        fetch('/uploads/salles/')
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('Cannot access uploads directory');
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const links = doc.querySelectorAll('a');
+                const glbFiles = Array.from(links)
+                    .map(a => a.getAttribute('href'))
+                    .filter(href => href && (href.endsWith('.glb') || href.endsWith('.gltf')));
+                
+                const uploadedDiv = document.getElementById('uploaded-models');
+                if (glbFiles.length > 0) {
+                    uploadedDiv.innerHTML = '<p>Found ' + glbFiles.length + ' model(s):</p><ul>' +
+                        glbFiles.map(file => '<li><code>' + file + '</code></li>').join('') +
+                        '</ul>';
+                } else {
+                    uploadedDiv.innerHTML = '<p style="color: #ff9800;">⚠️ No 3D models found. Upload one from admin panel.</p>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('uploaded-models').innerHTML = 
+                    '<p style="color: #f44336;">❌ Cannot check uploads: ' + err.message + '</p>';
+            });
+    </script>
+</body>
+</html>

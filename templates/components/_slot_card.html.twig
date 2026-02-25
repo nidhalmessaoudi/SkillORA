@@ -1,0 +1,89 @@
+{% set isBooked = slot.isBooked ?? false %}
+{% set professorName = slot.professor ? slot.professor.fullName : 'Professeur non défini' %}
+{% set location = slot.locationLabel ?? null %}
+{% set dataSearch = (slot.startAt|date('d/m/Y H:i') ~ ' ' ~ slot.endAt|date('d/m/Y H:i') ~ ' ' ~ professorName ~ ' ' ~ (location ?? '') ~ ' ' ~ (isBooked ? 'réservé' : 'disponible'))|lower %}
+{% set stampSrc = isBooked ? '/assets/images/unavailable.png' : '/assets/images/available.png' %}
+{% set stampSizeClass = isBooked ? 'max-w-[140px] max-h-[64px]' : 'max-w-[112px] max-h-[52px]' %}
+{% set reserveHref = isBooked ? '#' : path('public_rendezvous_index', { slot: slot.id }) %}
+
+<article
+    class="course-card slot-card group relative max-w-sm mx-auto w-full {{ isBooked ? 'opacity-80 pointer-events-none' : '' }}"
+    data-booked="{{ isBooked ? '1' : '0' }}"
+    data-search="{{ dataSearch }}"
+    style="margin-bottom: 1rem;"
+>
+    {% set canManageSlot = app.user
+        and slot.professor
+        and (slot.professor == app.user or slot.professor.id == app.user.id or is_granted('ROLE_ADMIN'))
+        and not slot.isBooked
+    %}
+    {% if canManageSlot %}
+        <div class="absolute top-3 right-3 z-30 flex items-center gap-2">
+            <button
+                type="button"
+                onclick="if(window.openEditSlotModal){openEditSlotModal({{ slot.id }}, '{{ slot.startAt|date('Y-m-d') }}', '{{ slot.startAt|date('H:i') }}', '{{ slot.endAt|date('Y-m-d') }}', '{{ slot.endAt|date('H:i') }}', '{{ (slot.locationLabel ?? '')|e('js') }}', '{{ slot.locationLat is not null ? slot.locationLat : '' }}', '{{ slot.locationLng is not null ? slot.locationLng : '' }}');}else{window.location.href='{{ path('slots_front_edit', {id: slot.id}) }}';}"
+                class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 flex items-center justify-center"
+            >
+                <i data-lucide="pencil" class="w-4 h-4 text-slate-200"></i>
+            </button>
+            <form method="post" action="{{ path('slots_front_delete', {id: slot.id}) }}" onsubmit="return confirm('Supprimer ce créneau ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ slot.id) }}">
+                <button type="submit" class="w-9 h-9 rounded-full bg-white/10 hover:bg-rose-500/20 border border-white/10 flex items-center justify-center">
+                    <i data-lucide="trash-2" class="w-4 h-4 text-rose-200"></i>
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="course-card-thumbnail slot-card-thumbnail relative h-48 overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-navy-800 dark:to-navy-900 flex items-center justify-center {{ isBooked ? 'cursor-not-allowed' : '' }}">
+        <a href="{{ reserveHref }}" class="w-full h-full flex items-center justify-center {{ isBooked ? 'pointer-events-none' : '' }}">
+            <img
+                src="{{ stampSrc }}"
+                alt="{{ isBooked ? 'UNAVAILABLE' : 'AVAILABLE' }}"
+                loading="lazy"
+                class="{{ stampSizeClass }} max-w-full max-h-full w-auto h-auto object-contain rotate-[-10deg] opacity-90 pointer-events-none select-none mix-blend-multiply dark:mix-blend-normal"
+                onerror="this.style.display='none';"
+            >
+        </a>
+    </div>
+
+    <div class="course-card-content">
+        <div class="flex items-center justify-between gap-2 mb-3">
+            <span class="chip {{ isBooked ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-300 border-danger-200 dark:border-danger-800' : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300 border-success-200 dark:border-success-800' }}">
+                {{ isBooked ? 'Réservé' : 'Disponible' }}
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">{{ slot.startAt|date('M Y') }}</span>
+        </div>
+
+        <h3 class="line-clamp-2 text-base font-semibold text-navy-900 dark:text-white {{ isBooked ? '' : 'group-hover:text-harbor-600 dark:group-hover:text-harbor-400' }} transition-colors">
+            {{ slot.startAt|date('l d F Y')|capitalize }}
+        </h3>
+
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            <span class="font-medium">Prof:</span> {{ professorName }}
+        </p>
+
+        {% if location %}
+            <p class="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+                <span class="font-medium">Lieu:</span> {{ location }}
+            </p>
+        {% endif %}
+
+        <div class="mt-auto pt-4 flex items-start justify-between gap-2">
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+                {{ slot.startAt|date('H:i') }} → {{ slot.endAt|date('H:i') }}
+            </span>
+
+            {% if canManageSlot %}
+                <button
+                    type="button"
+                    onclick="if(window.openEditSlotModal){openEditSlotModal({{ slot.id }}, '{{ slot.startAt|date('Y-m-d') }}', '{{ slot.startAt|date('H:i') }}', '{{ slot.endAt|date('Y-m-d') }}', '{{ slot.endAt|date('H:i') }}', '{{ (slot.locationLabel ?? '')|e('js') }}', '{{ slot.locationLat is not null ? slot.locationLat : '' }}', '{{ slot.locationLng is not null ? slot.locationLng : '' }}');}else{window.location.href='{{ path('slots_front_edit', {id: slot.id}) }}';}"
+                    class="mt-2 inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
+                    style="background-color:#2563eb;border-color:#1d4ed8;color:#ffffff;"
+                >
+                    Modifier
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</article>

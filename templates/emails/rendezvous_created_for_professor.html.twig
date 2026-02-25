@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvelle demande de rendez-vous</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5;">
+    <h2>Nouvelle demande de rendez-vous</h2>
+    <p>Bonjour Mr. {{ profName }}, vous avez reçu une nouvelle demande de rendez-vous de {{ studentName }}.</p>
+
+    <h3>Détails</h3>
+    <ul>
+        <li><strong>Date:</strong> {{ rdv.slot ? rdv.slot.startAt|date('d/m/Y') : 'N/A' }}</li>
+        <li><strong>Heure:</strong> {{ rdv.slot ? rdv.slot.startAt|date('H:i') ~ ' - ' ~ rdv.slot.endAt|date('H:i') : 'N/A' }}</li>
+        <li><strong>Cours:</strong> {{ rdv.course ? rdv.course.title : 'N/A' }}</li>
+        <li><strong>Type:</strong> {{ rdv.meetingType == 'en_personne' ? 'En personne' : 'En ligne' }}</li>
+    </ul>
+
+    <p>Connectez-vous à la plateforme pour traiter cette demande.</p>
+</body>
+</html>

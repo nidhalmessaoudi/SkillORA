@@ -1,0 +1,411 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Create Event - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white mb-2">Create Event</h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">Fill in event details and salle information.</p>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-6 space-y-4">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Event Details</h2>
+
+            <div>
+                <label class="input-label" for="title">Title</label>
+                {% if errors.title is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.title }}</p>
+                {% endif %}
+                <input id="title" name="title" type="text" class="input" value="{{ form_data.title|default('') }}">
+            </div>
+
+            <div>
+                <label class="input-label" for="description">Description</label>
+                <textarea id="description" name="description" class="textarea" rows="4">{{ form_data.description|default('') }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="start_date">Start Date</label>
+                    {% if errors.start_date is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.start_date }}</p>
+                    {% endif %}
+                    <input id="start_date" name="start_date" type="datetime-local" class="input" value="{{ form_data.start_date|default('') }}">
+                    <p class="text-caption text-navy-500 dark:text-navy-400 mt-1">Defaults to the current time, but you can edit it.</p>
+                </div>
+                <div>
+                    <label class="input-label" for="end_date">End Date</label>
+                    {% if errors.end_date is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.end_date }}</p>
+                    {% endif %}
+                    <input id="end_date" name="end_date" type="datetime-local" class="input" value="{{ form_data.end_date|default('') }}">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="event_type">Event Type</label>
+                    {% if errors.event_type is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.event_type }}</p>
+                    {% endif %}
+                    <select id="event_type" name="event_type" class="select"></select>
+                    <div class="mt-2 flex items-center gap-2">
+                        <input id="event_type_new" type="text" class="input" placeholder="Add new type">
+                        <button type="button" id="event_type_add" class="btn-secondary btn-sm">Add</button>
+                    </div>
+                    <div id="event_type_list" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="input-label" for="price_type">Prix</label>
+                    {% if errors.price_type is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.price_type }}</p>
+                    {% endif %}
+                    <select id="price_type" name="price_type" class="input">
+                        <option value="">Selectionnez un type</option>
+                        <option value="gratuit" {% if form_data.price_type == 'gratuit' %}selected{% endif %}>Gratuit</option>
+                        <option value="payant" {% if form_data.price_type == 'payant' %}selected{% endif %}>Payant</option>
+                    </select>
+                </div>
+
+                <div id="price-field" class="space-y-2" style="display: none;">
+                    <label class="input-label" for="price">Prix</label>
+                    {% if errors.price is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.price }}</p>
+                    {% endif %}
+                    <div class="flex items-center gap-2">
+                        <input id="price" name="price" type="number" step="0.01" min="0" class="input" value="{{ form_data.price|default('') }}" placeholder="Entrez le prix">
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="input-label" for="media">Image or Video Upload</label>
+                <input id="media" name="media" type="file" accept="image/*,video/*" class="input">
+                <p class="input-hint">Upload an image or video file for the event.</p>
+            </div>
+
+            <div id="media-preview" class="hidden">
+                <p class="input-hint">Preview</p>
+                <img id="media-preview-image" class="hidden w-32 h-20 object-cover rounded-xl border border-navy-200" alt="Selected media preview">
+                <video id="media-preview-video" class="hidden w-48 rounded-xl border border-navy-200" controls></video>
+            </div>
+        </div>
+
+        <div class="card p-6 space-y-4">
+            <h2 class="text-heading-lg font-display font-semibold text-navy-900 dark:text-white">Salle Details</h2>
+
+            <div>
+                <label class="input-label" for="salle_name">Salle Name</label>
+                {% if errors.salle_name is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.salle_name }}</p>
+                {% endif %}
+                <input id="salle_name" name="salle_name" type="text" class="input" value="{{ form_data.salle_name|default('') }}">
+            </div>
+
+            <div>
+                <label class="input-label" for="salle_location">Location</label>
+                {% if errors.salle_location is defined %}
+                    <p class="text-red-600 text-sm mt-1">{{ errors.salle_location }}</p>
+                {% endif %}
+                <input id="salle_location" name="salle_location" type="text" class="input" value="{{ form_data.salle_location|default('') }}">
+                <input type="hidden" id="salle_lat" name="salle_lat" value="{{ form_data.salle_lat|default('') }}">
+                <input type="hidden" id="salle_lng" name="salle_lng" value="{{ form_data.salle_lng|default('') }}">
+                <div id="location-suggestions" class="mt-2 space-y-1"></div>
+                <div id="salle-map" class="mt-3 h-64 w-full rounded-xl border border-navy-200 dark:border-navy-700 overflow-hidden"></div>
+                <p class="input-hint">Type an address or click on the map to set location.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label" for="salle_max_participants">Max Participants</label>
+                    {% if errors.salle_max_participants is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.salle_max_participants }}</p>
+                    {% endif %}
+                    <input id="salle_max_participants" name="salle_max_participants" type="number" min="1" class="input" value="{{ form_data.salle_max_participants|default('') }}">
+                </div>
+                <div>
+                    <label class="input-label" for="salle_duration">Duration (minutes)</label>
+                    {% if errors.salle_duration is defined %}
+                        <p class="text-red-600 text-sm mt-1">{{ errors.salle_duration }}</p>
+                    {% endif %}
+                    <input id="salle_duration" name="salle_duration" type="number" min="1" class="input" value="{{ form_data.salle_duration|default('') }}">
+                </div>
+            </div>
+
+            <div>
+                <label class="input-label" for="salle_image_3d">3D Model (.glb/.gltf)</label>
+                <input id="salle_image_3d" name="salle_image_3d" type="file" accept=".glb,.gltf" class="input">
+                <p class="input-hint">Upload a 3D model file. The path will be stored in the database.</p>
+            </div>
+
+            <div>
+                <label class="input-label" for="salle_equipment">Equipment</label>
+                <textarea id="salle_equipment" name="salle_equipment" class="textarea" rows="4">{{ form_data.salle_equipment|default('') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">Create Event</button>
+        <a href="{{ path('admin_events_index') }}" class="btn-ghost btn-sm">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    (function() {
+        const priceType = document.getElementById('price_type');
+        const priceField = document.getElementById('price-field');
+        const priceInput = document.getElementById('price');
+        const priceAdd = document.getElementById('price_add');
+
+        if (!priceType || !priceField) {
+            return;
+        }
+
+        const togglePriceField = () => {
+            const isPaid = priceType.value === 'payant';
+            priceField.style.display = isPaid ? 'block' : 'none';
+            if (priceInput && !isPaid) {
+                priceInput.value = '';
+            }
+        };
+
+        priceType.addEventListener('change', togglePriceField);
+        togglePriceField();
+
+        if (priceAdd) {
+            priceAdd.addEventListener('click', () => {
+                if (priceInput) {
+                    priceInput.focus();
+                }
+            });
+        }
+    })();
+
+    (function() {
+        const input = document.getElementById('media');
+        const preview = document.getElementById('media-preview');
+        const previewImage = document.getElementById('media-preview-image');
+        const previewVideo = document.getElementById('media-preview-video');
+
+        if (!input || !preview || !previewImage || !previewVideo) {
+            return;
+        }
+
+        input.addEventListener('change', function() {
+            const file = input.files && input.files[0];
+            if (!file) {
+                preview.classList.add('hidden');
+                previewImage.classList.add('hidden');
+                previewVideo.classList.add('hidden');
+                previewImage.src = '';
+                previewVideo.src = '';
+                return;
+            }
+
+            const url = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+
+            if (file.type.startsWith('image/')) {
+                previewImage.src = url;
+                previewImage.classList.remove('hidden');
+                previewVideo.classList.add('hidden');
+                previewVideo.src = '';
+                return;
+            }
+
+            if (file.type.startsWith('video/')) {
+                previewVideo.src = url;
+                previewVideo.classList.remove('hidden');
+                previewImage.classList.add('hidden');
+                previewImage.src = '';
+            }
+        });
+    })();
+
+    (function() {
+        const select = document.getElementById('event_type');
+        const addInput = document.getElementById('event_type_new');
+        const addButton = document.getElementById('event_type_add');
+        const list = document.getElementById('event_type_list');
+        const initialValue = '{{ form_data.event_type|default('')|e('js') }}';
+
+        if (!select || !addInput || !addButton || !list) {
+            return;
+        }
+
+        const types = ['Hackathon', 'Formation', 'Workshop'];
+        if (initialValue && !types.includes(initialValue)) {
+            types.push(initialValue);
+        }
+
+        const render = () => {
+            select.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select type...';
+            select.appendChild(placeholder);
+
+            types.forEach((type) => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (type === initialValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            list.innerHTML = '';
+            types.forEach((type) => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.textContent = type;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'ml-2 text-navy-500 hover:text-danger-500';
+                remove.textContent = 'x';
+                remove.dataset.type = type;
+
+                chip.appendChild(remove);
+                list.appendChild(chip);
+            });
+        };
+
+        addButton.addEventListener('click', () => {
+            const value = addInput.value.trim();
+            if (!value || types.includes(value)) {
+                return;
+            }
+
+            types.push(value);
+            addInput.value = '';
+            render();
+            select.value = value;
+        });
+
+        list.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const type = target.dataset.type;
+            if (!type) {
+                return;
+            }
+
+            const index = types.indexOf(type);
+            if (index >= 0) {
+                types.splice(index, 1);
+                if (select.value === type) {
+                    select.value = '';
+                }
+                render();
+            }
+        });
+
+        render();
+    })();
+
+    (function() {
+        const input = document.getElementById('salle_location');
+        const latInput = document.getElementById('salle_lat');
+        const lngInput = document.getElementById('salle_lng');
+        const suggestions = document.getElementById('location-suggestions');
+        const mapEl = document.getElementById('salle-map');
+
+        if (!input || !latInput || !lngInput || !suggestions || !mapEl || typeof L === 'undefined') {
+            return;
+        }
+
+        const map = L.map(mapEl).setView([36.8065, 10.1815], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker = null;
+
+        const setMarker = (lat, lng) => {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            map.setView([lat, lng], 14);
+        };
+
+        const setLatLng = (lat, lng) => {
+            latInput.value = String(lat);
+            lngInput.value = String(lng);
+            setMarker(lat, lng);
+        };
+
+        const clearSuggestions = () => {
+            suggestions.innerHTML = '';
+        };
+
+        const renderSuggestions = (items) => {
+            clearSuggestions();
+            items.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-full text-left px-3 py-2 rounded bg-navy-50 dark:bg-navy-800 text-sm hover:bg-navy-100 dark:hover:bg-navy-700';
+                btn.textContent = item.display_name;
+                btn.addEventListener('click', () => {
+                    input.value = item.display_name;
+                    setLatLng(item.lat, item.lon);
+                    clearSuggestions();
+                });
+                suggestions.appendChild(btn);
+            });
+        };
+
+        let debounceId = null;
+        input.addEventListener('input', () => {
+            const query = input.value.trim();
+            clearTimeout(debounceId);
+            if (query.length < 3) {
+                clearSuggestions();
+                return;
+            }
+            debounceId = setTimeout(() => {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        renderSuggestions(data);
+                    })
+                    .catch(() => {
+                        clearSuggestions();
+                    });
+            }, 250);
+        });
+
+        map.on('click', (event) => {
+            const { lat, lng } = event.latlng;
+            setLatLng(lat.toFixed(6), lng.toFixed(6));
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data.display_name) {
+                        input.value = data.display_name;
+                    }
+                })
+                .catch(() => {});
+        });
+
+        if (latInput.value && lngInput.value) {
+            setMarker(parseFloat(latInput.value), parseFloat(lngInput.value));
+        }
+    })();
+</script>
+{% endblock %}

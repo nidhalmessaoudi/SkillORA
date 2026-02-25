@@ -1,0 +1,60 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Answer #{{ answer.id }}{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-heading-lg font-display font-bold text-navy-900 dark:text-white">
+      Answer #{{ answer.id }}
+    </h1>
+    <p class="text-body-md text-navy-600 dark:text-navy-400">
+      Created at {{ answer.createdAt|date('Y-m-d H:i') }}
+    </p>
+  </div>
+
+  <a href="{{ path('admin_answer_index') }}" class="btn-sm bg-navy-100 text-navy-700 hover:bg-navy-200">
+    Back
+  </a>
+</div>
+
+<div class="card p-6 space-y-4">
+  <div>
+    <div class="text-caption text-navy-500">Answer content</div>
+    <div class="text-body-md text-navy-900 dark:text-white">
+      {{ answer.content }}
+    </div>
+  </div>
+
+  <div>
+    <div class="text-caption text-navy-500">Correct?</div>
+    {% if answer.isCorrect is same as(true) %}
+      <span class="badge bg-harbor-100 text-harbor-700">✅ Correct</span>
+    {% elseif answer.isCorrect is same as(false) %}
+      <span class="badge bg-danger-100 text-danger-700">❌ Incorrect</span>
+    {% else %}
+      <span class="badge bg-navy-100 text-navy-700">N/A</span>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="text-caption text-navy-500">Role</div>
+    <span class="badge bg-navy-100 text-navy-700">{{ answer.role }}</span>
+  </div>
+
+  <div>
+    <div class="text-caption text-navy-500">Related Question</div>
+    {% if answer.question %}
+      <div class="text-body-sm text-navy-900 dark:text-white">
+        #{{ answer.question.id }} — {{ answer.question.content }}
+      </div>
+      <a class="btn-sm bg-harbor-100 text-harbor-700 hover:bg-harbor-200 mt-2 inline-block"
+         href="{{ path('admin_question_show', {id: answer.question.id}) }}">
+        View Question
+      </a>
+    {% else %}
+      <div class="text-body-sm text-navy-500">No question linked.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

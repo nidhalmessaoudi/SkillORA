@@ -1,0 +1,119 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Rendez-vous {{ rdv.id }} - SkillHarbor{% endblock %}
+
+{% block body %}
+<style>
+    html.dark .rdv-detail-panel {
+        background: #0f172a !important;
+        border-color: #22304a !important;
+    }
+
+    html.dark .rdv-detail-box {
+        background: #111b32 !important;
+        border-color: #243653 !important;
+    }
+
+    html.dark .rdv-detail-label {
+        color: #94a3b8 !important;
+    }
+
+    html.dark .rdv-detail-value {
+        color: #f1f5f9 !important;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        header, footer {
+            display: none !important;
+        }
+        body {
+            background: #ffffff !important;
+        }
+        .print-card {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+    }
+</style>
+<div class="min-h-screen bg-slate-50 dark:bg-navy-950 py-10">
+    <div class="container-wide">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-display font-bold text-navy-900 dark:text-white">
+                        Détails du rendez-vous {{ rdv.id }}
+                    </h1>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                        Consultez les informations et exportez le PDF.
+                    </p>
+                </div>
+                <div class="no-print flex items-center gap-2">
+                    <button
+                        type="button"
+                        onclick="window.print()"
+                        class="btn-primary btn-sm inline-flex items-center gap-2"
+                        style="background-color:#2563eb;color:#ffffff;border:1px solid #1d4ed8;"
+                    >
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        Exporter les détails
+                    </button>
+                    <a href="{{ path('public_rendezvous_index') }}"
+                       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-navy-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Retour
+                    </a>
+                </div>
+            </div>
+
+            <div class="print-card rdv-detail-panel bg-white dark:bg-navy-900 rounded-2xl border border-slate-200 dark:border-navy-800 shadow-soft p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rdv-detail-box rounded-xl border border-slate-200 dark:border-navy-800 p-4 bg-slate-50 dark:bg-navy-950/50">
+                        <p class="rdv-detail-label text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Statut</p>
+                        <p class="rdv-detail-value mt-1 font-semibold text-navy-900 dark:text-white">
+                            {% if rdv.statut == 'confirmé' %}Confirmé{% elseif rdv.statut == 'rejeté' %}Rejeté{% else %}En attente{% endif %}
+                        </p>
+                    </div>
+                    <div class="rdv-detail-box rounded-xl border border-slate-200 dark:border-navy-800 p-4 bg-slate-50 dark:bg-navy-950/50">
+                        <p class="rdv-detail-label text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Créneau</p>
+                        <p class="rdv-detail-value mt-1 font-semibold text-navy-900 dark:text-white">
+                            {% if rdv.slot %}
+                                {{ rdv.slot.startAt|date('d/m/Y H:i') }} → {{ rdv.slot.endAt|date('H:i') }}
+                            {% else %}
+                                Non défini
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="rdv-detail-box rounded-xl border border-slate-200 dark:border-navy-800 p-4 bg-slate-50 dark:bg-navy-950/50">
+                        <p class="rdv-detail-label text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Professeur</p>
+                        <p class="rdv-detail-value mt-1 font-semibold text-navy-900 dark:text-white">{{ rdv.professor ? rdv.professor.fullName : 'Non défini' }}</p>
+                    </div>
+                    <div class="rdv-detail-box rounded-xl border border-slate-200 dark:border-navy-800 p-4 bg-slate-50 dark:bg-navy-950/50">
+                        <p class="rdv-detail-label text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Cours</p>
+                        <p class="rdv-detail-value mt-1 font-semibold text-navy-900 dark:text-white">{{ rdv.course ? rdv.course.title : 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    {% if rdv.coursePdfName %}
+                        <a href="{{ asset('uploads/cours/' ~ rdv.coursePdfName) }}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-colors">
+                            <i data-lucide="file-down" class="w-4 h-4"></i>
+                            Exporter PDF
+                        </a>
+                    {% else %}
+                        <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 text-slate-500 dark:text-slate-400">
+                            <i data-lucide="file-x-2" class="w-4 h-4"></i>
+                            Aucun PDF disponible
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

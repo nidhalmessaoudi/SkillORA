@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Votre demande de rendez-vous</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5;">
+    <h2>Votre demande de rendez-vous est enregistrée</h2>
+    <p>Bonjour {{ studentName }}, votre demande de rendez-vous a bien été créée.</p>
+
+    <h3>Détails</h3>
+    <ul>
+        <li><strong>Date:</strong> {{ dateLabel }}</li>
+        <li><strong>Heure:</strong> {{ timeLabel }}</li>
+        <li><strong>Sujet / motif:</strong> {{ subjectLabel }}</li>
+        <li><strong>Nom professeur:</strong> {{ professorName }}</li>
+        <li><strong>Nom étudiant:</strong> {{ studentName }}</li>
+        <li><strong>Statut:</strong> {{ statusLabel }}</li>
+    </ul>
+</body>
+</html>

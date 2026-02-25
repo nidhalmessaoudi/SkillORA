@@ -1,0 +1,58 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Notifications - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-gradient-to-br from-slate-50 via-white to-harbor-50/30 dark:from-navy-950 dark:via-navy-900 dark:to-harbor-950/30 min-h-screen">
+    <div class="container-wide py-8 md:py-12">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-3xl font-display font-bold text-navy-900 dark:text-white">Notifications</h1>
+                <p class="text-sm text-navy-500 dark:text-navy-400 mt-1">{{ unread_count }} non lue(s)</p>
+            </div>
+            <form method="post" action="{{ path('notifications_read_all') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('notifications_read_all') }}">
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-harbor-600 text-white font-semibold hover:bg-harbor-700 transition-colors">
+                    Tout marquer comme lu
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 overflow-hidden">
+            {% for notification in notifications %}
+                <div class="px-5 py-4 border-b border-slate-100 dark:border-navy-800 flex items-start gap-4 {% if not notification.isRead %}bg-harbor-50/50 dark:bg-harbor-900/10{% endif %}">
+                    <div class="mt-0.5">
+                        <span class="inline-flex w-9 h-9 items-center justify-center rounded-xl {% if notification.isRead %}bg-slate-100 dark:bg-navy-800{% else %}bg-harbor-100 dark:bg-harbor-900/30{% endif %}">
+                            <i data-lucide="{% if notification.isRead %}bell{% else %}bell-ring{% endif %}" class="w-5 h-5 {% if notification.isRead %}text-slate-500 dark:text-slate-400{% else %}text-harbor-600 dark:text-harbor-400{% endif %}"></i>
+                        </span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-navy-900 dark:text-white">{{ notification.title }}</p>
+                        <p class="text-sm text-navy-700 dark:text-navy-200 mt-1 break-words">{{ notification.message }}</p>
+                        <p class="text-xs text-navy-500 dark:text-navy-400 mt-2">{{ notification.createdAt|date('d/m/Y H:i') }}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% if notification.link %}
+                            <a href="{{ notification.link }}" class="text-xs font-medium text-harbor-600 dark:text-harbor-400 hover:underline">Ouvrir</a>
+                        {% endif %}
+                        {% if not notification.isRead %}
+                            <form method="post" action="{{ path('notifications_read', {id: notification.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ notification.id) }}">
+                                <button type="submit" class="text-xs font-medium text-success-600 dark:text-success-400 hover:underline">
+                                    Marquer lu
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <i data-lucide="bell-off" class="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto mb-3"></i>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Aucune notification pour le moment.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

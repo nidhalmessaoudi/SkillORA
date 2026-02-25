@@ -1,0 +1,48 @@
+{% set unread = notifications_unread_count|default(0) %}
+<div class="relative" data-dropdown>
+    <button
+        onclick="toggleDropdown('notifications-dropdown')"
+        class="relative inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-slate-100 px-3 text-slate-700 hover:bg-slate-200 transition-colors dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        aria-label="Notifications"
+    >
+        <i data-lucide="bell-ring" class="w-5 h-5"></i>
+        <span class="text-xs font-bold tabular-nums">
+            {{ unread > 99 ? '99+' : unread }}
+        </span>
+        {% if unread > 0 %}
+            <span class="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+        {% endif %}
+    </button>
+
+    <div id="notifications-dropdown" class="dropdown hidden right-0 w-80">
+        <div class="px-4 py-3 border-b border-navy-100 dark:border-navy-800 flex items-center justify-between gap-2">
+            <span class="font-display font-semibold text-navy-900 dark:text-white">Notifications</span>
+            {% if unread > 0 %}
+                <span class="text-xs font-medium text-coral-500">{{ unread }} non lue(s)</span>
+            {% endif %}
+        </div>
+
+        <div class="max-h-80 overflow-y-auto custom-scrollbar">
+            {% for notification in notifications_latest_unread %}
+                <a href="{{ path('notifications_index') }}" class="flex gap-3 px-4 py-3 hover:bg-navy-50 dark:hover:bg-navy-800 transition-colors">
+                    <div class="w-10 h-10 bg-harbor-100 dark:bg-harbor-900/30 rounded-xl flex items-center justify-center shrink-0">
+                        <i data-lucide="bell-ring" class="w-5 h-5 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-body-sm font-semibold text-navy-800 dark:text-navy-100 line-clamp-1">{{ notification.title }}</p>
+                        <p class="text-body-sm text-navy-700 dark:text-navy-200 line-clamp-2">{{ notification.message }}</p>
+                        <p class="text-caption text-navy-500 mt-1">{{ notification.createdAt|date('d/m/Y H:i') }}</p>
+                    </div>
+                </a>
+            {% else %}
+                <div class="px-4 py-6 text-center text-sm text-navy-500 dark:text-navy-400">
+                    Aucune notification non lue.
+                </div>
+            {% endfor %}
+        </div>
+
+        <a href="{{ path('notifications_index') }}" class="block px-4 py-3 text-center text-body-sm font-medium text-harbor-600 dark:text-harbor-400 hover:bg-navy-50 dark:hover:bg-navy-800 border-t border-navy-100 dark:border-navy-800 transition-colors">
+            Voir toutes les notifications
+        </a>
+    </div>
+</div>

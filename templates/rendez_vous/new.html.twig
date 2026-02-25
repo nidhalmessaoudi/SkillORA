@@ -1,0 +1,114 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Nouveau rendez-vous - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 -mx-6 -my-8 px-6 py-8">
+    <div class="mx-auto max-w-6xl px-4 py-10">
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ path('admin_rendezvous_index') }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-2xl font-bold text-navy-900 dark:text-white">Nouveau rendez-vous</h1>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400 ml-9">Associez un rendez-vous à un créneau disponible.</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            <div class="grid grid-cols-12 gap-6">
+                <section class="col-span-12 lg:col-span-3">
+                    <div class="bg-white/90 dark:bg-navy-900/70 backdrop-blur rounded-3xl border border-slate-200/70 dark:border-navy-800 shadow-sm p-6 h-full">
+                        <div class="space-y-4">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-navy-800 flex items-center justify-center">
+                                <i data-lucide="calendar-plus" class="w-7 h-7 text-blue-600 dark:text-blue-400"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-navy-900 dark:text-white">Réserver</h2>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Sélectionnez un créneau pour créer un nouveau rendez-vous.</p>
+                            <div class="space-y-2 pt-2">
+                                <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-navy-800 text-sm text-slate-700 dark:text-slate-300 w-full">
+                                    <i data-lucide="clock-3" class="w-4 h-4"></i>
+                                    <span>Durée selon créneau</span>
+                                </div>
+                                <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-navy-800 text-sm text-slate-700 dark:text-slate-300 w-full">
+                                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                    <span>Création sécurisée</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="col-span-12 lg:col-span-5">
+                    <div class="bg-white/90 dark:bg-navy-900/70 backdrop-blur rounded-3xl border border-slate-200/70 dark:border-navy-800 shadow-sm p-6 h-full">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">Choisir une date</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">Sélectionnez un créneau disponible.</p>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="slot_id">Créneau disponible</label>
+                            {% if errors.slot_id is defined %}
+                                <p class="text-red-600 text-sm mt-1 mb-2">{{ errors.slot_id }}</p>
+                            {% endif %}
+
+                            {% if available_slots|length > 0 %}
+                                <select
+                                    id="slot_id"
+                                    name="slot_id"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 px-4 py-3 text-sm font-medium text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Sélectionnez un créneau...</option>
+                                    {% for slot in available_slots %}
+                                        <option value="{{ slot.id }}" {{ form_data.slot_id == slot.id ? 'selected' : '' }}>
+                                            Slot #{{ slot.id }} — {{ slot.startAt|date('d/m/Y H:i') }} → {{ slot.endAt|date('d/m/Y H:i') }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <div class="flex items-center gap-3 p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-warning-600 dark:text-warning-400"></i>
+                                    <p class="text-sm text-warning-700 dark:text-warning-300">Aucun créneau disponible. <a href="{{ path('admin_slots_new') }}" class="underline font-semibold">Créer un créneau</a> d'abord.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="col-span-12 lg:col-span-4">
+                    <div class="bg-white/90 dark:bg-navy-900/70 backdrop-blur rounded-3xl border border-slate-200/70 dark:border-navy-800 shadow-sm p-6 h-full flex flex-col">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">Créneau & validation</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">Vérifiez le statut avant de confirmer.</p>
+
+                        <div class="space-y-3 mb-6">
+                            <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-navy-800 w-full text-sm text-slate-700 dark:text-slate-300">
+                                <i data-lucide="circle-dot" class="w-4 h-4"></i>
+                                <span>Statut</span>
+                            </div>
+                            <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300 text-sm font-medium w-full">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                                En attente
+                            </div>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Le statut est automatiquement défini à « En attente » lors de la création.</p>
+                        </div>
+
+                        <div class="mt-auto space-y-3">
+                            <button type="submit" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" {{ available_slots|length == 0 ? 'disabled' : '' }}>
+                                <i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>
+                                Créer le rendez-vous
+                            </button>
+                            <a href="{{ path('admin_rendezvous_index') }}" class="w-full inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-navy-800 transition text-navy-700 dark:text-navy-300 border-slate-300 dark:border-navy-700">
+                                Annuler
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .is-selected {
+        @apply border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300;
+    }
+</style>
+{% endblock %}

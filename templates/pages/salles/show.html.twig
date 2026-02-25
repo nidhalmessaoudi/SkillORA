@@ -1,0 +1,550 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Salle Details - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-navy-50 dark:bg-navy-900/30 min-h-screen">
+    {% set reserved = reserved_seats|default([]) %}
+    <div class="container-wide py-10">
+        <div class="container-wide py-10">
+    <div class="text-center px-4 mb-12 py-8 relative">
+    <!-- Éléments décoratifs latéraux -->
+    <div class="hidden md:block absolute left-4 top-1/2 transform -translate-y-1/2">
+        <div class="w-20 h-px bg-gradient-to-r from-transparent to-blue-500"></div>
+    </div>
+    <div class="hidden md:block absolute right-4 top-1/2 transform -translate-y-1/2">
+        <div class="w-20 h-px bg-gradient-to-r from-blue-500 to-transparent"></div>
+    </div>
+    
+    <div class="relative inline-block">
+        
+        
+        <!-- Titre avec animation de couleurs - TAILLE AUGMENTÉE -->
+        <h1 class="font-display font-bold text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-6 leading-tight animate-color-shift">
+            {{ salle.name }}
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-300 font-medium max-w-3xl mx-auto leading-relaxed">
+            Salle information and reservation options
+        </p>
+    </div>
+</div>
+
+<style>
+    @keyframes color-shift {
+        0%, 100% {
+            color: #1e293b; /* Noir/Slate-800 */
+        }
+        50% {
+            color: #2563eb; /* Bleu-600 */
+        }
+    }
+    
+    @keyframes color-shift-dark {
+        0%, 100% {
+            color: #ffffff; /* Blanc */
+        }
+        50% {
+            color: #60a5fa; /* Bleu-400 */
+        }
+    }
+    
+    .animate-color-shift {
+        animation: color-shift 4s ease-in-out infinite;
+    }
+    
+    .dark .animate-color-shift {
+        animation: color-shift-dark 4s ease-in-out infinite;
+    }
+</style>
+
+    <div class="card p-8 space-y-6 bg-gradient-to-br from-white to-navy-50 dark:from-navy-800 dark:to-navy-900 border border-navy-100 dark:border-navy-700 shadow-lg">
+        <!-- Header avec icône -->
+        <div class="flex items-center gap-3 pb-4 border-b border-navy-100 dark:border-navy-700">
+            <div class="p-2 rounded-lg bg-navy-100 dark:bg-navy-700">
+                <svg class="w-6 h-6 text-navy-600 dark:text-navy-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h2 class="font-display font-semibold text-display-sm text-navy-800 dark:text-white">Salle Details</h2>
+        </div>
+
+        <!-- Grille d'informations -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Colonne 1 -->
+            <div class="space-y-5">
+                {% if event %}
+                <div class="group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-body-sm font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Event</span>
+                    </div>
+                    <p class="text-body-lg font-semibold text-navy-800 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ event.title }}</p>
+                </div>
+                {% endif %}
+
+                <div class="group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="text-body-sm font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Location</span>
+                    </div>
+                    <p class="text-body-lg font-medium text-navy-700 dark:text-navy-200">{{ salle.location }}</p>
+                </div>
+
+                <div class="group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-body-sm font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Duration</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-body-xl font-bold text-primary-600 dark:text-primary-400">{{ salle.duration }}</span>
+                        <span class="text-body-md text-navy-600 dark:text-navy-300">minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne 2 -->
+            <div class="space-y-5">
+                <div class="group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <span class="text-body-sm font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Capacity</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-body-xl font-bold text-primary-600 dark:text-primary-400">{{ salle.maxParticipants }}</span>
+                        <span class="text-body-md text-navy-600 dark:text-navy-300">max participants</span>
+                    </div>
+                </div>
+
+                {% if salle.equipment %}
+                <div class="group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                        </svg>
+                        <span class="text-body-sm font-medium text-navy-500 dark:text-navy-400 uppercase tracking-wider">Equipment</span>
+                    </div>
+                    <div class="inline-flex flex-wrap gap-2">
+                        {% for equipment in salle.equipment|split(',') %}
+                            <span class="px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-body-sm font-medium border border-primary-100 dark:border-primary-800">
+                                {{ equipment|trim }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+            {% if salle.image3d %}
+                {% set rawModelUrl = salle.image3d %}
+                {% set modelUrl = (rawModelUrl starts with 'http' or rawModelUrl starts with '/')
+                    ? rawModelUrl
+                    : '/uploads/salles/' ~ rawModelUrl %}
+                
+                {# Bouton pour ouvrir en plein écran #}
+               <div class="text-center mb-6">
+    <button id="open-fullscreen-btn" class="group relative inline-flex items-center justify-center gap-3 bg-white dark:bg-navy-900 text-navy-900 dark:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl border-2 border-primary-500 hover:border-primary-600 overflow-hidden">
+        <!-- Effet de fond animé -->
+        <div class="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+        
+        <!-- Icône -->
+        <svg class="relative z-10 w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+        </svg>
+        
+        <span class="relative z-10">Mode Plein Écran 3D</span>
+        
+        <!-- Effet de halo au hover -->
+        <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary-400/20 to-primary-600/20 blur-xl"></div>
+    </button>
+</div>
+
+                {# Aperçu du modèle 3D (version normale) #}
+                <div class="relative bg-navy-900 rounded-lg overflow-hidden" style="height: 500px;">
+                    <model-viewer
+                        id="model-viewer-preview"
+                        src="{{ modelUrl }}"
+                        camera-controls
+                        auto-rotate
+                        rotation-per-second="30deg"
+                        exposure="1.2"
+                        shadow-intensity="1"
+                        camera-orbit="45deg 75deg 8m"
+                        min-camera-orbit="auto auto 2m"
+                        max-camera-orbit="auto auto 50m"
+                        field-of-view="30deg"
+                        class="w-full h-full"
+                        alt="Modèle 3D de {{ salle.name }}"
+                        loading="eager">
+                        
+                        {# Bouton AR (réalité augmentée) si supporté #}
+                        <button slot="ar-button" class="hidden md:block absolute bottom-4 right-4 bg-white text-navy-900 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100">
+                            👓 Voir en AR
+                        </button>
+                        
+                        {# Indicateur de chargement #}
+                        <div slot="progress-bar" class="absolute inset-0 flex items-center justify-center bg-navy-900/90">
+                            <div class="text-center">
+                                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
+                               
+                            </div>
+                        </div>
+                    </model-viewer>
+
+                    <div id="seat-overlay" class="absolute top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 bg-navy-950/85 backdrop-blur rounded-xl border border-navy-700/60 p-3 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm font-semibold">Seats</p>
+                            <span class="text-xs text-navy-300">Max {{ salle.maxParticipants }}</span>
+                        </div>
+                        <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));">
+                            {% for i in 1..salle.maxParticipants %}
+                                {% set isReserved = i in reserved %}
+                                <button
+                                    type="button"
+                                    class="seat-btn h-9 rounded text-xs font-semibold {{ isReserved ? 'bg-red-500 text-white cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600' }}"
+                                    data-seat="{{ i }}"
+                                    {{ isReserved ? 'disabled' : '' }}>
+                                    {{ i }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3 flex items-center justify-between text-xs">
+                            <span>Selected: <span id="selected-seat" class="font-semibold">None</span> <span id="selected-count" class="text-navy-300">(0)</span></span>
+                            <button id="reserve-seat-btn" class="btn-primary btn-sm" disabled>Reservation</button>
+                        </div>
+                    </div>
+                    
+                    {# Instructions #}
+                    <div class="absolute bottom-4 left-4 bg-navy-800/90 text-white px-4 py-2 rounded-lg text-sm">
+                        🖱️ Cliquez et faites glisser pour tourner | 🔍 Molette pour zoomer
+                    </div>
+                </div>
+
+                {# Modal plein écran avec contrôles ZQSD #}
+                <div id="fullscreen-modal" class="fixed inset-0 z-50 bg-black hidden">
+                    {# En-tête #}
+                    <div class="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent z-20 p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-white text-2xl font-bold">{{ salle.name }}</h2>
+                                <p class="text-gray-300 text-sm">Modèle 3D interactif</p>
+                            </div>
+                            <button id="close-fullscreen-btn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+                                ✕ Fermer
+                            </button>
+                        </div>
+                    </div>
+
+                    
+
+                    {# Stats en temps réel #}
+                    <div id="camera-stats" class="absolute top-20 right-4 bg-navy-800/95 text-white p-4 rounded-lg z-20 text-sm font-mono">
+                        <div>Position: <span id="camera-position">-</span></div>
+                        <div>Zoom: <span id="camera-zoom">-</span></div>
+                    </div>
+
+                    {# Model Viewer plein écran #}
+                    <model-viewer
+                        id="model-viewer-fullscreen"
+                        src="{{ modelUrl }}"
+                        camera-controls
+                        exposure="1.5"
+                        shadow-intensity="1.2"
+                        camera-orbit="45deg 75deg 8m"
+                        min-camera-orbit="auto auto 1m"
+                        max-camera-orbit="auto auto 100m"
+                        field-of-view="45deg"
+                        interpolation-decay="100"
+                        class="w-full h-full"
+                        alt="Modèle 3D de {{ salle.name }}"
+                        environment-image="neutral">
+                    </model-viewer>
+                </div>
+            {% else %}
+                <div class="bg-navy-100 dark:bg-navy-800 rounded-lg p-4 text-center">
+                    <p class="text-body-sm text-navy-500 dark:text-navy-400">
+                        ⚠️ Aucun modèle 3D disponible pour cette salle.
+                    </p>
+                    <p class="text-caption text-navy-400 dark:text-navy-500 mt-2">
+                        Veuillez uploader un fichier .glb ou .gltf depuis l'administration.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-6">
+            <a href="{{ path('events_index') }}" class="btn-ghost btn-sm">Back to Events</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{% if salle.image3d %}
+{# Load Model Viewer with fallback #}
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+<script nomodule src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer-legacy.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check if model-viewer is loaded
+        if (typeof customElements.get('model-viewer') === 'undefined') {
+            console.error('❌ Model Viewer not loaded!');
+            alert('3D Viewer is loading... Please refresh the page if models don\'t appear.');
+            return;
+        }
+        console.log('✅ Model Viewer loaded successfully!');
+        
+        const openBtn = document.getElementById('open-fullscreen-btn');
+        const closeBtn = document.getElementById('close-fullscreen-btn');
+        const modal = document.getElementById('fullscreen-modal');
+        const modelViewer = document.getElementById('model-viewer-fullscreen');
+        const cameraPosition = document.getElementById('camera-position');
+        const cameraZoom = document.getElementById('camera-zoom');
+
+        if (!openBtn || !closeBtn || !modal || !modelViewer) {
+            console.error('❌ Éléments manquants');
+            return;
+        }
+
+        // Utilitaires
+        const toDeg = (rad) => (rad * 180) / Math.PI;
+        const toRad = (deg) => (deg * Math.PI) / 180;
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+        // 🚀 VITESSES AUGMENTÉES ET OPTIMISÉES
+        let autoRotate = false;
+        const moveSpeed = 3.5;          // Vitesse de zoom (augmentée de 2.5 à 3.5)
+        const rotateSpeed = 5;          // Vitesse de rotation (augmentée de 2 à 5)
+        const smoothFactor = 0.8;       // Facteur de fluidité (0-1, plus proche de 1 = plus fluide)
+        
+        const keysPressed = {};
+        let animationId = null;
+        
+        // Variables pour mouvement fluide
+        let targetRadius = 8;
+        let targetTheta = 45;
+        let targetPhi = 75;
+        let currentRadius = 8;
+        let currentTheta = 45;
+        let currentPhi = 75;
+
+        const openModal = () => {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            modelViewer.focus();
+            
+            // Initialiser les valeurs de caméra
+            const orbit = modelViewer.getCameraOrbit();
+            currentRadius = targetRadius = orbit.radius;
+            currentTheta = targetTheta = toDeg(orbit.theta);
+            currentPhi = targetPhi = toDeg(orbit.phi);
+            
+            if (!animationId) {
+                animationId = requestAnimationFrame(updateCameraMovement);
+            }
+        };
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        };
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', (e) => {
+            if (!modal || modal.classList.contains('hidden')) {
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+            
+            // Éviter la répétition de touches
+            if (keysPressed[key]) return;
+            keysPressed[key] = true;
+
+            if (key === 'escape') {
+                closeModal();
+                return;
+            }
+
+            // Toggle auto-rotation (Espace)
+            if (key === ' ') {
+                e.preventDefault();
+                autoRotate = !autoRotate;
+                if (autoRotate) {
+                    modelViewer.setAttribute('auto-rotate', '');
+                    modelViewer.setAttribute('rotation-per-second', '120deg'); // Rotation très rapide
+                } else {
+                    modelViewer.removeAttribute('auto-rotate');
+                }
+            }
+
+            // Reset caméra (R)
+            if (key === 'r') {
+                targetTheta = 45;
+                targetPhi = 75;
+                targetRadius = 8;
+                modelViewer.fieldOfView = '45deg';
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key.toLowerCase()] = false;
+        });
+
+        // 🎮 BOUCLE DE MOUVEMENT AMÉLIORÉE AVEC INTERPOLATION FLUIDE
+        function updateCameraMovement() {
+            if (modal.classList.contains('hidden')) {
+                animationId = null;
+                return;
+            }
+
+            // Mise à jour des valeurs cibles en fonction des touches pressées
+            if (keysPressed['z']) {
+                targetRadius = clamp(targetRadius - moveSpeed, 1, 100);
+            }
+            if (keysPressed['s']) {
+                targetRadius = clamp(targetRadius + moveSpeed, 1, 100);
+            }
+            if (keysPressed['q']) {
+                targetTheta -= rotateSpeed;
+            }
+            if (keysPressed['d']) {
+                targetTheta += rotateSpeed;
+            }
+
+            // Touches supplémentaires pour contrôle vertical (optionnel)
+            if (keysPressed['w']) {
+                targetPhi = clamp(targetPhi - rotateSpeed, 5, 175);
+            }
+            if (keysPressed['x']) {
+                targetPhi = clamp(targetPhi + rotateSpeed, 5, 175);
+            }
+
+            // Limiter l'angle phi
+            targetPhi = clamp(targetPhi, 5, 175);
+
+            // 🌊 INTERPOLATION FLUIDE (Lerp) pour des mouvements doux
+            currentRadius += (targetRadius - currentRadius) * smoothFactor;
+            currentTheta += (targetTheta - currentTheta) * smoothFactor;
+            currentPhi += (targetPhi - currentPhi) * smoothFactor;
+
+            // Appliquer à la caméra
+            modelViewer.cameraOrbit = `${currentTheta}deg ${currentPhi}deg ${currentRadius}m`;
+
+            // Mise à jour de l'affichage des stats
+            if (cameraPosition) {
+                cameraPosition.textContent = `θ:${currentTheta.toFixed(0)}° φ:${currentPhi.toFixed(0)}°`;
+            }
+            if (cameraZoom) {
+                cameraZoom.textContent = `${currentRadius.toFixed(1)}m`;
+            }
+
+            animationId = requestAnimationFrame(updateCameraMovement);
+        }
+
+        // 📊 Events
+        modelViewer.addEventListener('load', () => {
+            console.log('✅ Modèle 3D chargé avec succès!');
+            const dims = modelViewer.getDimensions();
+            console.log('📏 Dimensions:', dims);
+        });
+
+        modelViewer.addEventListener('error', (e) => {
+            console.error('❌ Erreur de chargement:', e);
+        });
+
+        // Synchroniser avec les changements manuels de caméra (souris)
+        modelViewer.addEventListener('camera-change', () => {
+            const orbit = modelViewer.getCameraOrbit();
+            if (!keysPressed['z'] && !keysPressed['s'] && !keysPressed['q'] && !keysPressed['d']) {
+                // Mise à jour seulement si pas de touches pressées
+                targetRadius = orbit.radius;
+                targetTheta = toDeg(orbit.theta);
+                targetPhi = toDeg(orbit.phi);
+            }
+        });
+    });
+</script>
+{% endif %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const reserveBtn = document.getElementById('reserve-seat-btn');
+        const selectedLabel = document.getElementById('selected-seat');
+        const selectedCount = document.getElementById('selected-count');
+        const baseUrl = "{{ path('reservations_new') }}";
+        const salleId = "{{ salle.id }}";
+        const maxParticipants = "{{ salle.maxParticipants }}";
+        const eventId = "{{ salle.eventId }}";
+
+        if (!reserveBtn) {
+            return;
+        }
+
+        const selectedSeats = new Set();
+
+        const updateSelectedView = () => {
+            const seats = Array.from(selectedSeats).sort((a, b) => Number(a) - Number(b));
+            if (selectedLabel) {
+                selectedLabel.textContent = seats.length ? seats.join(', ') : 'None';
+            }
+            if (selectedCount) {
+                selectedCount.textContent = `(${seats.length})`;
+            }
+            reserveBtn.disabled = seats.length === 0;
+        };
+
+        document.querySelectorAll('#seat-overlay .seat-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (btn.disabled) return;
+                const seat = btn.dataset.seat;
+                if (selectedSeats.has(seat)) {
+                    selectedSeats.delete(seat);
+                    btn.classList.remove('ring-2', 'ring-blue-300');
+                } else {
+                    selectedSeats.add(seat);
+                    btn.classList.add('ring-2', 'ring-blue-300');
+                }
+                updateSelectedView();
+            });
+        });
+
+        reserveBtn.addEventListener('click', () => {
+            if (selectedSeats.size === 0) return;
+            const seats = Array.from(selectedSeats).sort((a, b) => Number(a) - Number(b));
+            const params = new URLSearchParams({
+                salleId,
+                seat: seats[0],
+                seats: seats.join(','),
+                maxParticipants,
+            });
+            if (eventId) {
+                params.set('eventId', eventId);
+            }
+            window.location.href = `${baseUrl}?${params.toString()}`;
+        });
+
+        updateSelectedView();
+    });
+</script>
+{% endblock %}

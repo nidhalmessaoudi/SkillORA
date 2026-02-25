@@ -1,0 +1,113 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Modifier RDV #{{ rdv.id }} - Admin - SkillHarbor{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+        <a href="{{ path('admin_rendezvous_show', {id: rdv.id}) }}" class="text-navy-400 hover:text-navy-600 dark:hover:text-navy-300 transition">
+            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+        </a>
+        <h1 class="text-display-lg font-display font-bold text-navy-900 dark:text-white">Modifier rendez-vous #{{ rdv.id }}</h1>
+    </div>
+    <p class="text-body-md text-navy-600 dark:text-navy-400 ml-9">Changez le créneau ou le statut du rendez-vous.</p>
+</div>
+
+<form method="post" class="space-y-6">
+    <div class="card p-6 space-y-4">
+        {% set slot = rdv.slot %}
+        {% set locationLabel = rdv.locationLabel ?: (slot ? slot.locationLabel : null) %}
+        {% set locationLat = rdv.locationLat is not null ? rdv.locationLat : (slot ? slot.locationLat : null) %}
+        {% set locationLng = rdv.locationLng is not null ? rdv.locationLng : (slot ? slot.locationLng : null) %}
+
+        {# Créneau (modifiable uniquement pour l'étudiant propriétaire en attente) #}
+        <div>
+            <label class="input-label" for="slot_id">Créneau associé</label>
+            {% if errors.slot_id is defined %}
+                <p class="text-red-600 text-sm mt-1">{{ errors.slot_id }}</p>
+            {% endif %}
+            {% if can_edit_slot %}
+                <select id="slot_id" name="slot_id" class="input">
+                    <option value="">Sélectionnez un créneau...</option>
+                    {% for availableSlot in available_slots %}
+                        <option value="{{ availableSlot.id }}" {{ (form_data.slot_id|default('') == availableSlot.id) ? 'selected' : '' }}>
+                            Slot #{{ availableSlot.id }} — {{ availableSlot.startAt|date('d/m/Y H:i') }} → {{ availableSlot.endAt|date('d/m/Y H:i') }}
+                            {% if availableSlot.isBooked and rdv.slot and availableSlot.id == rdv.slot.id %}(actuel){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <p class="input-hint">Changer de créneau libérera automatiquement l'ancien et réservera le nouveau.</p>
+            {% else %}
+                <input type="hidden" name="slot_id" value="{{ rdv.slot ? rdv.slot.id : '' }}">
+                <div class="input bg-slate-50 dark:bg-navy-800/60">
+                    {% if rdv.slot %}
+                        Slot #{{ rdv.slot.id }} — {{ rdv.slot.startAt|date('d/m/Y H:i') }} → {{ rdv.slot.endAt|date('d/m/Y H:i') }}
+                    {% else %}
+                        Aucun créneau associé
+                    {% endif %}
+                </div>
+                <p class="input-hint">Seul l'étudiant propriétaire peut modifier le créneau tant que le rendez-vous est en attente.</p>
+            {% endif %}
+        </div>
+
+        {# Statut #}
+        <div>
+            <label class="input-label" for="statut">Statut</label>
+            {% if errors.statut is defined %}
+                <p class="text-red-600 text-sm mt-1">{{ errors.statut }}</p>
+            {% endif %}
+            <select id="statut" name="statut" class="input">
+                <option value="en_attente" {{ form_data.statut == 'en_attente' ? 'selected' : '' }}>En attente</option>
+                <option value="confirmé" {{ form_data.statut == 'confirmé' ? 'selected' : '' }}>Confirmé</option>
+                <option value="rejeté" {{ form_data.statut == 'rejeté' ? 'selected' : '' }}>Rejeté</option>
+            </select>
+            <p class="input-hint">Rejeter un rendez-vous libérera automatiquement le créneau.</p>
+        </div>
+
+        {# Informations de réunion (lecture seule) #}
+        <div class="pt-2 border-t border-slate-200 dark:border-navy-800 space-y-3">
+            <h3 class="text-sm font-semibold text-navy-900 dark:text-white">Informations de réunion (lecture seule)</h3>
+
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-navy-800/60 text-sm text-navy-700 dark:text-navy-200">
+                <span class="font-semibold">Type :</span>
+                {{ rdv.meetingType == 'en_personne' ? 'En personne' : 'En ligne' }}
+            </div>
+
+            {% if rdv.meetingType == 'en_ligne' %}
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-navy-800/60 text-sm text-navy-700 dark:text-navy-200">
+                    <span class="font-semibold">Lien :</span>
+                    {% if rdv.meetingLink %}
+                        <a href="{{ rdv.meetingLink }}" target="_blank" rel="noopener noreferrer" class="text-harbor-600 dark:text-harbor-400 hover:underline break-all">{{ rdv.meetingLink }}</a>
+                    {% else %}
+                        <span class="text-danger-600 dark:text-danger-400">Lien de réunion manquant.</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-navy-800/60 text-sm text-navy-700 dark:text-navy-200">
+                    <span class="font-semibold">Lieu :</span>
+                    {{ locationLabel ?: 'Lieu non défini pour ce créneau.' }}
+                    {% if locationLat is not null and locationLng is not null %}
+                        <a
+                            href="https://www.openstreetmap.org/?mlat={{ locationLat }}&mlon={{ locationLng }}#map=17/{{ locationLat }}/{{ locationLng }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-1 text-xs text-harbor-600 dark:text-harbor-400 hover:underline ml-2"
+                        >
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            Voir sur la carte
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Enregistrer
+        </button>
+        <a href="{{ path('admin_rendezvous_show', {id: rdv.id}) }}" class="btn-ghost btn-sm">Annuler</a>
+    </div>
+</form>
+{% endblock %}

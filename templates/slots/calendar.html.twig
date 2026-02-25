@@ -1,0 +1,342 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Calendrier des créneaux - SkillHarbor{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+  <style>
+    /* ===== Page background ===== */
+    .sh-page-bg {
+      background:
+        radial-gradient(1200px 450px at 15% -15%, rgba(59,130,246,.18), transparent 60%),
+        radial-gradient(900px 420px at 110% 20%, rgba(16,185,129,.16), transparent 55%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .dark .sh-page-bg {
+      background:
+        radial-gradient(1200px 450px at 15% -15%, rgba(59,130,246,.20), transparent 60%),
+        radial-gradient(900px 420px at 110% 20%, rgba(16,185,129,.14), transparent 55%),
+        linear-gradient(180deg, #020617 0%, #0b1120 100%);
+    }
+
+    /* ===== Glass card ===== */
+    .sh-card {
+      border-radius: 28px;
+      border: 1px solid rgba(148,163,184,.28);
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 55px -20px rgba(2,6,23,.35);
+      overflow: hidden;
+    }
+    .dark .sh-card {
+      border-color: rgba(51,65,85,.6);
+      background: rgba(15,23,42,.65);
+      box-shadow: 0 20px 55px -22px rgba(0,0,0,.65);
+    }
+    .sh-calendar-body { padding: 10px 16px 16px; }
+
+    /* ===== Badge ===== */
+    .sh-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+      border: 1px solid rgba(148,163,184,.35);
+      color: rgb(30,41,59);
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(8px);
+    }
+    .dark .sh-badge {
+      border-color: rgba(51,65,85,.55);
+      color: rgb(226,232,240);
+      background: rgba(15,23,42,.55);
+    }
+    .sh-dot {
+      width: 10px; height: 10px; border-radius: 999px;
+      background: rgba(10, 109, 30, 0.95);
+      box-shadow: 0 0 0 4px rgba(16,185,129,.16);
+    }
+
+    /* ===== FullCalendar typography ===== */
+    .fc {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    /* ===== Toolbar ===== */
+    .fc .fc-toolbar.fc-header-toolbar {
+      margin: 0;
+      padding: 14px 10px 18px;
+      border-bottom: 1px solid rgba(148,163,184,.2);
+    }
+    .dark .fc .fc-toolbar.fc-header-toolbar { border-bottom-color: rgba(51,65,85,.55); }
+
+    .fc .fc-toolbar-title {
+      font-size: clamp(20px, 2vw, 28px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: #0f172a;
+      text-transform: capitalize;
+    }
+    .dark .fc .fc-toolbar-title { color: #e2e8f0; }
+
+    .fc .fc-button {
+      border: 1px solid rgba(148,163,184,.28) !important;
+      border-radius: 12px !important;
+      padding: 8px 13px !important;
+      font-weight: 700 !important;
+      font-size: 13px !important;
+      background: #ffffff !important;
+      color: #1e293b !important;
+      box-shadow: 0 10px 20px -15px rgba(2,6,23,.45) !important;
+      transition: all .15s ease !important;
+    }
+    .dark .fc .fc-button {
+      border-color: rgba(71,85,105,.7) !important;
+      background: rgba(30,41,59,.9) !important;
+      color: #e2e8f0 !important;
+    }
+    .fc .fc-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(59,130,246,.45) !important;
+      color: #1d4ed8 !important;
+    }
+    .dark .fc .fc-button:hover { color: #93c5fd !important; }
+    .fc .fc-button:focus { box-shadow: 0 0 0 3px rgba(59,130,246,.22) !important; }
+    .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .fc .fc-button-primary:not(:disabled):active {
+      background: #2563eb !important;
+      border-color: #2563eb !important;
+      color: #fff !important;
+    }
+
+    /* ===== Grid & background ===== */
+    :root { --sh-grid: rgba(15,23,42,.22); --sh-grid-strong: rgba(15,23,42,.32); }
+    :root.dark, body.dark { --sh-grid: rgba(226,232,240,.20); --sh-grid-strong: rgba(226,232,240,.30); }
+
+    .fc table { border-collapse: collapse !important; border-spacing: 0 !important; }
+
+    .fc .fc-scrollgrid {
+      border: 2px solid var(--sh-grid-strong) !important;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255,255,255,.55);
+    }
+    .dark .fc .fc-scrollgrid { background: rgba(2,6,23,.28); }
+
+    .fc .fc-scrollgrid td,
+    .fc .fc-scrollgrid th,
+    .fc .fc-daygrid-day,
+    .fc .fc-col-header-cell {
+      border: 1px solid var(--sh-grid) !important;
+    }
+
+    .fc .fc-col-header-cell {
+      background: rgba(248,250,252,.85);
+      border-bottom: 2px solid var(--sh-grid-strong) !important;
+    }
+    .dark .fc .fc-col-header-cell { background: rgba(2, 6, 23, 0.95) !important; }
+
+    .fc .fc-col-header-cell-cushion {
+      padding: 12px 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 11px;
+      color: #475569;
+      opacity: 1 !important;
+    }
+    .dark .fc .fc-col-header-cell-cushion { color: #f1f5f9 !important; }
+
+    .fc .fc-daygrid-day-frame { min-height: 118px; padding: 6px; transition: background .12s ease; }
+    .fc .fc-daygrid-day:hover .fc-daygrid-day-frame { background: rgba(59,130,246,.04); }
+    .dark .fc .fc-daygrid-day:hover .fc-daygrid-day-frame { background: rgba(59,130,246,.08); }
+
+    .fc .fc-daygrid-day-number {
+      margin: 4px 4px 0 0;
+      font-weight: 800;
+      font-size: 13px;
+      color: #0f172a;
+      opacity: 1 !important;
+    }
+    .dark .fc .fc-daygrid-day-number { color: #f1f5f9 !important; }
+
+    .fc .fc-day-today { background: rgba(59,130,246,.10) !important; }
+    .dark .fc .fc-day-today { background: rgba(59,130,246,.18) !important; }
+
+    /* ===== Event pill style (Google events too) ===== */
+    .fc .fc-event {
+      border: 0 !important;
+      border-radius: 12px !important;
+      padding: 6px 8px !important;
+      background: rgba(18, 99, 46, 0.95) !important;
+      box-shadow: 0 10px 22px -12px rgba(2,6,23,.25);
+      cursor: pointer;
+      transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+    }
+    .fc .fc-event:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 16px 28px -14px rgba(2,6,23,.30);
+      filter: brightness(1.03);
+    }
+    .fc .fc-event-time { display: none; }
+
+    .sh-event-title {
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1px;
+    }
+
+    /* Optional: keep text readable if Google changes colors */
+    .fc .fc-event .fc-event-main { color: #fff !important; }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <div class="min-h-screen sh-page-bg py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400">Rendez-vous</div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-navy-900 dark:text-white">
+            Calendrier des créneaux disponibles
+          </h1>
+          <p class="mt-1 text-sm md:text-base text-slate-600 dark:text-slate-300">
+            Cliquez sur un créneau pour commencer la réservation.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="sh-badge">
+            <span class="sh-dot"></span>
+            Google Calendar
+          </span>
+        </div>
+      </div>
+
+      <div class="sh-card">
+        <div class="sh-calendar-body">
+          <div id="calendar"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.10/index.global.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'fr',
+        firstDay: 1,
+        nowIndicator: true,
+        height: 'auto',
+        expandRows: true,
+        stickyHeaderDates: true,
+
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth'
+        },
+
+        buttonText: {
+          today: "Aujourd'hui",
+          month: 'Mois'
+        },
+
+        googleCalendarApiKey: '{{ google_calendar_api_key }}',
+        eventSources: [
+          {
+            id: 'google',
+            googleCalendarId: 'yesserboubakri8@gmail.com',
+            className: 'fc-event-google'
+          },
+          {
+            id: 'slots',
+            url: '{{ path('slots_calendar_api') }}',
+            method: 'GET',
+            className: 'fc-event-slot'
+          }
+        ],
+
+        eventContent: function(info) {
+          const sourceId = info.event.source ? info.event.source.id : null;
+          const p = info.event.extendedProps || {};
+
+          if (sourceId === 'slots') {
+            const label = p.isBooked ? 'Réservé' : 'Disponible';
+            const professor = p.professor ? `<div class="sh-event-prof">${p.professor}</div>` : '';
+            return { html: `<div><div class="sh-event-title">${label}</div>${professor}</div>` };
+          }
+
+          const title = info.event.title || 'Événement';
+          return { html: `<div><div class="sh-event-title">${title}</div></div>` };
+        },
+
+        eventDidMount: function(info) {
+          const sourceId = info.event.source ? info.event.source.id : null;
+          const p = info.event.extendedProps || {};
+
+          if (sourceId === 'slots') {
+            const isBooked = p.isBooked === true;
+
+            if (isBooked) {
+              info.el.style.setProperty('background-color', '#ef4444', 'important');
+              info.el.style.setProperty('border-color', '#dc2626', 'important');
+              info.el.style.setProperty('color', '#ffffff', 'important');
+              info.el.style.setProperty('cursor', 'not-allowed');
+              info.el.style.setProperty('opacity', '0.95');
+            } else {
+              info.el.style.setProperty('background-color', '#22c55e', 'important');
+              info.el.style.setProperty('border-color', '#16a34a', 'important');
+              info.el.style.setProperty('color', '#ffffff', 'important');
+              info.el.style.setProperty('cursor', 'pointer');
+            }
+
+            const professor = p.professor ? `Prof: ${p.professor}` : null;
+            const location = p.locationLabel ? `Lieu: ${p.locationLabel}` : null;
+            const tip = [professor, location].filter(Boolean).join(' • ');
+            if (tip) info.el.title = tip;
+          }
+        },
+
+        eventClick: function(info) {
+          const sourceId = info.event.source ? info.event.source.id : null;
+          const p = info.event.extendedProps || {};
+
+          if (sourceId === 'slots') {
+            info.jsEvent.preventDefault();
+            if (p.isBooked === true) {
+              return;
+            }
+            window.location.href = '{{ path('public_rendezvous_index') }}?slot=' + encodeURIComponent(info.event.id);
+            return;
+          }
+
+          if (info.event.url) {
+            info.jsEvent.preventDefault();
+            window.open(info.event.url, '_blank', 'noopener,noreferrer');
+          }
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,1210 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Créneaux Horaires - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="bg-gradient-to-br from-slate-50 via-white to-harbor-50/30 dark:from-navy-950 dark:via-navy-900 dark:to-harbor-950/30 min-h-screen">
+  {# FullCalendar CSS #}
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+  <div class="w-full px-4 md:px-10 py-8 md:py-12">
+
+
+        {# Modern Hero Section #}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-harbor-600 via-harbor-500 to-cyan-500 shadow-xl mb-8 md:mb-12">
+            {# Decorative Elements #}
+            <div class="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(white,transparent_85%)]"></div>
+            <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+
+            <div class="relative px-6 py-10 md:px-12 md:py-16 text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white/90 text-sm font-medium mb-6">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span>Gestion des créneaux</span>
+                </div>
+
+                <h1 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4 drop-shadow-lg">
+                    Créneaux Horaires
+                </h1>
+
+                <p class="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8">
+                    Gérez tous les créneaux horaires disponibles pour les rendez-vous.
+                </p>
+
+                {% if is_granted('ROLE_PROFESSOR') %}
+                <button onclick="openAddSlotModal()"
+                    class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-harbor-600 font-semibold hover:bg-white/95 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Créer un créneau</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Flash Messages #}
+        <div id="flash-container" class="mb-6 space-y-3"></div>
+
+        {# Stats Cards #}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-harbor-100 dark:bg-harbor-900/30 flex items-center justify-center">
+                        <i data-lucide="calendar" class="w-6 h-6 text-harbor-600 dark:text-harbor-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Total</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ total_slots }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-success-600 dark:text-success-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Disponibles</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ available_slots_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-navy-800 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
+                        <i data-lucide="user-check" class="w-6 h-6 text-danger-600 dark:text-danger-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Réservés</p>
+                        <p class="text-2xl font-bold text-navy-900 dark:text-white">{{ booked_slots_count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ===== FILTER + SEARCH BAR ===== #}
+        <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                <div class="flex items-center gap-2 text-sm font-medium text-navy-900 dark:text-white">
+                    <i data-lucide="filter" class="w-5 h-5 text-slate-500"></i>
+                    <span>Filtrer:</span>
+                </div>
+
+                <div class="flex items-center gap-2" id="slot-filters">
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="all">Tous</button>
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="available">Disponibles</button>
+                    <button type="button" class="slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            data-filter="booked">Réservés</button>
+                    
+                    <div class="w-px h-6 bg-slate-300 dark:bg-navy-700 mx-2"></div>
+                    
+                    <button type="button" id="view-toggle-list" class="view-toggle-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 text-harbor-700" onclick="switchView('list')">
+                        <i data-lucide="list" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1"></div>
+
+                <div class="flex items-center gap-2 w-full ">
+                    <div class="relative w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input id="slot-search"
+                               type="text"
+                               placeholder="Rechercher (date, heure...)"
+                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all">
+                    </div>
+
+                    <button id="slot-clear"
+                        type="button"
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors">
+                        Effacer
+                    </button>
+                </div>
+            </div>
+
+      
+        </div>
+
+        {# Slots Cards - Modern Design (like rendez-vous) #}
+        <div id="slots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-12 lg:gap-y-14">
+            {% for slot in pagination.items %}
+            {{ include('components/_slot_card.html.twig', { slot: slot }) }}
+            {% else %}
+            <div id="empty-row" class="md:col-span-2 lg:col-span-3 bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-12 text-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-navy-800 flex items-center justify-center">
+                        <i data-lucide="calendar-x" class="w-10 h-10 text-slate-400 dark:text-slate-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-1">Aucun créneau</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Créez votre premier créneau pour commencer</p>
+                    </div>
+                    {% if is_granted('ROLE_PROFESSOR') %}
+                    <button onclick="openAddSlotModal()" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all mt-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Créer un créneau
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Empty state for filtering/search result (JS) #}
+            <div id="slots-empty" class="hidden md:col-span-2 lg:col-span-3 bg-white dark:bg-navy-900 rounded-2xl shadow-sm border border-slate-200 dark:border-navy-800 p-12 text-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-navy-800 flex items-center justify-center">
+                        <i data-lucide="search-x" class="w-10 h-10 text-slate-400 dark:text-slate-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-navy-900 dark:text-white mb-1">Aucun résultat</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Essayez un autre mot-clé ou changez le filtre.</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if pagination.total_pages > 1 %}
+            <div class="mt-10 flex items-center justify-center gap-2 flex-wrap">
+                {% set queryParams = app.request.query.all %}
+                {% if pagination.current_page > 1 %}
+                    <a href="{{ path('slots_front', queryParams|merge({page: pagination.current_page - 1})) }}"
+                       class="inline-flex items-center justify-center min-w-[40px] h-10 px-4 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700 transition-colors">
+                        Prev
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center justify-center min-w-[40px] h-10 px-4 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-100 dark:bg-navy-900 text-slate-400 dark:text-slate-500 cursor-not-allowed">
+                        Prev
+                    </span>
+                {% endif %}
+
+                {% for p in 1..pagination.total_pages %}
+                    {% if p == pagination.current_page %}
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-harbor-600 text-white font-semibold shadow-sm">
+                            {{ p }}
+                        </span>
+                    {% else %}
+                        <a href="{{ path('slots_front', queryParams|merge({page: p})) }}"
+                           class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700 transition-colors">
+                            {{ p }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.current_page < pagination.total_pages %}
+                    <a href="{{ path('slots_front', queryParams|merge({page: pagination.current_page + 1})) }}"
+                       class="inline-flex items-center justify-center min-w-[40px] h-10 px-4 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700 transition-colors">
+                        Next
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center justify-center min-w-[40px] h-10 px-4 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-100 dark:bg-navy-900 text-slate-400 dark:text-slate-500 cursor-not-allowed">
+                        Next
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+        <script> if (window.lucide) lucide.createIcons(); </script>
+    </div>
+</div>  
+
+{# ===== MODAL: Add Slot ===== #}
+<div id="slotModal" class="sh-modal hidden" aria-hidden="true">
+    <div class="sh-modal-overlay" data-close="modal"></div>
+    <div class="sh-modal-dialog modal-panel relative bg-white dark:bg-navy-900 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="slotModalTitle">
+        <div class="sh-modal-header relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+            <div class="flex items-center justify-between">
+                <h2 id="slotModalTitle" class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    </div>
+                    Ajouter un créneau
+                </h2>
+                <button type="button" class="sh-modal-close w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center" data-close="modal" aria-label="Fermer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="add-slot-form" method="post" action="{{ path('slots_front_new') }}" class="sh-modal-form">
+            <div class="sh-modal-body">
+                <div id="add-slot-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200">
+                    <p id="add-slot-form-error-message" class="font-semibold">Veuillez corriger les erreurs.</p>
+                    <ul id="add-slot-form-error-list" class="mt-2 list-disc pl-5 space-y-1"></ul>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_start_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de début
+                        </label>
+                        <input type="date" id="add_start_date" name="start_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_start_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de début
+                        </label>
+                        <input type="time" id="add_start_time" name="start_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_end_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de fin
+                        </label>
+                        <input type="date" id="add_end_date" name="end_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_end_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de fin
+                        </label>
+                        <input type="time" id="add_end_time" name="end_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="add_location_label">
+                        <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                        Lieu (optionnel)
+                    </label>
+                    <input type="text" id="add_location_label" name="location_label" autocomplete="off"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                        placeholder="Rechercher un lieu...">
+                    <input type="hidden" id="add_location_lat" name="location_lat">
+                    <input type="hidden" id="add_location_lng" name="location_lng">
+                    <div id="add_location_suggestions" class="absolute left-0 right-0 mt-1 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl shadow-lg overflow-hidden hidden z-50"></div>
+
+                    <div class="mt-3 space-y-2">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white" for="add_selected_address">Adresse sélectionnée</label>
+                        <div id="add_selected_address" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50 dark:bg-navy-950 text-navy-900 dark:text-white text-sm">
+                            Aucune adresse sélectionnée
+                        </div>
+                        <div class="slot-map-wrap">
+                            <div id="add_location_map" class="sh-map w-full rounded-xl border border-slate-200 dark:border-navy-800 overflow-hidden bg-slate-50 dark:bg-navy-950"></div>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400">Sélectionnez une suggestion pour afficher l’aperçu sur la carte.</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-400">Tip: cliquez sur la carte pour choisir un endroit.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="sh-modal__footer mt-0 border-t border-slate-200 dark:border-navy-800 flex items-center justify-end gap-3">
+                <button type="button" data-close="modal"
+                    class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                    Annuler
+                </button>
+                <button type="submit"
+                    class="slot-submit px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all">
+                    <i data-lucide="check" class="w-4 h-4 inline mr-1"></i>
+                    Créer le créneau
+                </button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+{# ===== MODAL: Edit Slot ===== #}
+<div id="edit-slot-modal" class="sh-modal hidden" role="dialog" aria-modal="true" aria-labelledby="editSlotModalTitle">
+    <div class="sh-modal-overlay" onclick="closeEditSlotModal()"></div>
+    <div class="sh-modal-dialog modal-panel relative bg-white dark:bg-navy-900 shadow-2xl" onclick="event.stopPropagation()">
+        <div class="sh-modal-header relative bg-gradient-to-r from-harbor-600 to-harbor-500 px-6 py-6">
+            <div class="flex items-center justify-between">
+                <h2 id="editSlotModalTitle" class="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </div>
+                    Modifier le créneau
+                </h2>
+                <button type="button" onclick="closeEditSlotModal()" class="w-10 h-10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="edit-slot-form" method="post" class="sh-modal-form">
+            <input type="hidden" id="edit_slot_id" name="slot_id">
+
+            <div class="sh-modal-body">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_start_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de début
+                        </label>
+                        <input type="date" id="edit_start_date" name="start_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_start_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de début
+                        </label>
+                        <input type="time" id="edit_start_time" name="start_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_end_date">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                            Date de fin
+                        </label>
+                        <input type="date" id="edit_end_date" name="end_date"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_end_time">
+                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                            Heure de fin
+                        </label>
+                        <input type="time" id="edit_end_time" name="end_time"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="edit_location_label">
+                        <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                        Lieu (optionnel)
+                    </label>
+                    <input type="text" id="edit_location_label" name="location_label" autocomplete="off"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-navy-900 dark:text-white focus:ring-2 focus:ring-harbor-500 focus:border-transparent transition-all"
+                        placeholder="Rechercher un lieu...">
+                    <input type="hidden" id="edit_location_lat" name="location_lat">
+                    <input type="hidden" id="edit_location_lng" name="location_lng">
+                    <div id="edit_location_suggestions" class="absolute left-0 right-0 mt-1 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl shadow-lg overflow-hidden hidden z-50"></div>
+
+                    <div class="mt-3 space-y-2">
+                        <label class="block text-sm font-semibold text-navy-900 dark:text-white" for="edit_selected_address">Adresse sélectionnée</label>
+                        <div id="edit_selected_address" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50 dark:bg-navy-950 text-navy-900 dark:text-white text-sm">
+                            Aucune adresse sélectionnée
+                        </div>
+                        <div class="slot-map-wrap">
+                            <div id="edit_location_map" class="sh-map w-full rounded-xl border border-slate-200 dark:border-navy-800 overflow-hidden bg-slate-50 dark:bg-navy-950"></div>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400">Sélectionnez une suggestion pour afficher l’aperçu sur la carte.</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-400">Tip: cliquez sur la carte pour choisir un endroit.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sh-modal__footer mt-0 border-t border-slate-200 dark:border-navy-800 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeEditSlotModal()"
+                    class="px-6 py-2.5 rounded-xl text-navy-600 dark:text-navy-300 hover:bg-navy-100 dark:hover:bg-navy-800 font-medium transition-colors">
+                    Annuler
+                </button>
+                <button type="submit"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-harbor-600 to-harbor-500 text-white font-semibold hover:from-harbor-700 hover:to-harbor-600 shadow-lg hover:shadow-xl transition-all">
+                    <i data-lucide="save" class="w-4 h-4 inline mr-1"></i>
+                    Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    #slots-container {
+        row-gap: 4rem !important;
+    }
+
+    #slots-container .slot-card {
+        margin-bottom: 0.75rem;
+    }
+
+    .sh-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .sh-modal.hidden {
+        display: none !important;
+    }
+
+    .sh-modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.6);
+        backdrop-filter: blur(6px);
+    }
+
+    .sh-modal-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(720px, 100%);
+        max-height: calc(100vh - 2rem);
+        height: min(85vh, calc(100vh - 2rem));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 24px;
+    }
+
+    .modal-panel {
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sh-modal-header,
+    .sh-modal-footer {
+        flex: 0 0 auto;
+    }
+
+    .sh-modal-body {
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+        padding: 16px;
+        isolation: isolate;
+    }
+
+    .sh-modal-form {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .sh-modal__footer {
+        position: relative;
+        z-index: 9999;
+        padding: 12px 16px;
+    }
+
+    .sh-map {
+        height: 200px;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .slot-map-wrap {
+        height: 200px;
+        overflow: hidden;
+        border-radius: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .slot-map-wrap .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+
+    .sh-map .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+        z-index: 1;
+    }
+
+    .leaflet-control-container {
+        z-index: 2;
+    }
+
+    .slot-submit {
+        position: relative;
+        z-index: 10001;
+    }
+
+    .sh-modal__footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 10000;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(8px);
+    }
+
+    body.modal-open {
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+    const canManageSlots = {{ is_granted('ROLE_PROFESSOR') ? 'true' : 'false' }};
+
+    // ===== FILTER BUTTON STYLES =====
+    function setFilterActive(buttons, activeBtn) {
+        buttons.forEach(b => {
+            b.className = 'slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700';
+        });
+        activeBtn.className = 'slot-filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 dark:bg-harbor-900/30 text-harbor-700 dark:text-harbor-300 hover:bg-harbor-200 dark:hover:bg-harbor-900/50';
+    }
+
+    // ===== CLIENT SIDE FILTER/SEARCH (fallback) =====
+    let currentFilter = 'all';
+    let currentQuery = '';
+
+    function applyClientFilter() {
+        const cards = Array.from(document.querySelectorAll('.slot-card'));
+        const emptyBox = document.getElementById('slots-empty');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const booked = card.dataset.booked === '1';
+            const hay = (card.dataset.search || '').toLowerCase();
+
+            const passFilter =
+                currentFilter === 'all' ||
+                (currentFilter === 'available' && !booked) ||
+                (currentFilter === 'booked' && booked);
+
+            const passSearch = !currentQuery || hay.includes(currentQuery);
+
+            const show = passFilter && passSearch;
+            card.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+
+        if (emptyBox) emptyBox.classList.toggle('hidden', visible !== 0);
+    }
+
+    // ===== AJAX SEARCH (optional) =====
+    // If you have an endpoint returning HTML rows, put it here.
+    // Example endpoint: /slots/front/search?q=...&status=...
+    const ajaxEndpoint = null; // e.g. '/slots/front/search'
+
+    let debounceTimer = null;
+    function doSearchAjaxOrClient() {
+        if (!ajaxEndpoint) {
+            applyClientFilter();
+            return;
+        }
+
+        const url = new URL(ajaxEndpoint, window.location.origin);
+        url.searchParams.set('q', currentQuery);
+        url.searchParams.set('status', currentFilter);
+
+        fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.text())
+            .then(html => {
+                // Server should return <tr>...</tr> rows only
+                const tbody = document.getElementById('slots-tbody');
+                tbody.innerHTML = html;
+
+                // Re-init icons
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                // After replacing rows, apply fallback empty state if needed (server can also handle)
+                applyClientFilter();
+            })
+            .catch(() => {
+                // fallback
+                applyClientFilter();
+            });
+    }
+
+    // ===== INIT FILTERS =====
+    const filtersWrap = document.getElementById('slot-filters');
+    if (filtersWrap) {
+        const buttons = Array.from(filtersWrap.querySelectorAll('.slot-filter-btn'));
+        const defaultBtn = buttons.find(b => b.dataset.filter === 'all') || buttons[0];
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentFilter = btn.dataset.filter;
+                setFilterActive(buttons, btn);
+                doSearchAjaxOrClient();
+            });
+        });
+
+        if (defaultBtn) {
+            currentFilter = defaultBtn.dataset.filter;
+            setFilterActive(buttons, defaultBtn);
+        }
+    }
+
+    // ===== INIT SEARCH =====
+    const searchInput = document.getElementById('slot-search');
+    const clearBtn = document.getElementById('slot-clear');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentQuery = (searchInput.value || '').trim().toLowerCase();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(doSearchAjaxOrClient, 220);
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            currentQuery = '';
+            if (searchInput) searchInput.value = '';
+            doSearchAjaxOrClient();
+        });
+    }
+
+    // first render
+    applyClientFilter();
+
+    // ===== MODALS =====
+    const slotModal = document.getElementById('slotModal');
+    const slotModalDialog = slotModal ? slotModal.querySelector('.sh-modal-dialog') : null;
+    const addSlotForm = document.getElementById('add-slot-form');
+    const addSlotSubmitBtn = addSlotForm ? addSlotForm.querySelector('button[type="submit"]') : null;
+    const addSlotErrorBox = document.getElementById('add-slot-form-error');
+    const addSlotErrorMessage = document.getElementById('add-slot-form-error-message');
+    const addSlotErrorList = document.getElementById('add-slot-form-error-list');
+
+    function clearAddSlotErrors() {
+        if (addSlotErrorMessage) addSlotErrorMessage.textContent = 'Veuillez corriger les erreurs.';
+        if (addSlotErrorList) addSlotErrorList.innerHTML = '';
+        if (addSlotErrorBox) addSlotErrorBox.classList.add('hidden');
+    }
+
+    function showAddSlotErrors(message, errors) {
+        if (addSlotErrorMessage) {
+            addSlotErrorMessage.textContent = message || 'Veuillez corriger les erreurs.';
+        }
+        if (addSlotErrorList) {
+            addSlotErrorList.innerHTML = '';
+            if (errors && typeof errors === 'object') {
+                Object.values(errors).forEach((errorText) => {
+                    if (!errorText) return;
+                    const li = document.createElement('li');
+                    li.textContent = String(errorText);
+                    addSlotErrorList.appendChild(li);
+                });
+            }
+        }
+        if (addSlotErrorBox) addSlotErrorBox.classList.remove('hidden');
+    }
+
+    function setAddSlotSubmitting(isSubmitting) {
+        if (!addSlotSubmitBtn) return;
+        addSlotSubmitBtn.disabled = isSubmitting;
+        addSlotSubmitBtn.classList.toggle('opacity-60', isSubmitting);
+        addSlotSubmitBtn.classList.toggle('cursor-not-allowed', isSubmitting);
+    }
+
+    function openModal() {
+        if (!slotModal) return;
+        slotModal.classList.remove('hidden');
+        slotModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function closeModal() {
+        if (!slotModal) return;
+        slotModal.classList.add('hidden');
+        slotModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+    }
+
+    if (slotModal) {
+        slotModal.addEventListener('click', function (e) {
+            if (e.target.closest('[data-close="modal"]')) {
+                closeModal();
+            }
+        });
+    }
+
+    if (slotModalDialog) {
+        slotModalDialog.addEventListener('click', function (e) {
+            if (e.target.closest('[data-close="modal"]')) {
+                closeModal();
+                return;
+            }
+            e.stopPropagation();
+        });
+    }
+
+    window.openAddSlotModal = function() {
+        openModal();
+        clearAddSlotErrors();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('add_start_date').value = today;
+        document.getElementById('add_end_date').value = today;
+        const loc = document.getElementById('add_location_label');
+        const lat = document.getElementById('add_location_lat');
+        const lng = document.getElementById('add_location_lng');
+        if (loc) loc.value = '';
+        if (lat) lat.value = '';
+        if (lng) lng.value = '';
+        const addr = document.getElementById('add_selected_address');
+        if (addr) addr.textContent = 'Aucune adresse sélectionnée';
+        if (window.__slotLocationWidgets && window.__slotLocationWidgets.add && window.__slotLocationWidgets.add.invalidate) {
+            setTimeout(() => window.__slotLocationWidgets.add.invalidate(), 60);
+        }
+    };
+
+    window.closeAddSlotModal = function() {
+        closeModal();
+    };
+
+    if (addSlotForm) {
+        addSlotForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            clearAddSlotErrors();
+            setAddSlotSubmitting(true);
+
+            fetch(addSlotForm.action, {
+                method: 'POST',
+                body: new FormData(addSlotForm),
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            })
+                .then(async (response) => {
+                    const raw = await response.text();
+                    let data = null;
+                    try {
+                        data = raw ? JSON.parse(raw) : null;
+                    } catch (_) {
+                        data = null;
+                    }
+                    return { ok: response.ok, data };
+                })
+                .then((payload) => {
+                    if (payload.ok && payload.data && payload.data.success) {
+                        closeModal();
+                        window.location.reload();
+                        return;
+                    }
+
+                    const message = payload.data && payload.data.message
+                        ? payload.data.message
+                        : 'Veuillez corriger les erreurs.';
+                    const errors = payload.data && payload.data.errors ? payload.data.errors : null;
+                    showAddSlotErrors(message, errors);
+                })
+                .catch(() => {
+                    showAddSlotErrors('Erreur réseau. Réessaie.', null);
+                })
+                .finally(() => {
+                    setAddSlotSubmitting(false);
+                });
+        });
+    }
+
+    window.openEditSlotModal = function(id, startDate, startTime, endDate, endTime, locationLabel, locationLat, locationLng) {
+        document.getElementById('edit_slot_id').value = id;
+        document.getElementById('edit_start_date').value = startDate;
+        document.getElementById('edit_start_time').value = startTime;
+        document.getElementById('edit_end_date').value = endDate;
+        document.getElementById('edit_end_time').value = endTime;
+        const loc = document.getElementById('edit_location_label');
+        const lat = document.getElementById('edit_location_lat');
+        const lng = document.getElementById('edit_location_lng');
+        if (loc) loc.value = locationLabel || '';
+        if (lat) lat.value = locationLat || '';
+        if (lng) lng.value = locationLng || '';
+        const addr = document.getElementById('edit_selected_address');
+        if (addr) addr.textContent = (locationLabel || '').trim() !== '' ? locationLabel : 'Aucune adresse sélectionnée';
+        document.getElementById('edit-slot-form').action = '/slots/front/' + id + '/edit';
+        document.getElementById('edit-slot-modal').classList.remove('hidden');
+        document.body.classList.add('modal-open');
+        if (window.__slotLocationWidgets && window.__slotLocationWidgets.edit && window.__slotLocationWidgets.edit.sync) {
+            window.__slotLocationWidgets.edit.sync();
+        }
+        if (window.__slotLocationWidgets && window.__slotLocationWidgets.edit && window.__slotLocationWidgets.edit.invalidate) {
+            setTimeout(() => window.__slotLocationWidgets.edit.invalidate(), 60);
+        }
+    };
+
+    window.closeEditSlotModal = function() {
+        document.getElementById('edit-slot-modal').classList.add('hidden');
+        const isAddOpen = slotModal && !slotModal.classList.contains('hidden');
+        if (!isAddOpen) {
+            document.body.classList.remove('modal-open');
+        }
+    };
+
+    function initLocationAutocomplete(inputId, suggestionsId, latId, lngId, mapContainerId, addressBoxId) {
+        const input = document.getElementById(inputId);
+        const suggestions = document.getElementById(suggestionsId);
+        if (!input || !suggestions) return;
+
+        const latInput = latId ? document.getElementById(latId) : null;
+        const lngInput = lngId ? document.getElementById(lngId) : null;
+        const mapContainer = mapContainerId ? document.getElementById(mapContainerId) : null;
+        const addressBox = addressBoxId ? document.getElementById(addressBoxId) : null;
+
+        let debounceTimer = null;
+        let activeController = null;
+        let reverseTimer = null;
+        let reverseController = null;
+
+        const defaultCenter = [36.8065, 10.1815]; // Tunis
+        const defaultZoom = 12;
+        let map = null;
+        let marker = null;
+        let tiles = null;
+
+        function ensureMap() {
+            if (!mapContainer || typeof L === 'undefined') return;
+            if (map) return;
+
+            map = L.map(mapContainer, {
+                zoomControl: true,
+                attributionControl: true,
+            }).setView(defaultCenter, defaultZoom);
+
+            tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors',
+            }).addTo(map);
+
+            marker = L.marker(defaultCenter).addTo(map);
+
+            map.on('click', (ev) => {
+                if (!ev || !ev.latlng) return;
+                const clickedLat = ev.latlng.lat;
+                const clickedLng = ev.latlng.lng;
+
+                if (latInput) latInput.value = String(clickedLat);
+                if (lngInput) lngInput.value = String(clickedLng);
+
+                marker.setLatLng([clickedLat, clickedLng]);
+                map.setView([clickedLat, clickedLng], 15);
+                map.invalidateSize();
+
+                if (addressBox) addressBox.textContent = 'Recherche de l’adresse...';
+
+                clearTimeout(reverseTimer);
+                reverseTimer = setTimeout(() => {
+                    reverseGeocode(clickedLat, clickedLng);
+                }, 250);
+            });
+        }
+
+        function hideSuggestions() {
+            suggestions.classList.add('hidden');
+            suggestions.innerHTML = '';
+        }
+
+        function setSelectedLocation(label, lat, lng) {
+            const cleanedLabel = (label || '').trim();
+
+            if (addressBox) {
+                addressBox.textContent = cleanedLabel !== '' ? cleanedLabel : 'Aucune adresse sélectionnée';
+            }
+
+            ensureMap();
+            if (!map || !marker) return;
+
+            const latNum = typeof lat === 'string' ? parseFloat(lat) : lat;
+            const lngNum = typeof lng === 'string' ? parseFloat(lng) : lng;
+            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+
+            marker.setLatLng([latNum, lngNum]).addTo(map);
+            map.setView([latNum, lngNum], 15);
+            map.invalidateSize();
+        }
+
+        function reverseGeocode(lat, lng) {
+            if (reverseController) reverseController.abort();
+            reverseController = new AbortController();
+
+            const url = new URL('https://nominatim.openstreetmap.org/reverse');
+            url.searchParams.set('format', 'json');
+            url.searchParams.set('lat', String(lat));
+            url.searchParams.set('lon', String(lng));
+
+            fetch(url.toString(), {
+                signal: reverseController.signal,
+                headers: { 'Accept': 'application/json' },
+            })
+                .then(r => (r.ok ? r.json() : null))
+                .then(data => {
+                    if (!data || !data.display_name) {
+                        if (addressBox) addressBox.textContent = 'Adresse non trouvée';
+                        return;
+                    }
+
+                    const label = String(data.display_name || '').trim();
+                    if (label !== '') {
+                        input.value = label;
+                        if (addressBox) addressBox.textContent = label;
+                    } else if (addressBox) {
+                        addressBox.textContent = 'Adresse non trouvée';
+                    }
+                })
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return;
+                    if (addressBox) addressBox.textContent = 'Adresse non trouvée';
+                });
+        }
+
+        function showSuggestions(items) {
+            if (!Array.isArray(items) || items.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestions.innerHTML = items.map((item, idx) => {
+                const label = String(item.display_name || '');
+                const lat = item.lat ?? '';
+                const lon = item.lon ?? '';
+
+                const escAttr = (s) => String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+                const escHtml = (s) => String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                return (
+                    '<button type="button" ' +
+                    'data-idx="' + idx + '" ' +
+                    'data-label="' + escAttr(label) + '" ' +
+                    'data-lat="' + escAttr(lat) + '" ' +
+                    'data-lng="' + escAttr(lon) + '" ' +
+                    'class="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-navy-800 text-sm text-navy-900 dark:text-white">' +
+                    escHtml(label) +
+                    '</button>'
+                );
+            }).join('');
+
+            suggestions.classList.remove('hidden');
+        }
+
+        function fetchSuggestions(query) {
+            if (activeController) activeController.abort();
+            activeController = new AbortController();
+
+            const url = new URL('https://nominatim.openstreetmap.org/search');
+            url.searchParams.set('format', 'json');
+            url.searchParams.set('limit', '6');
+            url.searchParams.set('q', query);
+
+            fetch(url.toString(), {
+                signal: activeController.signal,
+                headers: { 'Accept': 'application/json' },
+            })
+                .then(r => (r.ok ? r.json() : []))
+                .then(showSuggestions)
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return;
+                    hideSuggestions();
+                });
+        }
+
+        input.addEventListener('input', () => {
+            const q = input.value.trim();
+
+            if (latInput) latInput.value = '';
+            if (lngInput) lngInput.value = '';
+            if (addressBox) addressBox.textContent = q !== '' ? q : 'Aucune adresse sélectionnée';
+
+            if (q.length < 3) {
+                hideSuggestions();
+                return;
+            }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => fetchSuggestions(q), 350);
+        });
+
+        suggestions.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-label]');
+            if (!btn) return;
+
+            input.value = btn.dataset.label || '';
+            if (latInput) latInput.value = btn.dataset.lat || '';
+            if (lngInput) lngInput.value = btn.dataset.lng || '';
+            setSelectedLocation(btn.dataset.label || '', btn.dataset.lat || '', btn.dataset.lng || '');
+            hideSuggestions();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target === input) return;
+            if (suggestions.contains(e.target)) return;
+            hideSuggestions();
+        });
+
+        ensureMap();
+        if (addressBox) {
+            const initialLabel = (input.value || '').trim();
+            addressBox.textContent = initialLabel !== '' ? initialLabel : 'Aucune adresse sélectionnée';
+        }
+
+        function syncFromInputs() {
+            const label = (input.value || '').trim();
+            const latVal = latInput ? latInput.value : '';
+            const lngVal = lngInput ? lngInput.value : '';
+            setSelectedLocation(label, latVal, lngVal);
+        }
+        syncFromInputs();
+
+        if (!window.__slotLocationWidgets) window.__slotLocationWidgets = {};
+        window.__slotLocationWidgets[inputId.startsWith('add_') ? 'add' : 'edit'] = {
+            invalidate: () => { if (map) map.invalidateSize(); },
+            sync: syncFromInputs,
+        };
+    }
+
+    initLocationAutocomplete(
+      'add_location_label',
+      'add_location_suggestions',
+      'add_location_lat',
+      'add_location_lng',
+      'add_location_map',
+      'add_selected_address'
+    );
+
+    initLocationAutocomplete(
+      'edit_location_label',
+      'edit_location_suggestions',
+      'edit_location_lat',
+      'edit_location_lng',
+      'edit_location_map',
+      'edit_selected_address'
+    );
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (slotModal && !slotModal.classList.contains('hidden')) {
+                closeModal();
+            }
+            const editModal = document.getElementById('edit-slot-modal');
+            if (editModal && !editModal.classList.contains('hidden')) {
+                closeEditSlotModal();
+            }
+        }
+    });
+
+    (function () {
+        const calendarUrl = '{{ path('slots_calendar') }}';
+        function bindCalendarToggleRedirect() {
+            const calendarToggleButton = document.getElementById('view-toggle-calendar');
+            if (!calendarToggleButton || calendarToggleButton.dataset.redirectBound === '1') return;
+            calendarToggleButton.dataset.redirectBound = '1';
+            calendarToggleButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                window.location.href = calendarUrl;
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindCalendarToggleRedirect);
+        } else {
+            bindCalendarToggleRedirect();
+        }
+    })();
+
+    // ===== FULLCALENDAR & VIEW TOGGLE =====
+    window.switchView = function(view) {
+        const listContainer = document.getElementById('slots-container');
+        const calContainer = document.getElementById('calendar-container');
+        const filterBar = document.getElementById('slot-filters'); // maybe hide filters in calendar mode
+        const listBtn = document.getElementById('view-toggle-list');
+        const calBtn = document.getElementById('view-toggle-calendar');
+
+        if (view === 'list') {
+            listContainer.classList.remove('hidden');
+            calContainer.classList.add('hidden');
+            
+            listBtn.className = 'view-toggle-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 text-harbor-700';
+            if (calBtn) {
+                calBtn.className = 'view-toggle-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-100 text-slate-500';
+            }
+        } else {
+            listContainer.classList.add('hidden');
+            calContainer.classList.remove('hidden');
+
+            listBtn.className = 'view-toggle-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-100 text-slate-500';
+            if (calBtn) {
+                calBtn.className = 'view-toggle-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-harbor-100 text-harbor-700';
+            }
+
+            // Render calendar if not already (or resize)
+            if (window.calendar) {
+                window.calendar.render();
+            } else {
+                initCalendar();
+            }
+        }
+    };
+
+    function initCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        window.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            locale: 'fr',
+            buttonText: {
+                today: 'Aujourd\'hui',
+                month: 'Mois',
+                week: 'Semaine',
+                day: 'Jour'
+            },
+            events: '/slots/front/api',
+            eventClick: function(info) {
+                if (!canManageSlots) {
+                    return;
+                }
+
+                // Open edit modal if user is owner (this page is for professors)
+                // We need to parse dates
+                const event = info.event;
+                const start = event.start;
+                const end = event.end;
+                
+                // Format for input type="date" and "time"
+                const formatDate = (d) => d.toISOString().split('T')[0];
+                const formatTime = (d) => d.toTimeString().split(' ')[0].substring(0, 5);
+
+                const id = event.id;
+                
+                openEditSlotModal(
+                    id, 
+                    formatDate(start), 
+                    formatTime(start), 
+                    formatDate(end), 
+                    formatTime(end),
+                    event.extendedProps && event.extendedProps.locationLabel ? event.extendedProps.locationLabel : '',
+                    event.extendedProps && event.extendedProps.locationLat ? event.extendedProps.locationLat : '',
+                    event.extendedProps && event.extendedProps.locationLng ? event.extendedProps.locationLng : ''
+                );
+            },
+            eventDidMount: function(info) {
+                // Tooltip or styling
+                if (info.event.extendedProps.isBooked) {
+                   // e.g. add lock icon?
+                }
+            }
+        });
+        window.calendar.render();
+    }
+})();
+</script>
+{% endblock %}

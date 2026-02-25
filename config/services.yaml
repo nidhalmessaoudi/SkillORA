@@ -1,0 +1,24 @@
+parameters:
+    lesson_upload_base: "%kernel.project_dir%/public/uploads/lessons"
+    lesson_upload_public_base: "/uploads/lessons"
+
+    groq_api_key: '%env(GROQ_API_KEY)%'
+    groq_model_default: 'llama-3.1-8b-instant'
+    groq_model: '%env(default:groq_model_default:GROQ_MODEL)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\GrokClient:
+        arguments:
+            $apiKey: '%groq_api_key%'
+            $model: '%groq_model%'

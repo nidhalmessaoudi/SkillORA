@@ -1,0 +1,296 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Ajouter un créneau - SkillHarbor{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 py-10">
+    <div class="mx-auto max-w-6xl px-4">
+        <div class="bg-white/90 dark:bg-navy-900/70 backdrop-blur rounded-[32px] border border-slate-200/70 dark:border-navy-800 shadow-sm overflow-hidden">
+            {% set fd = form_data|default({}) %}
+            {% set er = errors|default({}) %}
+
+            {% for message in app.flashes('error') %}
+                <div class="mx-8 mt-8 rounded-xl bg-red-50 text-red-700 border border-red-200 p-3 text-sm">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('success') %}
+                <div class="mx-8 mt-8 rounded-xl bg-green-50 text-green-700 border border-green-200 p-3 text-sm">{{ message }}</div>
+            {% endfor %}
+
+            <form method="post">
+                <div class="grid grid-cols-12">
+                    <aside class="col-span-12 lg:col-span-3 border-b lg:border-b-0 lg:border-r border-slate-200/70 dark:border-navy-800 p-8">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-5">
+                            <i data-lucide="calendar-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-navy-900 dark:text-white">Créer un créneau</h1>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Définissez une nouvelle plage de disponibilité.</p>
+
+                        <div class="mt-6 space-y-3">
+                            <div class="inline-flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-navy-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full">
+                                <i data-lucide="clock-3" class="w-4 h-4"></i>
+                                <span id="preview-duration">Créneau</span>
+                            </div>
+                            <div class="inline-flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-navy-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                <span>Disponibilité</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <main class="col-span-12 lg:col-span-5 border-b lg:border-b-0 lg:border-r border-slate-200/70 dark:border-navy-800 p-8">
+                        <h2 class="text-2xl font-bold text-navy-900 dark:text-white">Sélectionner une date & une heure</h2>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Renseignez les informations de début et de fin.</p>
+
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="start_date">Date de début</label>
+                                <input
+                                    type="date"
+                                    id="start_date"
+                                    name="start_date"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-950/40 px-4 py-3 text-sm text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value="{{ attribute(fd, 'start_date')|default('') }}"
+                                >
+                                {% set msg = attribute(er, 'start_date')|default(null) %}
+                                {% if msg %}
+                                    <div class="mt-2 rounded-xl bg-red-50 text-red-700 border border-red-200 p-3 text-sm">{{ msg }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="start_time">Heure de début</label>
+                                <input
+                                    type="time"
+                                    id="start_time"
+                                    name="start_time"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-950/40 px-4 py-3 text-sm text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value="{{ attribute(fd, 'start_time')|default('') }}"
+                                >
+                                {% set msg = attribute(er, 'start_time')|default(null) %}
+                                {% if msg %}
+                                    <div class="mt-2 rounded-xl bg-red-50 text-red-700 border border-red-200 p-3 text-sm">{{ msg }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="end_date">Date de fin</label>
+                                <input
+                                    type="date"
+                                    id="end_date"
+                                    name="end_date"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-950/40 px-4 py-3 text-sm text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value="{{ attribute(fd, 'end_date')|default('') }}"
+                                >
+                                {% set msg = attribute(er, 'end_date')|default(null) %}
+                                {% if msg %}
+                                    <div class="mt-2 rounded-xl bg-red-50 text-red-700 border border-red-200 p-3 text-sm">{{ msg }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="end_time">Heure de fin</label>
+                                <input
+                                    type="time"
+                                    id="end_time"
+                                    name="end_time"
+                                    class="w-full rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-950/40 px-4 py-3 text-sm text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value="{{ attribute(fd, 'end_time')|default('') }}"
+                                >
+                                {% set msg = attribute(er, 'end_time')|default(null) %}
+                                {% if msg %}
+                                    <div class="mt-2 rounded-xl bg-red-50 text-red-700 border border-red-200 p-3 text-sm">{{ msg }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-6 relative">
+                            <label class="block text-sm font-semibold text-navy-900 dark:text-white mb-2" for="slot-location-input">Lieu (optionnel)</label>
+                            <input
+                                type="text"
+                                id="slot-location-input"
+                                name="location_label"
+                                class="w-full rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-950/40 px-4 py-3 text-sm text-navy-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                autocomplete="off"
+                                value="{{ attribute(fd, 'location_label')|default('') }}"
+                                placeholder="Rechercher un lieu..."
+                            >
+                            <input type="hidden" id="slot-lat" name="location_lat" value="{{ attribute(fd, 'location_lat')|default('') }}">
+                            <input type="hidden" id="slot-lng" name="location_lng" value="{{ attribute(fd, 'location_lng')|default('') }}">
+                            <div id="slot-location-suggestions" class="absolute left-0 right-0 mt-1 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl shadow-lg overflow-hidden hidden z-50"></div>
+                        </div>
+                    </main>
+
+                    <section class="col-span-12 lg:col-span-4 p-8">
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Aperçu</h3>
+                        <p id="preview-date" class="mt-3 text-lg font-semibold text-navy-900 dark:text-white">—</p>
+
+                        <div class="mt-6 space-y-3">
+                            <div class="rounded-2xl border border-slate-200 dark:border-navy-700 bg-slate-50/80 dark:bg-navy-800/60 p-4">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Début</p>
+                                <p id="preview-start" class="mt-1 text-sm font-semibold text-navy-900 dark:text-white">--:--</p>
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 dark:border-navy-700 bg-slate-50/80 dark:bg-navy-800/60 p-4">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Fin</p>
+                                <p id="preview-end" class="mt-1 text-sm font-semibold text-navy-900 dark:text-white">--:--</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 space-y-3">
+                            <button type="submit" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 shadow-sm">
+                                Ajouter
+                            </button>
+                            <a href="{{ path('slots_front') }}" class="w-full inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-navy-800 transition text-navy-700 dark:text-navy-300 border-slate-200 dark:border-navy-700">
+                                Annuler
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function() {
+    const input = document.getElementById('slot-location-input');
+    const suggestions = document.getElementById('slot-location-suggestions');
+    if (!input || !suggestions) return;
+
+    const latInput = document.getElementById('slot-lat');
+    const lngInput = document.getElementById('slot-lng');
+
+    let debounceTimer = null;
+    let activeController = null;
+
+    function hideSuggestions() {
+        suggestions.classList.add('hidden');
+        suggestions.innerHTML = '';
+    }
+
+    function showSuggestions(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            hideSuggestions();
+            return;
+        }
+
+        suggestions.innerHTML = items.map((item, idx) => {
+            const label = String(item.display_name || '');
+            const lat = item.lat ?? '';
+            const lon = item.lon ?? '';
+
+            return (
+                '<button type="button" ' +
+                'data-idx="' + idx + '" ' +
+                'data-label="' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '" ' +
+                'data-lat="' + String(lat).replace(/"/g, '&quot;') + '" ' +
+                'data-lng="' + String(lon).replace(/"/g, '&quot;') + '" ' +
+                'class="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-navy-800 text-sm text-navy-900 dark:text-white">' +
+                label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                '</button>'
+            );
+        }).join('');
+
+        suggestions.classList.remove('hidden');
+    }
+
+    function fetchSuggestions(query) {
+        if (activeController) activeController.abort();
+        activeController = new AbortController();
+
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'json');
+        url.searchParams.set('limit', '6');
+        url.searchParams.set('q', query);
+
+        fetch(url.toString(), {
+            signal: activeController.signal,
+            headers: { 'Accept': 'application/json' },
+        })
+            .then(r => (r.ok ? r.json() : []))
+            .then(showSuggestions)
+            .catch(err => {
+                if (err && err.name === 'AbortError') return;
+                hideSuggestions();
+            });
+    }
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+
+        if (latInput) latInput.value = '';
+        if (lngInput) lngInput.value = '';
+
+        if (q.length < 3) {
+            hideSuggestions();
+            return;
+        }
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fetchSuggestions(q), 350);
+    });
+
+    suggestions.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-label]');
+        if (!btn) return;
+
+        input.value = btn.dataset.label || '';
+        if (latInput) latInput.value = btn.dataset.lat || '';
+        if (lngInput) lngInput.value = btn.dataset.lng || '';
+        hideSuggestions();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target === input) return;
+        if (suggestions.contains(e.target)) return;
+        hideSuggestions();
+    });
+})();
+
+(function() {
+    const startDate = document.getElementById('start_date');
+    const startTime = document.getElementById('start_time');
+    const endDate = document.getElementById('end_date');
+    const endTime = document.getElementById('end_time');
+    const previewDate = document.getElementById('preview-date');
+    const previewStart = document.getElementById('preview-start');
+    const previewEnd = document.getElementById('preview-end');
+    const previewDuration = document.getElementById('preview-duration');
+
+    if (!startDate || !startTime || !endDate || !endTime) return;
+
+    function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value + 'T00:00:00');
+        if (isNaN(date.getTime())) return value;
+        return date.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function updatePreview() {
+        const sd = startDate.value;
+        const st = startTime.value || '--:--';
+        const et = endTime.value || '--:--';
+
+        if (previewDate) previewDate.textContent = formatDate(sd);
+        if (previewStart) previewStart.textContent = st;
+        if (previewEnd) previewEnd.textContent = et;
+
+        const startDateTime = sd && st ? new Date(sd + 'T' + st) : null;
+        const finalDate = endDate.value || sd;
+        const endDateTime = finalDate && et ? new Date(finalDate + 'T' + et) : null;
+
+        if (previewDuration && startDateTime && endDateTime && endDateTime > startDateTime) {
+            const mins = Math.round((endDateTime - startDateTime) / 60000);
+            previewDuration.textContent = mins + ' min';
+        } else if (previewDuration) {
+            previewDuration.textContent = 'Créneau';
+        }
+    }
+
+    [startDate, startTime, endDate, endTime].forEach((el) => el.addEventListener('input', updatePreview));
+    updatePreview();
+})();
+</script>
+{% endblock %}
