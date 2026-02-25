@@ -191,34 +191,52 @@ class AuthController extends AbstractController
      */
     private function sendVerificationEmail(User $user): void
     {
-        // Generate verification token
-        $token = bin2hex(random_bytes(32));
-        $user->setVerificationToken($token);
-        
-        // Set expiration to 24 hours from now
-        $expiresAt = new \DateTime('+24 hours');
-        $user->setVerificationTokenExpiresAt($expiresAt);
-        
-        $this->entityManager->flush();
-        
-        // Generate verification URL
-        $verificationUrl = $this->generateUrl('auth_verify_email', [
-            'token' => $token
-        ], UrlGeneratorInterface::ABSOLUTE_URL);
-        
-        // Create and send email
-        $email = (new TemplatedEmail())
-            ->from($_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com')
-            ->to($user->getEmail())
-            ->subject('Verify Your Email - SkillHarbor')
-            ->htmlTemplate('emails/verify-email.html.twig')
-            ->context([
-                'user' => $user,
-                'verificationUrl' => $verificationUrl,
-                'expirationDate' => $expiresAt,
-            ]);
-        
-        $this->mailer->send($email);
+        try {
+            // Generate verification token
+            $token = bin2hex(random_bytes(32));
+            $user->setVerificationToken($token);
+            
+            // Set expiration to 24 hours from now
+            $expiresAt = new \DateTime('+24 hours');
+            $user->setVerificationTokenExpiresAt($expiresAt);
+            
+            $this->entityManager->flush();
+            
+            // Generate verification URL
+            $verificationUrl = $this->generateUrl('auth_verify_email', [
+                'token' => $token
+            ], UrlGeneratorInterface::ABSOLUTE_URL);
+            
+            // Log for debugging
+            error_log('Attempting to send verification email to: ' . $user->getEmail());
+            error_log('Verification URL: ' . $verificationUrl);
+            
+            // Get mailer configuration
+            $fromAddress = $_ENV['MAILER_FROM_ADDRESS'] ?? 'noreply@skillharbor.com';
+            $fromName = $_ENV['MAILER_FROM_NAME'] ?? 'SkillHarbor';
+            
+            error_log('From address: ' . $fromAddress);
+            
+            // Create and send email
+            $email = (new TemplatedEmail())
+                ->from($fromAddress)
+                ->to($user->getEmail())
+                ->subject('Verify Your Email - SkillHarbor')
+                ->htmlTemplate('emails/verify-email.html.twig')
+                ->context([
+                    'user' => $user,
+                    'verificationUrl' => $verificationUrl,
+                    'expirationDate' => $expiresAt,
+                ]);
+            
+            $this->mailer->send($email);
+            
+            error_log('Verification email sent successfully to: ' . $user->getEmail());
+            
+        } catch (\Exception $e) {
+            error_log('Failed to send verification email: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -500,10 +518,14 @@ class AuthController extends AbstractController
                     // Send verification email
                     try {
                         $this->sendVerificationEmail($user);
-                        $this->addFlash('success', "Welcome aboard, {$firstName}! We've sent a verification email to {$email}. Please check your inbox to activate your account.");
+                        $this->addFlash('success', "Welcome aboard, {$firstName}! We've sent a verification email to {$email}. Please check your inbox (and spam folder) to activate your account.");
                     } catch (\Exception $e) {
-                        // If email fails, still allow user to continue but log the error
-                        $this->addFlash('warning', "Your account was created, but we couldn't send the verification email. Please contact support.");
+                        // Log the actual error for debugging
+                        error_log('Email verification failed: ' . $e->getMessage());
+                        error_log('Stack trace: ' . $e->getTraceAsString());
+                        
+                        // If email fails, still allow user to continue but show warning
+                        $this->addFlash('warning', "Your account was created, but we couldn't send the verification email. Error: " . $e->getMessage() . ". Please contact support or try resending the verification email.");
                     }
 
                     // Redirect to login page
