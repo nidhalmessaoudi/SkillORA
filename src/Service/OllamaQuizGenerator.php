@@ -14,6 +14,9 @@ class OllamaQuizGenerator
         private OllamaClient $ollama,
     ) {}
 
+    /**
+     * @return list<Question>
+     */
     public function generateMcq(Evaluation $evaluation, string $topic, int $count = 5): array
     {
         if (strtoupper((string) $evaluation->getType()) !== 'QUIZ') {

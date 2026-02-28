@@ -23,6 +23,8 @@ class AuthController extends AbstractController
 
     /**
      * Comprehensive email validation
+     *
+     * @return list<string>
      */
     private function validateEmail(string $email): array
     {
@@ -72,6 +74,9 @@ class AuthController extends AbstractController
 
     /**
      * Advanced password validation with strength checking
+     *
+     * @param array{email?:string,firstname?:string,lastname?:string} $context
+     * @return list<string>
      */
     private function validatePassword(string $password, array $context = []): array
     {
@@ -145,6 +150,8 @@ class AuthController extends AbstractController
 
     /**
      * Validate name fields
+     *
+     * @return list<string>
      */
     private function validateName(string $name, string $fieldName): array
     {
@@ -236,12 +243,16 @@ class AuthController extends AbstractController
     public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
         // Redirect to appropriate dashboard if already logged in
-        if ($this->getUser()) {
-            if ($this->getUser()->isAdmin()) {
+        $loggedUser = $this->getUser();
+        if ($loggedUser instanceof User) {
+            if ($loggedUser->isAdmin()) {
                 return $this->redirectToRoute('admin_dashboard');
             } elseif ($this->isGranted('ROLE_PROFESSOR')) {
                 return $this->redirectToRoute('professor_dashboard');
             }
+            return $this->redirectToRoute('app_home');
+        }
+        if ($loggedUser !== null) {
             return $this->redirectToRoute('app_home');
         }
 
@@ -303,12 +314,12 @@ class AuthController extends AbstractController
 
         if ($request->isMethod('POST')) {
             // Sanitize and retrieve input data
-            $email = trim($request->request->get('email', ''));
-            $password = $request->request->get('password', '');
-            $passwordConfirm = $request->request->get('password_confirm', '');
-            $firstName = trim($request->request->get('firstname', ''));
-            $lastName = trim($request->request->get('lastname', ''));
-            $role = $request->request->get('role', 'student');
+            $email = trim((string) $request->request->get('email', ''));
+            $password = (string) $request->request->get('password', '');
+            $passwordConfirm = (string) $request->request->get('password_confirm', '');
+            $firstName = trim((string) $request->request->get('firstname', ''));
+            $lastName = trim((string) $request->request->get('lastname', ''));
+            $role = (string) $request->request->get('role', 'student');
             
             // Store form data for re-population
             $formData = [

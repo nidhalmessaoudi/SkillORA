@@ -34,6 +34,7 @@ class Question
         cascade: ['persist', 'remove'],
         orphanRemoval: true
     )]
+    /** @var Collection<int, Answer> */
     private Collection $answers;
 
 

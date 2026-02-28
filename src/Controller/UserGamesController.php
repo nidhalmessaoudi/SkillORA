@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\WordGame;
 use App\Entity\WordGameProgress;
 use App\Service\OllamaWordGameFactory;
@@ -29,6 +30,9 @@ class UserGamesController extends AbstractController
         }
 
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $progress = $em->getRepository(WordGameProgress::class)->findOneBy([
             'user' => $user,
@@ -66,10 +70,13 @@ class UserGamesController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'reason' => 'no_user'], 403);
+        }
 
         $payload = json_decode($request->getContent(), true);
         $word = strtoupper(trim((string)($payload['word'] ?? '')));
-        $word = preg_replace('/[^A-Z]/', '', $word);
+        $word = preg_replace('/[^A-Z]/', '', $word) ?? '';
 
         if ($word === '' || strlen($word) < 2) {
             return $this->json(['ok' => false, 'reason' => 'empty'], 400);
@@ -107,6 +114,7 @@ class UserGamesController extends AbstractController
             return $this->json(['ok' => false, 'reason' => 'wrong']);
         }
 
+        /** @var list<string> $found */
         $found[] = $word;
         $progress->setFoundWords($found);
         $progress->setScore($progress->getScore() + $match->getPoints());

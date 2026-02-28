@@ -7,8 +7,7 @@ final class TextSimilarity
     public static function normalize(string $text): string
     {
         $t = mb_strtolower(trim($text));
-        $t = preg_replace('/\s+/', ' ', $t);
-        return $t ?? '';
+        return preg_replace('/\s+/', ' ', $t) ?? '';
     }
 
     /**
@@ -56,6 +55,7 @@ final class TextSimilarity
         return max(0.0, $raw);
     }
 
+    /** @return list<string> */
     private static function tokenize(string $t): array
     {
         // remove punctuation except apostrophe
@@ -66,6 +66,10 @@ final class TextSimilarity
         return array_values(array_filter($parts, fn($w)=>!in_array($w,$stop,true)));
     }
 
+    /**
+     * @param list<string> $tokens
+     * @return list<string>
+     */
     private static function shingles(array $tokens, int $k): array
     {
         $n = count($tokens);
@@ -77,6 +81,7 @@ final class TextSimilarity
         return array_values(array_unique($out));
     }
 
+    /** @return list<int> */
     private static function sentenceLengths(string $t): array
     {
         $t = trim($t);
@@ -91,7 +96,10 @@ final class TextSimilarity
         return $lens;
     }
 
-    /** @return array{0: float, 1: float} */
+    /**
+     * @param list<int> $xs
+     * @return array{0: float, 1: float}
+     */
     private static function meanVar(array $xs): array
     {
         $n = count($xs);

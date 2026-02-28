@@ -6,6 +6,9 @@ class OllamaHangmanGenerator
 {
     public function __construct(private OllamaClient $ollama) {}
 
+    /**
+     * @return array{title:string,hint:string,answer:string}
+     */
     public function generate(string $topic = 'symfony', string $level = 'easy'): array
     {
         $topic = trim($topic) ?: 'programming';
@@ -42,7 +45,7 @@ PROMPT;
         }
 
         $answer = strtoupper((string)($data['answer'] ?? ''));
-        $answer = preg_replace('/[^A-Z]/', '', $answer);
+        $answer = preg_replace('/[^A-Z]/', '', $answer) ?? '';
 
         if ($answer === '' || strlen($answer) < 5 || strlen($answer) > 12) {
             return $this->fallback($topic);
@@ -68,6 +71,7 @@ PROMPT;
         return substr($text, $start, $end - $start + 1);
     }
 
+    /** @return array{title:string,hint:string,answer:string} */
     private function fallback(string $topic): array
     {
         // fallback simple par topic

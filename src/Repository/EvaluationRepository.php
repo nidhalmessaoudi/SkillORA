@@ -10,9 +10,9 @@ use Doctrine\Persistence\ManagerRegistry;
  * @extends ServiceEntityRepository<Evaluation>
  *
  * @method Evaluation|null find($id, $lockMode = null, $lockVersion = null)
- * @method Evaluation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Evaluation|null findOneBy(array<string, mixed> $criteria, array<string, 'ASC'|'DESC'>|null $orderBy = null)
  * @method Evaluation[]    findAll()
- * @method Evaluation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Evaluation[]    findBy(array<string, mixed> $criteria, array<string, 'ASC'|'DESC'>|null $orderBy = null, $limit = null, $offset = null)
  */
 class EvaluationRepository extends ServiceEntityRepository
 {
@@ -23,17 +23,19 @@ class EvaluationRepository extends ServiceEntityRepository
 
     public function save(Evaluation $entity, bool $flush = false): void
     {
-        $this->_em->persist($entity);
+        $em = $this->getEntityManager();
+        $em->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $em->flush();
         }
     }
 
     public function remove(Evaluation $entity, bool $flush = false): void
     {
-        $this->_em->remove($entity);
+        $em = $this->getEntityManager();
+        $em->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $em->flush();
         }
     }
 }

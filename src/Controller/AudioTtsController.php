@@ -6,6 +6,7 @@ use App\Entity\Evaluation;
 use App\Entity\EvaluationAudioAttempt;
 use App\Entity\Question;
 use App\Entity\QuestionAudioAttempt;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +26,9 @@ class AudioTtsController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $user = $this->getUser();
-        if (!$user) return $this->json(['ok' => false], 401);
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false], 401);
+        }
 
         $max = 2;
 
@@ -67,7 +70,9 @@ class AudioTtsController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $user = $this->getUser();
-        if (!$user) return $this->json(['ok' => false], 401);
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false], 401);
+        }
 
         // Only allow for EXAM (optional safety)
         if (strtoupper((string)$evaluation->getType()) !== 'EXAM') {

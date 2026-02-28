@@ -2,10 +2,15 @@
 
 namespace App\Repository;
 
+use App\Entity\Evaluation;
+use App\Entity\User;
 use App\Entity\UserEvaluation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<UserEvaluation>
+ */
 class UserEvaluationRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,15 +21,13 @@ class UserEvaluationRepository extends ServiceEntityRepository
     /**
      * Vérifie si l'utilisateur a déjà passé une évaluation
      */
-    public function findByUserAndEvaluation($user, $evaluation): ?UserEvaluation
+    public function findByUserAndEvaluation(User $user, Evaluation $evaluation): ?UserEvaluation
     {
         return $this->createQueryBuilder('ue')
             ->andWhere('ue.user = :user')
             ->andWhere('ue.evaluation = :evaluation')
-            ->setParameters([
-                'user' => $user,
-                'evaluation' => $evaluation,
-            ])
+            ->setParameter('user', $user)
+            ->setParameter('evaluation', $evaluation)
             ->getQuery()
             ->getOneOrNullResult();
     }

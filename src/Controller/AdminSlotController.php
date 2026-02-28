@@ -67,9 +67,7 @@ class AdminSlotController extends AbstractController
                 }
             }
 
-            if (!empty($errors)) {
-                $this->addFlash('error', 'Veuillez corriger les erreurs.');
-            }
+            $this->addFlash('error', 'Veuillez corriger les erreurs.');
         }
 
         return $this->render('availability_slots/new.html.twig', [
@@ -126,9 +124,7 @@ class AdminSlotController extends AbstractController
                 }
             }
 
-            if (!empty($errors)) {
-                $this->addFlash('error', 'Veuillez corriger les erreurs.');
-            }
+            $this->addFlash('error', 'Veuillez corriger les erreurs.');
         }
 
         return $this->render('availability_slots/edit.html.twig', [
@@ -141,7 +137,7 @@ class AdminSlotController extends AbstractController
     #[Route('/{id}/delete', name: 'admin_slots_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Request $request, AvailabilitySlot $slot): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $slot->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $slot->getId(), (string) $request->request->get('_token'))) {
             $this->entityManager->remove($slot);
             $this->entityManager->flush();
 

@@ -8,6 +8,9 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Answer>
+ */
 class AnswerRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -15,6 +18,9 @@ class AnswerRepository extends ServiceEntityRepository
         parent::__construct($registry, Answer::class);
     }
 
+    /**
+     * @return array{totalQuestions:int,correctAnswers:int,accuracy:float}
+     */
     public function getEvaluationStatsForUser(User $user, Evaluation $evaluation): array
     {
         // 1) Total questions in this evaluation
@@ -39,7 +45,7 @@ class AnswerRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         // 3) Accuracy %
-        $accuracy = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+        $accuracy = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0.0;
 
         return [
             'totalQuestions' => $totalQuestions,

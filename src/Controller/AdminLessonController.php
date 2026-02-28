@@ -19,6 +19,9 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route("/admin/courses/{courseId}/sections/{sectionId}/lessons")]
 class AdminLessonController extends AbstractController
 {
+    /**
+     * @return array{0: Course, 1: CourseSection}
+     */
     private function getCourseSectionOr404(
         int $courseId,
         int $sectionId,
@@ -81,18 +84,16 @@ class AdminLessonController extends AbstractController
         UploadedFile $file,
         string $type,
     ): string {
-        $mime = (string) ($file->getClientMimeType() ?? "");
+        $mime = (string) $file->getClientMimeType();
 
         if ($mime === "") {
             $realPath = $file->getPathname();
             if (
-                is_string($realPath) &&
                 $realPath !== "" &&
                 is_file($realPath) &&
                 is_readable($realPath)
             ) {
-                $guessed = $file->getMimeType();
-                $mime = is_string($guessed) ? $guessed : "";
+                $mime = (string) $file->getMimeType();
             }
         }
 

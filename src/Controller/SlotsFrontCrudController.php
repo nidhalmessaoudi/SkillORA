@@ -21,6 +21,8 @@ class SlotsFrontCrudController extends AbstractController
             'end_time'   => $request->request->get('end_time', ''),
         ];
         $errors = [];
+        $startAt = null;
+        $endAt = null;
         if ($request->isMethod('POST')) {
             if (empty($formData['start_date'])) $errors['start_date'] = 'Start date required.';
             if (empty($formData['start_time'])) $errors['start_time'] = 'Start time required.';
@@ -35,6 +37,9 @@ class SlotsFrontCrudController extends AbstractController
             }
             if (empty($errors)) {
                 $slot = new AvailabilitySlot();
+                if (!$startAt instanceof \DateTime || !$endAt instanceof \DateTime) {
+                    throw new \RuntimeException('Invalid slot date range.');
+                }
                 $slot->setStartAt($startAt);
                 $slot->setEndAt($endAt);
                 $slot->setIsBooked(false);
@@ -61,6 +66,8 @@ class SlotsFrontCrudController extends AbstractController
             'end_time'   => $request->isMethod('POST') ? $request->request->get('end_time', '')   : $slot->getEndAt()->format('H:i'),
         ];
         $errors = [];
+        $startAt = null;
+        $endAt = null;
         if ($request->isMethod('POST')) {
             if (empty($formData['start_date'])) $errors['start_date'] = 'Start date required.';
             if (empty($formData['start_time'])) $errors['start_time'] = 'Start time required.';
@@ -74,6 +81,9 @@ class SlotsFrontCrudController extends AbstractController
                 }
             }
             if (empty($errors)) {
+                if (!$startAt instanceof \DateTime || !$endAt instanceof \DateTime) {
+                    throw new \RuntimeException('Invalid slot date range.');
+                }
                 $slot->setStartAt($startAt);
                 $slot->setEndAt($endAt);
                 $entityManager->flush();
@@ -92,7 +102,7 @@ class SlotsFrontCrudController extends AbstractController
     #[Route('/slots/front/{id}/delete', name: 'slots_front_delete', methods: ['POST'])]
     public function delete(Request $request, AvailabilitySlot $slot, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $slot->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $slot->getId(), (string) $request->request->get('_token'))) {
             $entityManager->remove($slot);
             $entityManager->flush();
             $this->addFlash('success', 'Slot deleted.');

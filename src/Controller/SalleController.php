@@ -303,6 +303,18 @@ class SalleController extends AbstractController
         return $this->redirectToRoute('admin_salles_index');
     }
 
+    /**
+     * @return array{
+     *   name:string,
+     *   image_3d:string,
+     *   max_participants:string|int,
+     *   duration:string|int,
+     *   equipment:string,
+     *   location:string,
+     *   event_id:string|int,
+     *   event_title:string
+     * }
+     */
     private function buildSalleFormData(Request $request, ?Salle $salle): array
     {
         if ($request->isMethod('POST')) {
@@ -354,6 +366,10 @@ class SalleController extends AbstractController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     private function validateSalleForm(array $data): array
     {
         $required = [
@@ -399,6 +415,7 @@ class SalleController extends AbstractController
         return '/uploads/salles/' . $filename;
     }
 
+    /** @return list<int> */
     private function parseSeats(string $seats): array
     {
         if ($seats === '') {
@@ -419,6 +436,9 @@ class SalleController extends AbstractController
         return $numbers;
     }
 
+    /**
+     * @return list<array{number:int,name:string,days:int,first_weekday:int}>
+     */
     private function buildCalendarMonths(int $year): array
     {
         $months = [];
@@ -435,6 +455,9 @@ class SalleController extends AbstractController
         return $months;
     }
 
+    /**
+     * @return array{weeks:list<list<string>>,month_labels:array<int, string>}
+     */
     private function buildContributionCalendar(int $year): array
     {
         $start = new \DateTime(sprintf('%04d-01-01', $year));
@@ -467,6 +490,7 @@ class SalleController extends AbstractController
         ];
     }
 
+    /** @return list<string> */
     private function expandEventDates(Event $event): array
     {
         $start = $event->getStartDate();
@@ -476,12 +500,12 @@ class SalleController extends AbstractController
         }
 
         $dates = [];
-        $current = (clone $start)->setTime(0, 0, 0);
-        $endDate = (clone $end)->setTime(0, 0, 0);
+        $current = \DateTimeImmutable::createFromInterface($start)->setTime(0, 0, 0);
+        $endDate = \DateTimeImmutable::createFromInterface($end)->setTime(0, 0, 0);
 
         while ($current <= $endDate) {
             $dates[] = $current->format('Y-m-d');
-            $current->modify('+1 day');
+            $current = $current->modify('+1 day');
         }
 
         return $dates;

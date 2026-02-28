@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Answer;
+use App\Entity\User;
 use App\Service\AnswerPlagiarismOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +24,7 @@ class ExamIntegrityController extends AbstractController
     ): JsonResponse {
         // ✅ Sécurité: l'étudiant ne peut modifier que sa propre Answer
         $user = $this->getUser();
-        if (!$user || !$answer->getStudent() || $answer->getStudent()->getId() !== $user->getId()) {
+        if (!$user instanceof User || !$answer->getStudent() || $answer->getStudent()->getId() !== $user->getId()) {
             return $this->json(['ok' => false, 'error' => 'Forbidden'], 403);
         }
 

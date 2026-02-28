@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\WordGame;
 use App\Entity\WordGameProgress;
 use App\Entity\WordGameWord;
@@ -37,11 +38,11 @@ class WordGameController extends AbstractController
         $payload = $gen->generate($theme, $level);
 
         $game = new WordGame();
-        $game->setTitle($payload['title'] ?? 'Word Connect');
-        $game->setTheme($payload['theme'] ?? $theme);
-        $game->setLetters($payload['letters'] ?? 'SYMFONY');
+        $game->setTitle($payload['title']);
+        $game->setTheme($payload['theme']);
+        $game->setLetters($payload['letters']);
 
-        $words = (array) ($payload['words'] ?? []);
+        $words = $payload['words'];
         foreach ($words as $w) {
             $w = strtoupper(trim((string) $w));
             if (strlen($w) < 3 || strlen($w) > 10) continue;
@@ -63,6 +64,9 @@ class WordGameController extends AbstractController
     public function play(WordGame $game, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $progress = $em->getRepository(WordGameProgress::class)->findOneBy([
             'user' => $user,
@@ -94,6 +98,9 @@ class WordGameController extends AbstractController
     public function check(WordGame $game, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'reason' => 'no_user'], 403);
+        }
         $payload = $request->toArray();
         $word = strtoupper(trim((string)($payload['word'] ?? '')));
 

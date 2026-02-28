@@ -4,7 +4,10 @@ namespace App\Service;
 
 final class VectorMath
 {
-    /** @param float[] $a @param float[] $b */
+    /**
+     * @param list<float> $a
+     * @param list<float> $b
+     */
     public static function cosine(array $a, array $b): float
     {
         if (count($a) === 0 || count($a) !== count($b)) return 0.0;

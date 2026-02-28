@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\UserEvaluation;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -178,7 +179,7 @@ class AdminController extends AbstractController
             $dateEnd = clone $date;
             $dateEnd->setTime(23, 59, 59);
             
-            $count = $this->userRepository->createQueryBuilder('u')
+            $count = (int) $this->userRepository->createQueryBuilder('u')
                 ->select('COUNT(u.id)')
                 ->where('u.createdAt >= :dateStart')
                 ->andWhere('u.createdAt <= :dateEnd')
@@ -214,7 +215,7 @@ class AdminController extends AbstractController
             $dateEnd = clone $date;
             $dateEnd->setTime(23, 59, 59);
             
-            $count = $this->userRepository->createQueryBuilder('u')
+            $count = (int) $this->userRepository->createQueryBuilder('u')
                 ->select('COUNT(u.id)')
                 ->where('u.createdAt >= :dateStart')
                 ->andWhere('u.createdAt <= :dateEnd')
@@ -242,11 +243,19 @@ class AdminController extends AbstractController
         return $this->redirectToRoute('admin_stats');
     }
 
+    /**
+     * @param array<string, int|float> $stats
+     * @param list<array{date:string,formatted_date:string,count:int}> $userGrowth
+     * @param list<User> $users
+     */
     private function exportCsv(array $stats, array $userGrowth, array $users): StreamedResponse
     {
         $response = new StreamedResponse();
         $response->setCallback(function() use ($stats, $userGrowth, $users) {
             $handle = fopen('php://output', 'w+');
+            if ($handle === false) {
+                return;
+            }
 
             // UTF-8 BOM for Excel compatibility
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
@@ -259,11 +268,17 @@ class AdminController extends AbstractController
             // Overall Statistics
             fputcsv($handle, ['Overall Statistics']);
             fputcsv($handle, ['Metric', 'Value']);
-            fputcsv($handle, ['Total Users', $stats['total']]);
-            fputcsv($handle, ['Active Users', $stats['active']]);
-            fputcsv($handle, ['Banned Users', $stats['banned']]);
-            fputcsv($handle, ['New This Week', $stats['new_this_week']]);
-            fputcsv($handle, ['Activity Rate', number_format(($stats['active'] / $stats['total']) * 100, 2) . '%']);
+            $total = (int) ($stats['total'] ?? 0);
+            $active = (int) ($stats['active'] ?? 0);
+            $banned = (int) ($stats['banned'] ?? 0);
+            $newThisWeek = (int) ($stats['new_this_week'] ?? 0);
+            $activityRate = $total > 0 ? number_format(($active / $total) * 100, 2) . '%' : '0.00%';
+
+            fputcsv($handle, ['Total Users', $total]);
+            fputcsv($handle, ['Active Users', $active]);
+            fputcsv($handle, ['Banned Users', $banned]);
+            fputcsv($handle, ['New This Week', $newThisWeek]);
+            fputcsv($handle, ['Activity Rate', $activityRate]);
             fputcsv($handle, []);
 
             // User Growth (Last 30 Days)
@@ -285,7 +300,7 @@ class AdminController extends AbstractController
                     $user->getLastName(),
                     $user->getRole() ?? 'student',
                     $user->isBanned() ? 'Banned' : 'Active',
-                    $user->getCreatedAt()->format('Y-m-d H:i:s')
+                    $user->getCreatedAt()?->format('Y-m-d H:i:s') ?? ''
                 ]);
             }
 
@@ -298,6 +313,11 @@ class AdminController extends AbstractController
         return $response;
     }
 
+    /**
+     * @param array<string, int|float> $stats
+     * @param list<array{date:string,formatted_date:string,count:int}> $userGrowth
+     * @param list<User> $users
+     */
     private function exportPdf(array $stats, array $userGrowth, array $users): Response
     {
         // Generate HTML for PDF
@@ -319,6 +339,9 @@ class AdminController extends AbstractController
 public function correctExam(UserEvaluation $userEvaluation, Request $request, EntityManagerInterface $em): Response
 {
     $evaluation = $userEvaluation->getEvaluation();
+    if ($evaluation === null) {
+        throw $this->createNotFoundException();
+    }
 
     if ($evaluation->getType() !== 'EXAM') {
         throw $this->createNotFoundException();

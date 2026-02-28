@@ -25,6 +25,7 @@ class WordGameProgress
     private ?WordGame $game = null;
 
     // found_words JSON DEFAULT NULL
+    /** @var list<string>|null */
     #[ORM\Column(name: 'found_words', type: 'json', nullable: true)]
     private ?array $foundWords = null;
 
@@ -59,11 +60,13 @@ class WordGameProgress
         return $this;
     }
 
+    /** @return list<string> */
     public function getFoundWords(): array
     {
         return $this->foundWords ?? [];
     }
 
+    /** @param list<string>|null $foundWords */
     public function setFoundWords(?array $foundWords): static
     {
         $this->foundWords = $foundWords;

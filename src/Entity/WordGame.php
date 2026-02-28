@@ -26,6 +26,7 @@ class WordGame
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    /** @var Collection<int, WordGameWord> */
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: WordGameWord::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $words;
 

@@ -6,6 +6,9 @@ class OllamaWordGameGenerator
 {
     public function __construct(private OllamaClient $ollama) {}
 
+    /**
+     * @return array{title:string,theme:string,letters:string,words:list<string>}
+     */
     public function generate(string $theme = 'symfony', string $level = 'easy'): array
     {
         $theme = trim($theme) ?: 'programming';
@@ -49,14 +52,15 @@ PROMPT;
             ];
         }
 
-        $data['letters'] = strtoupper(preg_replace('/[^A-Z]/', '', (string)$data['letters']));
+        $letters = preg_replace('/[^A-Z]/', '', (string) $data['letters']) ?? '';
+        $data['letters'] = strtoupper($letters);
         if (strlen($data['letters']) < 7) $data['letters'] = 'SYMFONY';
 
         // normalize words
         $words = [];
         foreach ((array)$data['words'] as $w) {
             $w = strtoupper(trim((string)$w));
-            $w = preg_replace('/[^A-Z]/', '', $w);
+            $w = preg_replace('/[^A-Z]/', '', $w) ?? '';
             if (strlen($w) >= 3 && strlen($w) <= 10) $words[] = $w;
         }
         $words = array_values(array_unique($words));

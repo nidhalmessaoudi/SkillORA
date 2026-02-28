@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\HangmanAttempt;
 use App\Entity\HangmanGame;
+use App\Entity\User;
 use App\Service\OllamaHangmanGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -53,7 +54,9 @@ class HangmanController extends AbstractController
     public function play(HangmanGame $game, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        if (!$user) throw $this->createAccessDeniedException();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $attempt = $em->getRepository(HangmanAttempt::class)->findOneBy([
             'user' => $user,
@@ -87,7 +90,9 @@ class HangmanController extends AbstractController
     public function guess(HangmanGame $game, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $user = $this->getUser();
-        if (!$user) return $this->json(['ok' => false, 'reason' => 'no_user'], 403);
+        if (!$user instanceof User) {
+            return $this->json(['ok' => false, 'reason' => 'no_user'], 403);
+        }
 
         $attempt = $em->getRepository(HangmanAttempt::class)->findOneBy([
             'user' => $user,
@@ -150,6 +155,9 @@ class HangmanController extends AbstractController
         ]);
     }
 
+    /**
+     * @param list<string> $guessed
+     */
     private function mask(string $answer, array $guessed): string
     {
         $out = '';

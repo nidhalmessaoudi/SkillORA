@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Evaluation;
+use App\Entity\User;
 use App\Repository\AnswerRepository;
 use App\Repository\EvaluationRepository;
 use Doctrine\DBAL\Connection;
@@ -21,7 +22,7 @@ class ProfileStatisticsController extends AbstractController
     public function statisticsList(EvaluationRepository $evaluationRepository): Response
     {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
@@ -50,7 +51,7 @@ class ProfileStatisticsController extends AbstractController
         AnswerRepository $answerRepository
     ): Response {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 

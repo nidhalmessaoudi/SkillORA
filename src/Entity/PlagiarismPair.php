@@ -61,7 +61,21 @@ class PlagiarismPair
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    // getters/setters (omits for brevity)
+    public function getId(): ?int { return $this->id; }
+    public function getRun(): ?PlagiarismRun { return $this->run; }
+    public function getEvaluation(): ?Evaluation { return $this->evaluation; }
+    public function getAnswerA(): ?Answer { return $this->answerA; }
+    public function getAnswerB(): ?Answer { return $this->answerB; }
+    public function getSemantic(): float { return $this->semantic; }
+    public function getLexical(): float { return $this->lexical; }
+    public function getStructure(): float { return $this->structure; }
+    public function getFinalScore(): float { return $this->finalScore; }
+    public function getPlagiarismPercent(): int { return $this->plagiarismPercent; }
+    public function getStatus(): string { return $this->status; }
+    /** @return array<string, mixed>|null */
+    public function getHighlights(): ?array { return $this->highlights; }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
     public function setRun(?PlagiarismRun $run): static { $this->run = $run; return $this; }
     public function setEvaluation(?Evaluation $e): static { $this->evaluation = $e; return $this; }
     public function setAnswerA(?Answer $a): static { $this->answerA = $a; return $this; }
@@ -74,5 +88,6 @@ class PlagiarismPair
     public function setFinalScore(float $v): static { $this->finalScore = $v; return $this; }
     public function setPlagiarismPercent(int $p): static { $this->plagiarismPercent = $p; return $this; }
     public function setStatus(string $s): static { $this->status = $s; return $this; }
+    /** @param array<string, mixed>|null $h */
     public function setHighlights(?array $h): static { $this->highlights = $h; return $this; }
 }

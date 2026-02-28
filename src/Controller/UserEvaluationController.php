@@ -6,6 +6,7 @@ use App\Entity\Answer;
 use App\Entity\Evaluation;
 use App\Entity\UserEvaluation;
 use App\Entity\Question;
+use App\Entity\User;
 use App\Service\AnswerPlagiarismOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -45,7 +46,9 @@ class UserEvaluationController extends AbstractController
     public function show(Evaluation $evaluation, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        if (!$user) throw $this->createAccessDeniedException();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
@@ -66,7 +69,9 @@ class UserEvaluationController extends AbstractController
         AnswerPlagiarismOrchestrator $orchestrator
     ): Response {
         $user = $this->getUser();
-        if (!$user) throw $this->createAccessDeniedException();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $userEvaluation = $em->getRepository(UserEvaluation::class)->findOneBy([
             'user' => $user,
@@ -255,13 +260,18 @@ class UserEvaluationController extends AbstractController
     public function result(UserEvaluation $userEvaluation, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        if (!$user) throw $this->createAccessDeniedException();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         if ($userEvaluation->getUser() !== $user) {
             throw $this->createAccessDeniedException();
         }
 
         $evaluation = $userEvaluation->getEvaluation();
+        if ($evaluation === null) {
+            throw $this->createNotFoundException();
+        }
         $questions = $evaluation->getQuestions();
 
         $examSubmission = null;
