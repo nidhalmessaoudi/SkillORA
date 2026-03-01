@@ -41,9 +41,11 @@
         "twig/twig": "^3.0"
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "*",
         "phpstan/phpstan": "^2.1",
         "symfony/debug-bundle": "^6.4",
         "symfony/maker-bundle": "^1.65",
+        "symfony/phpunit-bridge": "^8.0",
         "symfony/stopwatch": "^6.4",
         "symfony/web-profiler-bundle": "^6.4"
     },

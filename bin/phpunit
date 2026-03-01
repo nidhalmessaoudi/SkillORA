@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+if (!is_file(dirname(__DIR__).'/vendor/bin/simple-phpunit')) {
+    fwrite(STDERR, "simple-phpunit n'est pas installe. Lance: composer require --dev symfony/phpunit-bridge\n");
+    exit(1);
+}
+
+if (false === getenv('SYMFONY_PHPUNIT_VERSION')) {
+    putenv('SYMFONY_PHPUNIT_VERSION=9.6');
+}
+
+require dirname(__DIR__).'/vendor/bin/simple-phpunit';

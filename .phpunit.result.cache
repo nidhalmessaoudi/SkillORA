@@ -1,0 +1,1 @@
+{"version":1,"defects":[],"times":{"App\\Tests\\Service\\EvaluationManagerTest::testValidTypeQuiz":0.004,"App\\Tests\\Service\\EvaluationManagerTest::testInvalidTypeThrowsException":0,"App\\Tests\\Service\\EvaluationManagerTest::testTotalScoreIsSumOfQuestions":0.001}}
