@@ -14,7 +14,7 @@ class Evaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id = 0;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le titre est obligatoire.")]
@@ -73,16 +73,19 @@ class Evaluation
     )]
     private ?string $docxPath = null;
 
-    // ✅ PDF sans aucun contrôle obligatoire
     #[ORM\Column(name: 'pdf_path', length: 255, nullable: true)]
     private ?string $pdfPath = null;
 
+    /**
+     * @var Collection<int, Question>
+     */
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    /** @var Collection<int, Question> */
     private Collection $questions;
 
+    /**
+     * @var Collection<int, UserEvaluation>
+     */
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: UserEvaluation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    /** @var Collection<int, UserEvaluation> */
     private Collection $userEvaluations;
 
     public function __construct()
@@ -92,7 +95,10 @@ class Evaluation
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): int
+    {
+        return $this->id;
+    }
 
     public function getTitle(): ?string { return $this->title; }
     public function setTitle(?string $title): static { $this->title = $title; return $this; }
@@ -119,6 +125,7 @@ class Evaluation
 
     /** @return Collection<int, Question> */
     public function getQuestions(): Collection { return $this->questions; }
+
     /** @return Collection<int, UserEvaluation> */
     public function getUserEvaluations(): Collection { return $this->userEvaluations; }
 
@@ -131,23 +138,22 @@ class Evaluation
         $this->totalScore = $total;
     }
 
-
     public function addQuestion(Question $question): static
-{
-    if (!$this->questions->contains($question)) {
-        $this->questions->add($question);
-        $question->setEvaluation($this);
-    }
-    return $this;
-}
-
-public function removeQuestion(Question $question): static
-{
-    if ($this->questions->removeElement($question)) {
-        if ($question->getEvaluation() === $this) {
-            $question->setEvaluation(null);
+    {
+        if (!$this->questions->contains($question)) {
+            $this->questions->add($question);
+            $question->setEvaluation($this);
         }
+        return $this;
     }
-    return $this;
-}
+
+    public function removeQuestion(Question $question): static
+    {
+        if ($this->questions->removeElement($question)) {
+            if ($question->getEvaluation() === $this) {
+                $question->setEvaluation(null);
+            }
+        }
+        return $this;
+    }
 }

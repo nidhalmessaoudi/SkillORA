@@ -56,4 +56,15 @@ class EvaluationManagerTest extends TestCase
 
         $this->assertEquals(15, $evaluation->getTotalScore());
     }
+
+    public function testEmptyTypeThrowsException()
+{
+    $this->expectException(\InvalidArgumentException::class);
+
+    $evaluation = new Evaluation();
+    $evaluation->setType(null); // ou ''
+
+    $manager = new EvaluationManager();
+    $manager->validateType($evaluation);
+}
 }
