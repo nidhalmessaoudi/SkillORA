@@ -1,9 +1,9 @@
 {# Global Navigation Header #}
 <header class="sticky top-0 z-40 w-full glass border-b border-navy-200/50 dark:border-navy-800/50">
-    <div class="container-wide">
-        <div class="flex items-center justify-between h-16 lg:h-18">
+    <div class="container-wide py-2">
+        <div class="flex items-center justify-between h-14 xl:h-16">
             {# Logo & Mobile Menu Toggle #}
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 {# Mobile Menu Button #}
                 <button
                     onclick="toggleMobileMenu()"
@@ -14,33 +14,31 @@
                 </button>
 
                 {# Logo #}
-                <a href="{{ path('app_home') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-medium transition-shadow">
-                        <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div class="hidden sm:block">
-                        <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillORA</span>
-                    </div>
+                <a href="{{ path('app_home') }}" class="flex items-center gap-2 group">
+                    <span
+                        class="inline-block font-display font-bold text-2xl tracking-tight"
+                        style="background-image: linear-gradient(90deg, #0284c7 0%, #0ea5e9 45%, #1e3a8a 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;"
+                    >SkillORA</span>
                 </a>
             </div>
 
             {# Desktop Navigation #}
-            <nav class="hidden lg:flex items-center gap-1">
-                <a href="{{ path('courses_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+            <nav class="hidden lg:flex items-center gap-0.5">
+                <a href="{{ path('courses_index') }}" class="px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Browse
                 </a>
                 {% if app.user %}
-                <a href="{{ path('my_courses') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                <a href="{{ path('my_courses') }}" class="px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     My Learning
                 </a>
                 {% endif %}
-                <a href="{{ path('community_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                <a href="{{ path('community_index') }}" class="px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Community
                 </a>
-                <a href="{{ path('events_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                <a href="{{ path('events_index') }}" class="px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Events
                 </a>
-                <a href="{{ path('public_rendezvous_index') }}" class="px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
+                <a href="{{ path('public_rendezvous_index') }}" class="px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all">
                     Rendez-vous
                 </a>
 
@@ -48,7 +46,7 @@
                 <div class="relative" data-dropdown>
                     <button
                         onclick="toggleDropdown('instructor-dropdown')"
-                        class="flex items-center gap-1 px-4 py-2 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all"
+                        class="flex items-center gap-1 px-3 py-1.5 rounded-xl text-body-sm font-medium text-navy-600 dark:text-navy-300 hover:text-harbor-600 dark:hover:text-harbor-400 hover:bg-harbor-50 dark:hover:bg-harbor-900/20 transition-all"
                     >
                         <span>Teach</span>
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -76,7 +74,7 @@
             </nav>
 
             {# Search & Actions #}
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
                 {# Desktop Search #}
                 <form
                     class="hidden md:block relative"
@@ -90,7 +88,7 @@
                         name="q"
                         value="{{ app.request.query.get('q') }}"
                         placeholder="Search courses..."
-                        class="search-input w-64 lg:w-80"
+                        class="search-input w-52 lg:w-56"
                     >
                 </form>
 
@@ -282,11 +280,11 @@
     <div class="p-6">
         {# Close Button #}
         <div class="flex items-center justify-between mb-8">
-            <a href="{{ path('app_home') }}" class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-harbor-600 to-harbor-500 rounded-2xl flex items-center justify-center">
-                    <i data-lucide="anchor" class="w-5 h-5 text-white"></i>
-                </div>
-                <span class="font-display font-bold text-lg text-navy-900 dark:text-white">SkillORA</span>
+            <a href="{{ path('app_home') }}" class="flex items-center gap-2">
+                <span
+                    class="inline-block font-display font-bold text-2xl tracking-tight"
+                    style="background-image: linear-gradient(90deg, #0284c7 0%, #0ea5e9 45%, #1e3a8a 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;"
+                >SkillORA</span>
             </a>
             <button onclick="closeMobileMenu()" class="p-2 rounded-xl hover:bg-navy-100 dark:hover:bg-navy-800">
                 <i data-lucide="x" class="w-5 h-5 text-navy-600 dark:text-navy-400"></i>
