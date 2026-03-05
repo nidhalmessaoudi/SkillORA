@@ -35,7 +35,6 @@ class CommunityController extends AbstractController
     private const TOPIC_MAX_LENGTH = 100;
     private const TAG_MAX_LENGTH = 50;
     private const MAX_TAGS = 5;
-    private const REPLY_MIN_LENGTH = 1;
     private const REPLY_MAX_LENGTH = 5000;
     private const DESCRIPTION_MAX_LENGTH = 1000;
 
@@ -237,6 +236,10 @@ class CommunityController extends AbstractController
         ]);
     }
 
+    /**
+     * @param array<int, Post> $posts
+     * @return array<int, array{userReaction: ?string, counts: array<string, int>, total: int}>
+     */
     private function getPostsReactionData(array $posts, User $user): array
     {
         $data = [];
@@ -367,9 +370,6 @@ class CommunityController extends AbstractController
 
                     // Process tags
                     foreach ($tagNames as $tagName) {
-                        if ($tagName === '')
-                            continue;
-
                         $existing = $this->em->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
                         if ($existing) {
                             $post->addTag($existing);
@@ -510,6 +510,9 @@ class CommunityController extends AbstractController
         ]);
     }
 
+    /**
+     * @return array<string, int>
+     */
     private function getReactionCounts(?Post $post, ?Reply $reply): array
     {
         $qb = $this->em->getRepository(Reaction::class)->createQueryBuilder('r')
@@ -657,8 +660,6 @@ class CommunityController extends AbstractController
         // Validate Reply Content
         if ($content === '') {
             $errors[] = 'Reply cannot be empty.';
-        } elseif (strlen($content) < self::REPLY_MIN_LENGTH) {
-            $errors[] = sprintf('Reply must be at least %d character long.', self::REPLY_MIN_LENGTH);
         } elseif (strlen($content) > self::REPLY_MAX_LENGTH) {
             $errors[] = sprintf('Reply cannot exceed %d characters.', self::REPLY_MAX_LENGTH);
         }
@@ -720,10 +721,6 @@ class CommunityController extends AbstractController
         // Validate
         if ($content === '') {
             return $this->json(['ok' => false, 'error' => 'Content cannot be empty'], 400);
-        }
-
-        if (strlen($content) < self::REPLY_MIN_LENGTH) {
-            return $this->json(['ok' => false, 'error' => sprintf('Reply must be at least %d character.', self::REPLY_MIN_LENGTH)], 400);
         }
 
         if (strlen($content) > self::REPLY_MAX_LENGTH) {
@@ -994,10 +991,6 @@ class CommunityController extends AbstractController
         // Validation
         if ($content === '') {
             return $this->json(['ok' => false, 'error' => 'Reply cannot be empty'], 400);
-        }
-
-        if (strlen($content) < self::REPLY_MIN_LENGTH) {
-            return $this->json(['ok' => false, 'error' => sprintf('Reply must be at least %d character.', self::REPLY_MIN_LENGTH)], 400);
         }
 
         if (strlen($content) > self::REPLY_MAX_LENGTH) {

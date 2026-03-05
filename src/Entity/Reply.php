@@ -13,7 +13,8 @@ class Reply
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    /** @phpstan-ignore property.onlyRead */
+    private int $id;
 
     #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: 'replies')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -37,6 +38,7 @@ class Reply
     #[ORM\JoinColumn(name: 'parent_id', nullable: true, onDelete: 'CASCADE')]
     private ?Reply $parent = null;
 
+    /** @var Collection<int, Reply> */
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Reply::class, cascade: ['remove'])]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $replies;
@@ -49,7 +51,7 @@ class Reply
 
     // Getters / setters
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int { return $this->id ?? null; }
 
     public function getPost(): Post { return $this->post; }
     public function setPost(Post $post): self { $this->post = $post; return $this; }

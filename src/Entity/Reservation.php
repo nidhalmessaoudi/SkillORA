@@ -13,11 +13,13 @@ class Reservation
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'event_id', type: 'integer')]
-    private ?int $eventId = null;
+    #[ORM\ManyToOne(targetEntity: Event::class)]
+    #[ORM\JoinColumn(name: 'event_id', nullable: false, onDelete: 'CASCADE')]
+    private ?Event $event = null;
 
-    #[ORM\Column(name: 'salle_id', type: 'integer')]
-    private ?int $salleId = null;
+    #[ORM\ManyToOne(targetEntity: Salle::class)]
+    #[ORM\JoinColumn(name: 'salle_id', nullable: false, onDelete: 'CASCADE')]
+    private ?Salle $salle = null;
 
     #[ORM\Column(type: 'string', length: 100)]
     private ?string $nom = null;
@@ -37,8 +39,9 @@ class Reservation
     #[ORM\Column(name: 'date_reservation', type: 'datetime')]
     private ?\DateTimeInterface $dateReservation = null;
 
-    #[ORM\Column(name: 'user_id', type: 'integer', nullable: true, options: ['unsigned' => true])]
-    private ?int $userId = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -51,25 +54,25 @@ class Reservation
         return $this->id;
     }
 
-    public function getEventId(): ?int
+    public function getEvent(): ?Event
     {
-        return $this->eventId;
+        return $this->event;
     }
 
-    public function setEventId(int $eventId): static
+    public function setEvent(?Event $event): static
     {
-        $this->eventId = $eventId;
+        $this->event = $event;
         return $this;
     }
 
-    public function getSalleId(): ?int
+    public function getSalle(): ?Salle
     {
-        return $this->salleId;
+        return $this->salle;
     }
 
-    public function setSalleId(int $salleId): static
+    public function setSalle(?Salle $salle): static
     {
-        $this->salleId = $salleId;
+        $this->salle = $salle;
         return $this;
     }
 
@@ -139,14 +142,14 @@ class Reservation
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUser(): ?User
     {
-        return $this->userId;
+        return $this->user;
     }
 
-    public function setUserId(?int $userId): static
+    public function setUser(?User $user): static
     {
-        $this->userId = $userId;
+        $this->user = $user;
         return $this;
     }
 }

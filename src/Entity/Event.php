@@ -34,8 +34,9 @@ class Event
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column(name: 'salle_id', type: 'integer', nullable: true)]
-    private ?int $salleId = null;
+    #[ORM\ManyToOne(targetEntity: Salle::class)]
+    #[ORM\JoinColumn(name: 'salle_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Salle $salle = null;
 
     // Getters and Setters
     public function getId(): ?int
@@ -120,14 +121,14 @@ class Event
         return $this;
     }
 
-    public function getSalleId(): ?int
+    public function getSalle(): ?Salle
     {
-        return $this->salleId;
+        return $this->salle;
     }
 
-    public function setSalleId(?int $salleId): static
+    public function setSalle(?Salle $salle): static
     {
-        $this->salleId = $salleId;
+        $this->salle = $salle;
         return $this;
     }
 }

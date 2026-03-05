@@ -41,9 +41,10 @@ class Evaluation
         cascade: ['persist', 'remove'],
         orphanRemoval: true
     )]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private Collection $questions;
 
-    #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: UserEvaluation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: UserEvaluation::class)]
     private Collection $userEvaluations;
 
     public function __construct()

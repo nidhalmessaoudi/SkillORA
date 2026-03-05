@@ -31,8 +31,9 @@ class Salle
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $location = null;
 
-    #[ORM\Column(name: 'event_id', type: 'integer', nullable: true)]
-    private ?int $eventId = null;
+    #[ORM\ManyToOne(targetEntity: Event::class)]
+    #[ORM\JoinColumn(name: 'event_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Event $event = null;
 
     // Getters and Setters
     public function getId(): ?int
@@ -106,14 +107,14 @@ class Salle
         return $this;
     }
 
-    public function getEventId(): ?int
+    public function getEvent(): ?Event
     {
-        return $this->eventId;
+        return $this->event;
     }
 
-    public function setEventId(?int $eventId): static
+    public function setEvent(?Event $event): static
     {
-        $this->eventId = $eventId;
+        $this->event = $event;
         return $this;
     }
 }

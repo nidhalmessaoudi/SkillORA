@@ -95,6 +95,7 @@ class Course
         ORM\OneToMany(
             targetEntity: CourseSection::class,
             mappedBy: "course",
+            cascade: ['persist', 'remove'],
             orphanRemoval: true,
         ),
     ]

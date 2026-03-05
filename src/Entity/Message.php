@@ -31,8 +31,9 @@ class Message
     #[ORM\Column(name: 'cree_le', type: 'datetime')]
     private ?\DateTimeInterface $creeLe = null;
 
-    #[ORM\Column(name: 'rendez_vous_id', type: 'integer')]
-    private ?int $rendezVousId = null;
+    #[ORM\ManyToOne(targetEntity: RendezVous::class)]
+    #[ORM\JoinColumn(name: 'rendez_vous_id', nullable: false, onDelete: 'CASCADE')]
+    private ?RendezVous $rendezVous = null;
 
     public function __construct()
     {
@@ -111,14 +112,14 @@ class Message
         return $this;
     }
 
-    public function getRendezVousId(): ?int
+    public function getRendezVous(): ?RendezVous
     {
-        return $this->rendezVousId;
+        return $this->rendezVous;
     }
 
-    public function setRendezVousId(int $rendezVousId): static
+    public function setRendezVous(?RendezVous $rendezVous): static
     {
-        $this->rendezVousId = $rendezVousId;
+        $this->rendezVous = $rendezVous;
         return $this;
     }
 }

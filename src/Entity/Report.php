@@ -58,7 +58,7 @@ class Report
     private ?\DateTime $reviewedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'reviewed_by', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'reviewed_by_id', nullable: true, onDelete: 'SET NULL')]
     private ?User $reviewedBy = null;
 
     public function __construct()

@@ -34,6 +34,7 @@ class Question
         cascade: ['persist', 'remove'],
         orphanRemoval: true
     )]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private Collection $answers;
 
     public function __construct()

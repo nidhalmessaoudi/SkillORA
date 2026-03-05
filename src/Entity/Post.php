@@ -5,7 +5,6 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use DateTimeInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'post')]
@@ -15,7 +14,8 @@ class Post
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    /** @phpstan-ignore property.onlyRead */
+    private int $id;
 
     #[ORM\Column(type: 'string', length: 50)]
     private string $type;
@@ -39,10 +39,12 @@ class Post
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'posts', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'post_tag')]
     private Collection $tags;
 
+    /** @var Collection<int, Reply> */
     #[ORM\OneToMany(mappedBy: 'post', targetEntity: Reply::class, cascade: ['persist','remove'], orphanRemoval: true)]
     private Collection $replies;
 
@@ -78,7 +80,7 @@ class Post
 
     // Getters / Setters
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int { return $this->id ?? null; }
 
     public function getType(): string { return $this->type; }
     public function setType(string $type): self { $this->type = $type; return $this; }
@@ -98,7 +100,7 @@ class Post
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
 
-    /** @return Collection|Tag[] */
+    /** @return Collection<int, Tag> */
     public function getTags(): Collection { return $this->tags; }
     public function addTag(Tag $tag): self
     {
@@ -113,7 +115,7 @@ class Post
         return $this;
     }
 
-    /** @return Collection|Reply[] */
+    /** @return Collection<int, Reply> */
     public function getReplies(): Collection
     {
         return $this->replies;
