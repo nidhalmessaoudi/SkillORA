@@ -3,7 +3,7 @@
 {% block title %}Modifier le créneau - SkillHarbor{% endblock %}
 
 {% block body %}
-{% set fd = form_data|default({}) %}.
+{% set fd = form_data|default({}) %}
 {% set err = errors|default({}) %}
 {% set startDateValue = fd.start_date|default(slot.startAt is defined and slot.startAt ? slot.startAt|date('Y-m-d') : '') %}
 {% set startTimeValue = fd.start_time|default(slot.startAt is defined and slot.startAt ? slot.startAt|date('H:i') : '') %}
